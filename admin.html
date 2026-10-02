@@ -29,6 +29,15 @@
     .actions{display:flex;gap:7px;align-items:center}.actions select{width:135px;padding:7px 8px;font-size:.82rem}.save{padding:7px 9px;color:#fff;background:var(--teal)}
     .empty{padding:45px;text-align:center;color:var(--muted)}.loading{padding:35px;text-align:center;color:var(--muted)}
     .notice{margin-bottom:18px;padding:12px 14px;border-radius:11px;background:#e9f6ff;color:#07577d}.notice.error{background:#fff0ef;color:var(--danger)}
+    .modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:20px;background:#00243b88}
+    .modal-card{width:min(760px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:20px;box-shadow:0 30px 80px #00243b55}
+    .modal-head{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:20px 22px;border-bottom:1px solid var(--line)}
+    .modal-head h3{margin:0;color:var(--deep);font-size:1.3rem}.close{border:0;background:#eef4f7;color:var(--deep);border-radius:10px;padding:8px 11px;font-weight:800}
+    .detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding:22px}
+    .detail{padding:13px;border:1px solid var(--line);border-radius:12px;background:#fbfdfe}.detail.full{grid-column:1/-1}
+    .detail small{display:block;color:var(--muted);font-weight:800;text-transform:uppercase;font-size:.7rem;letter-spacing:.05em;margin-bottom:4px}.detail div{white-space:pre-wrap}
+    .details-btn{padding:7px 9px;color:var(--deep);background:#eef4f7}
+    @media(max-width:600px){.detail-grid{grid-template-columns:1fr}.detail.full{grid-column:auto}}
     @media(max-width:850px){.stats{grid-template-columns:repeat(2,1fr)}.page-title{align-items:start;flex-direction:column}.user-email{display:none}}
     @media(max-width:560px){main{padding:20px 12px}.stats{grid-template-columns:1fr 1fr}.stat strong{font-size:1.6rem}.login-card{padding:25px}}
   </style>
@@ -85,6 +94,13 @@
     </main>
   </section>
 
+  <section id="detail-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+    <div class="modal-card">
+      <div class="modal-head"><h3 id="detail-title">Detalhes da inscrição</h3><button id="close-modal" class="close" type="button">Fechar</button></div>
+      <div id="detail-grid" class="detail-grid"></div>
+    </div>
+  </section>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL = 'https://jyrzbfnaitdmilxxcbyv.supabase.co';
@@ -128,13 +144,31 @@
           <td><strong>${esc(r.protocolo)}</strong></td>
           <td class="muted">${fmtDate(r.created_at)}</td>
           <td><span class="status ${esc(r.status)}">${esc(statusLabel[r.status]||r.status)}</span></td>
-          <td><div class="actions"><select data-id="${esc(r.id)}" aria-label="Novo status">
+          <td><div class="actions"><button class="btn details-btn" data-details="${esc(r.id)}">Detalhes</button><select data-id="${esc(r.id)}" aria-label="Novo status">
             ${Object.entries(statusLabel).map(([value,label])=>`<option value="${value}" ${r.status===value?'selected':''}>${label}</option>`).join('')}
           </select><button class="btn save" data-save="${esc(r.id)}">Salvar</button></div></td>
         </tr>`).join('');
       $('loading').classList.add('hidden'); $('table').classList.toggle('hidden', rows.length===0); $('empty').classList.toggle('hidden', rows.length!==0);
     }
 
+    function showDetails(id) {
+      const r = registrations.find(item => item.id === id);
+      if (!r) return;
+      $('detail-title').textContent = r.nome || 'Detalhes da inscrição';
+      const fields = [
+        ['Nome', r.nome], ['CPF', r.cpf],
+        ['Nascimento', r.nascimento ? new Intl.DateTimeFormat('pt-BR').format(new Date(r.nascimento + 'T00:00:00')) : '—'],
+        ['Telefone', r.telefone], ['E-mail', r.email], ['Profissão', r.profissao],
+        ['Registro profissional', r.registro], ['Protocolo', r.protocolo],
+        ['Status', statusLabel[r.status] || r.status], ['Cadastro', fmtDate(r.created_at)],
+        ['Atualização', fmtDate(r.updated_at)], ['Hospitais de interesse', (r.hospitais || []).join('\n') || '—'],
+        ['Plantões selecionados', (r.plantoes || []).join('\n') || '—'],
+        ['Observações', r.observacoes || 'Nenhuma observação informada.']
+      ];
+      $('detail-grid').innerHTML = fields.map(([label, value], index) => '<div class="detail' + (index >= 11 ? ' full' : '') + '"><small>' + esc(label) + '</small><div>' + esc(value) + '</div></div>').join('');
+      $('detail-modal').classList.remove('hidden');
+      $('close-modal').focus();
+    }
     async function load() {
       $('loading').classList.remove('hidden'); $('table').classList.add('hidden'); $('empty').classList.add('hidden');
       const {data,error}=await client.from('inscricoes').select('*').order('created_at',{ascending:false});
@@ -148,6 +182,17 @@
       registrations=data||[]; render();
     }
 
+    $('tbody').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-details]');
+      if (button) showDetails(button.dataset.details);
+    });
+    $('close-modal').addEventListener('click', () => $('detail-modal').classList.add('hidden'));
+    $('detail-modal').addEventListener('click', (event) => {
+      if (event.target === $('detail-modal')) $('detail-modal').classList.add('hidden');
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') $('detail-modal').classList.add('hidden');
+    });
     async function login(event) {
       event.preventDefault(); $('login-error').classList.add('hidden'); $('login-button').disabled=true; $('login-button').textContent='Entrando…';
       const {data,error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});
