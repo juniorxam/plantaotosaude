@@ -738,6 +738,8 @@
 
           <form class="form-card" id="registration-form" novalidate>
             <div class="form-notice"><span aria-hidden="true">⚠</span><span><strong>Importante:</strong> só envie esta inscrição se você não for realizar a prova do concurso da SES-TO em 01/11/2026.</span></div>
+            <input type="hidden" name="website" value="" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <input type="hidden" name="form_started_at" id="form-started-at" value="">
             <div class="process-strip" aria-label="Como funciona a inscrição">
               <div class="process-step"><b>1</b><span><strong>Cadastre-se</strong>Informe seus dados e registro.</span></div>
               <div class="process-step"><b>2</b><span><strong>Escolha</strong>Indique hospitais e plantões.</span></div>
@@ -914,6 +916,8 @@
       nameInput.addEventListener('input', () => { nameInput.value = formatNameInput(nameInput.value); });
       const curriculoInput = document.querySelector('#curriculo');
       const curriculoStatus = document.querySelector('#curriculo-status');
+      const formStartedAt = document.querySelector('#form-started-at');
+      if (formStartedAt) formStartedAt.value = String(Date.now());
       const fileLabel = document.querySelector('label[for="curriculo"]');
       curriculoInput?.addEventListener('change', () => {
         const file = curriculoInput.files?.[0];
@@ -1093,55 +1097,22 @@
         submitButton.textContent = 'Enviando…';
 
         try {
-          const extension = fileExt;
-          const curriculumPath = 'curriculos/' + crypto.randomUUID() + '.' + extension;
-          const uploadResponse = await fetch(SUPABASE_URL + '/storage/v1/object/curriculos/' + curriculumPath.replace('curriculos/', ''), {
-            method: 'POST',
-            headers: {
-              apikey: SUPABASE_PUBLISHABLE_KEY,
-              Authorization: 'Bearer ' + SUPABASE_PUBLISHABLE_KEY,
-              'Content-Type': curriculoFile.type,
-              'x-upsert': 'false'
-            },
-            body: curriculoFile
-          });
-          if (!uploadResponse.ok) throw new Error(await uploadResponse.text() || 'Falha ao enviar currículo.');
+          const submissionData = new FormData(form);
+          submissionData.delete('hospitais');
+          submissionData.delete('plantoes');
+          submissionData.delete('declaracao');
+          submissionData.append('hospitais', JSON.stringify(data.hospitais));
+          submissionData.append('plantoes', JSON.stringify(data.plantoes));
+          submissionData.append('declaracao', 'true');
 
-          const payload = {
-            p_nome: data.nome,
-            p_cpf: data.cpf,
-            p_nascimento: data.nascimento,
-            p_telefone: data.telefone,
-            p_email: data.email,
-            p_profissao: data.profissao,
-            p_registro: data.registro,
-            p_hospitais: data.hospitais,
-            p_plantoes: data.plantoes,
-            p_observacoes: data.observacoes || null,
-            p_curriculo_path: curriculumPath
-          };
-          const response = await fetch(SUPABASE_URL + '/rest/v1/rpc/register_plantao_inscricao', {
+          const response = await fetch(SUPABASE_URL + '/functions/v1/submit-plantao-inscricao', {
             method: 'POST',
             headers: {
-              apikey: SUPABASE_PUBLISHABLE_KEY,
-              Authorization: 'Bearer ' + SUPABASE_PUBLISHABLE_KEY,
-              'Content-Type': 'application/json'
+              apikey: SUPABASE_PUBLISHABLE_KEY
             },
-            body: JSON.stringify(payload)
+            body: submissionData
           });
-          if (!response.ok) {
-            const detail = await response.text();
-            try {
-              await fetch(SUPABASE_URL + '/storage/v1/object/curriculos/' + curriculumPath.replace('curriculos/', ''), {
-                method: 'DELETE',
-                headers: {
-                  apikey: SUPABASE_PUBLISHABLE_KEY,
-                  Authorization: 'Bearer ' + SUPABASE_PUBLISHABLE_KEY
-                }
-              });
-            } catch (_) {}
-            throw new Error(detail || 'Falha ao enviar inscrição.');
-          }
+          if (!response.ok) throw new Error(await response.text() || 'Falha ao enviar inscrição.');
 
           const result = await response.json();
           const protocol = Array.isArray(result) && result[0]?.protocolo ? result[0].protocolo : null;
