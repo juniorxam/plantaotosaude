@@ -754,7 +754,7 @@
               </div>
               <div class="field">
                 <label for="nascimento">Data de nascimento *</label>
-                <input id="nascimento" name="nascimento" type="date" min="1900-01-01" max="2026-10-02" required />
+                <input id="nascimento" name="nascimento" autocomplete="bday" type="date" min="1900-01-01" max="2026-10-02" required />
               </div>
               <div class="field">
                 <label for="telefone">Telefone/WhatsApp *</label>
@@ -783,8 +783,8 @@
               </div>
               <div class="field field-full">
                 <label for="curriculo">Currículo profissional *</label>
-                <input id="curriculo" name="curriculo" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required />
-                <p class="helper">Envie seu currículo em PDF, DOC ou DOCX, com até 5 MB.</p>
+                <input id="curriculo" name="curriculo" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" aria-describedby="curriculo-help" required />
+                <p class="helper" id="curriculo-help">Envie seu currículo em PDF, DOC ou DOCX, com até 5 MB.</p>
                 <p class="file-status" id="curriculo-status" aria-live="polite"></p>
               </div>
               <div class="field">
