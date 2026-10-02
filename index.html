@@ -56,7 +56,7 @@
     }
     .skip-link:focus { top: 1rem; }
 
-    .gov-strip {
+    .topbar {
       min-height: 42px;
       color: #fff;
       background: #003b68;
@@ -66,7 +66,7 @@
       letter-spacing: .04em;
       text-transform: uppercase;
     }
-    .gov-strip-inner {
+    .topbar-inner {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -78,6 +78,8 @@
     }
     .gov-brand { display: inline-flex; align-items: center; gap: .55rem; }
     .gov-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--yellow); box-shadow: 0 0 0 3px rgba(255,204,0,.14); }
+    .topbar-inner span:last-child { color: #bff2ea; font-weight: 600; letter-spacing: .02em; text-transform: none; }
+    .topbar-inner span:first-child { letter-spacing: .04em; text-transform: uppercase; }
     .quick-access { position: relative; z-index: 5; margin-top: -1px; background: #fff; border-bottom: 1px solid var(--line); box-shadow: 0 8px 25px rgba(0,61,102,.07); }
     .quick-inner { display: grid; grid-template-columns: 1.15fr repeat(4,1fr); max-width: var(--max-width); margin: 0 auto; }
     .quick-title { display: grid; align-content: center; gap: .25rem; padding: 1rem 1.25rem; border-right: 1px solid var(--line); }
@@ -329,35 +331,25 @@
     .shift-row small { color: var(--muted); }
     .shift-time { color: var(--teal); font-size: .9rem; font-weight: 800; text-align: right; }
 
-    .hospital-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-    .hospital-card {
-      position: relative;
-      min-height: 170px;
-      padding: 1.5rem;
-      overflow: hidden;
-      border: 1px solid var(--line);
-      border-top: 4px solid var(--blue);
-      border-radius: var(--radius-md);
-      background: var(--surface);
-      box-shadow: var(--shadow-sm);
-      transition: transform .2s ease, box-shadow .2s ease;
-    }
-    .hospital-card:nth-child(3n+2) { border-top-color: var(--teal); }
-    .hospital-card:nth-child(3n+3) { border-top-color: var(--yellow); }
-    .hospital-card::after {
-      content: "";
-      position: absolute;
-      right: -2rem;
-      bottom: -2.8rem;
-      width: 7rem;
-      height: 7rem;
-      border: 1px solid #e5eff2;
-      border-radius: 50%;
-    }
-    .hospital-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
-    .hospital-city { margin-bottom: .55rem; color: var(--teal); font-size: .83rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
-    .hospital-card h3 { max-width: 210px; margin-bottom: .5rem; color: var(--blue-dark); font-size: 1.18rem; line-height: 1.25; }
-    .hospital-card p { margin: 0; color: var(--muted); font-size: .92rem; }
+    .network-head { display:flex; align-items:end; justify-content:space-between; gap:2rem; margin-bottom:1.8rem; padding-bottom:1rem; border-bottom:1px solid var(--line); }
+    .network-label { display:inline-flex; align-items:center; gap:.5rem; color:var(--blue-dark); font-size:.82rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+    .network-label::before { content:""; width:.65rem; height:.65rem; border-radius:50%; background:var(--teal); box-shadow:0 0 0 5px var(--teal-light); }
+    .network-note { margin:0; color:var(--muted); font-size:.88rem; text-align:right; }
+    .hospital-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+    .hospital-card { position:relative; min-height:188px; padding:1.35rem; overflow:hidden; border:1px solid var(--line); border-radius:var(--radius-md); background:var(--surface); box-shadow:var(--shadow-sm); transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease; }
+    .hospital-card::before { content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:var(--blue); }
+    .hospital-card:nth-child(3n+2)::before { background:var(--teal); }
+    .hospital-card:nth-child(3n+3)::before { background:var(--yellow); }
+    .hospital-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-md); border-color:#b9d1da; }
+    .hospital-top { display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:1.25rem; }
+    .hospital-city { display:inline-flex; align-items:center; gap:.45rem; color:var(--teal); font-size:.76rem; font-weight:850; letter-spacing:.1em; text-transform:uppercase; }
+    .hospital-city::before { content:"⌖"; font-size:1rem; }
+    .hospital-tag { padding:.28rem .55rem; border-radius:999px; color:var(--blue-dark); background:#eef5f8; font-size:.68rem; font-weight:800; white-space:nowrap; }
+    .hospital-card h3 { max-width:245px; margin-bottom:.55rem; color:var(--blue-dark); font-size:1.17rem; line-height:1.25; }
+    .hospital-card p { margin:0; color:var(--muted); font-size:.86rem; }
+    .network-footer { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-top:1.3rem; padding:1rem 1.15rem; border:1px solid #d8e8ec; border-radius:12px; background:#f7fbfc; }
+    .network-footer strong { color:var(--blue-dark); font-size:.9rem; }
+    .network-footer span { color:var(--muted); font-size:.82rem; }
 
     .signup-section { background: var(--blue-dark); }
     .signup-section h2, .signup-section .section-kicker { color: #fff; }
@@ -532,7 +524,7 @@
       .requirements-grid { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 720px) {
-      .gov-strip-inner { align-items: flex-start; flex-direction: column; gap: .2rem; }
+      .topbar-inner { align-items: flex-start; flex-direction: column; gap: .2rem; }
       .site-nav { min-height: 4rem; }
       .nav-toggle { display: block; }
       .nav-links { display: none; position: absolute; top: 4rem; left: 0; right: 0; flex-direction: column; align-items: stretch; padding: .75rem 1.25rem 1rem; border-bottom: 1px solid var(--line); background: #fff; box-shadow: var(--shadow-sm); }
@@ -541,6 +533,8 @@
       .section { padding: 4rem 1rem; }
       .hero-inner { padding-right: 1rem; padding-left: 1rem; }
       .hospital-grid { grid-template-columns: 1fr 1fr; }
+      .network-head, .network-footer { align-items:flex-start; flex-direction:column; }
+      .network-note { text-align:left; }
       .form-grid, .choice-grid { grid-template-columns: 1fr; }
       .field-full { grid-column: auto; }
       .form-footer, .footer-inner { align-items: flex-start; flex-direction: column; }
@@ -654,17 +648,35 @@
     <section class="section section-alt" id="hospitais">
       <div class="section-inner">
         <div class="section-heading">
-          <p class="section-kicker">Onde a sua presença importa</p>
-          <h2>Hospitais participantes</h2>
-          <p>Indique uma ou mais cidades de interesse no formulário de inscrição.</p>
+          <p class="section-kicker">Rede hospitalar</p>
+          <h2>Unidades participantes</h2>
+          <p>Seis unidades integram a mobilização. Você pode indicar mais de uma cidade de interesse.</p>
         </div>
+        <div class="network-head"><span class="network-label">Rede estadual · Plantão TO Saúde</span><p class="network-note">Atuação temporária · jornadas de 12 horas</p></div>
         <div class="hospital-grid">
-          <article class="hospital-card"><div class="hospital-city">Palmas</div><h3>Hospital Geral de Palmas</h3><p>Capital · HGP</p></article>
-          <article class="hospital-card"><div class="hospital-city">Araguaína</div><h3>Hospital Regional de Araguaína</h3><p>Região norte</p></article>
-          <article class="hospital-card"><div class="hospital-city">Gurupi</div><h3>Hospital Regional de Gurupi</h3><p>Região sul</p></article>
-          <article class="hospital-card"><div class="hospital-city">Paraíso do Tocantins</div><h3>Hospital Regional de Paraíso</h3><p>Região central</p></article>
-          <article class="hospital-card"><div class="hospital-city">Porto Nacional</div><h3>Hospital Regional de Porto Nacional</h3><p>Região central</p></article>
-          <article class="hospital-card"><div class="hospital-city">Augustinópolis</div><h3>Hospital Regional de Augustinópolis</h3><p>Região do Bico do Papagaio</p></article>
+          <article class="hospital-card"><div class="hospital-top"><span class="hospital-city">Palmas</span><span class="hospital-tag">Capital</span></div><h3>Hospital Geral de Palmas</h3><p>Unidade hospitalar de referência na capital.</p></article>
+          <article class="hospital-card"><div class="hospital-top"><span class="hospital-city">Araguaína</span><span class="hospital-tag">Norte</span></div><h3>Hospital Regional de Araguaína</h3><p>Unidade participante da mobilização na região norte.</p></article>
+          <article class="hospital-card"><div class="hospital-top"><span class="hospital-city">Gurupi</span><span class="hospital-tag">Sul</span></div><h3>Hospital Regional de Gurupi</h3><p>Unidade participante da mobilização na região sul.</p></article>
+          <article class="hospital-card"><div class="hospital-top"><span class="hospital-city">Paraíso do Tocantins</span><span class="hospital-tag">Centro</span></div><h3>Hospital Regional de Paraíso</h3><p>Unidade participante da mobilização na região central.</p></article>
+          <article class="hospital-card"><div class="hospital-top"><span class="hospital-city">Porto Nacional</span><span class="hospital-tag">Centro</span></div><h3>Hospital Regional de Porto Nacional</h3><p>Unidade participante da mobilização na região central.</p></article>
+          <article class="hospital-card"><div class="hospital-top"><span class="hospital-city">Augustinópolis</span><span class="hospital-tag">Bico do Papagaio</span></div><h3>Hospital Regional de Augustinópolis</h3><p>Unidade participante da mobilização no extremo norte do Estado.</p></article>
+        </div>
+        <div class="network-footer"><strong>Escolha no formulário onde você pode atuar.</strong><span>A disponibilidade será analisada conforme a necessidade de cada unidade.</span></div>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="informacoes">
+      <div class="section-inner">
+        <div class="section-heading">
+          <p class="section-kicker">Informações importantes</p>
+          <h2>Antes de fazer sua inscrição</h2>
+          <p>Veja como funciona a mobilização e o que acontece depois do cadastro.</p>
+        </div>
+        <div class="requirements-grid">
+          <article class="requirement"><div class="requirement-icon" aria-hidden="true">01</div><h3>Quem pode participar</h3><p>Profissionais com formação e registro compatíveis com a atuação e que não farão a prova em 01/11/2026.</p></article>
+          <article class="requirement"><div class="requirement-icon" aria-hidden="true">02</div><h3>Como funciona</h3><p>Você informa seus dados, escolhe hospitais e plantões e a gestão responsável analisa a disponibilidade.</p></article>
+          <article class="requirement"><div class="requirement-icon" aria-hidden="true">03</div><h3>Jornada de 12 horas</h3><p>Estão disponíveis três períodos: véspera noturna, dia diurno e dia noturno.</p></article>
+          <article class="requirement"><div class="requirement-icon" aria-hidden="true">04</div><h3>Próxima etapa</h3><p>Após a análise, os profissionais selecionados serão contatados pelos canais informados no cadastro.</p></article>
         </div>
       </div>
     </section>
