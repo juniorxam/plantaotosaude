@@ -138,7 +138,13 @@
     async function load() {
       $('loading').classList.remove('hidden'); $('table').classList.add('hidden'); $('empty').classList.add('hidden');
       const {data,error}=await client.from('inscricoes').select('*').order('created_at',{ascending:false});
-      if(error){ $('loading').textContent='Não foi possível carregar as inscrições.'; showNotice(error.message,true); return; }
+      if(error){
+        $('loading').textContent='Acesso administrativo não autorizado.';
+        showNotice('Sua conta não está autorizada para acessar este painel.',true);
+        await client.auth.signOut({scope:'local'});
+        setTimeout(()=>location.reload(),900);
+        return;
+      }
       registrations=data||[]; render();
     }
 
@@ -146,7 +152,12 @@
       event.preventDefault(); $('login-error').classList.add('hidden'); $('login-button').disabled=true; $('login-button').textContent='Entrando…';
       const {data,error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});
       if(error){$('login-error').textContent='E-mail ou senha inválidos, ou acesso não autorizado.';$('login-error').classList.remove('hidden');}
-      else { $('user-email').textContent=data.user?.email||''; $('login-view').classList.add('hidden'); $('app-view').classList.remove('hidden'); await load(); }
+      else {
+        $('user-email').textContent=data.user?.email||'';
+        $('login-view').classList.add('hidden');
+        $('app-view').classList.remove('hidden');
+        await load();
+      }
       $('login-button').disabled=false; $('login-button').textContent='Entrar';
     }
 
