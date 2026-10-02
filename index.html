@@ -901,8 +901,8 @@
   </footer>
 
   <script>
-    // A chave publicável pode ficar no frontend; a tabela Supabase usa RLS e
-    // permite somente INSERT público com declaração, hospital e plantão válidos.
+    // A chave publicável pode ficar no frontend. As inscrições públicas passam
+    // pela Edge Function, que valida os dados e grava no banco com acesso de servidor.
     const SUPABASE_URL = 'https://jyrzbfnaitdmilxxcbyv.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_WDE_s2HYfWUCI3iuodaG4w_RFGGwm9m';
 
