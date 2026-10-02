@@ -48,6 +48,12 @@
     .detail small{display:block;color:var(--muted);font-weight:800;text-transform:uppercase;font-size:.7rem;letter-spacing:.05em;margin-bottom:4px}.detail div{white-space:pre-wrap}
     .details-btn{padding:7px 9px;color:var(--deep);background:#eef4f7}
     .pagination{display:flex;align-items:center;justify-content:center;gap:14px;padding:16px 0;color:var(--muted);font-size:.88rem;font-weight:750}
+    .table-wrap{overflow-x:auto}
+    .table-wrap table{min-width:1120px}
+    .muted{color:var(--muted)}
+    .last-updated{font-size:.78rem;color:var(--muted);margin-top:5px}
+    .toolbar{position:sticky;top:0;z-index:5}
+
     .pagination button:disabled{opacity:.45;cursor:not-allowed}
     @media(max-width:600px){.detail-grid{grid-template-columns:1fr}.detail.full{grid-column:auto}}
     @media(max-width:850px){.stats{grid-template-columns:repeat(2,1fr)}.insights{grid-template-columns:1fr}.page-title{align-items:start;flex-direction:column}.user-email{display:none}}
@@ -230,6 +236,7 @@
         return;
       }
       registrations=data||[]; render();
+      $('last-updated').textContent = 'Atualizado em ' + new Date().toLocaleString('pt-BR', {dateStyle:'short', timeStyle:'short'});
     }
 
     $('tbody').addEventListener('click', (event) => {
