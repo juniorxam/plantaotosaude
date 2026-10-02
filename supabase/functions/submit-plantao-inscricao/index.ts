@@ -53,7 +53,7 @@ Deno.serve(async (request) => {
     if (upload.error) throw upload.error;
     const { data, error } = await supabase.rpc("register_plantao_inscricao",{p_nome:nome,p_cpf:cpf,p_nascimento:nascimento,p_telefone:telefone,p_email:email,p_profissao:profissao,p_registro:registro,p_hospitais:selectedHospitals,p_plantoes:selectedShifts,p_observacoes:observacoes || null,p_curriculo_path:uploadedPath});
     if (error) {
-      if (error.code === "23505" || String(error.message).includes("Já existe uma inscrição")) return json({ message: "Este CPF já possui uma inscrição registrada." },409);
+      if (error.code === "23505" || String(error.message).includes("Já existe uma inscrição")) { await supabase.storage.from("curriculos").remove([uploadedPath]); uploadedPath = ""; return json({ message: "Este CPF já possui uma inscrição registrada." },409); }
       throw error;
     }
     await supabase.from("submission_rate_limits").upsert({ip_hash:ipHash,last_submitted_at:new Date().toISOString()});
