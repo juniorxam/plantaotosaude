@@ -459,6 +459,24 @@
     }
     .success-message.is-visible { display: block; }
     .error-message { min-height: 1.1rem; margin: .8rem 0 0; color: var(--danger); font-size: .84rem; font-weight: 650; }
+
+    .mobile-sticky-cta { display:none; }
+    .section-divider { height:4px; background:linear-gradient(90deg,var(--blue) 0 48%,var(--yellow) 48% 52%,var(--teal) 52% 100%); }
+    .process-strip { display:grid; grid-template-columns:repeat(3,1fr); margin-top:1.5rem; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:var(--surface); box-shadow:var(--shadow-sm); }
+    .process-step { display:flex; gap:.75rem; align-items:center; padding:1rem; border-right:1px solid var(--line); }
+    .process-step:last-child { border-right:0; }
+    .process-step b { display:grid; width:2rem; height:2rem; flex:0 0 2rem; place-items:center; border-radius:50%; color:#fff; background:var(--blue); font-size:.78rem; }
+    .process-step:nth-child(2) b { background:var(--teal); }
+    .process-step:nth-child(3) b { color:var(--blue-dark); background:var(--yellow); }
+    .process-step span { color:var(--muted); font-size:.82rem; line-height:1.3; }
+    .process-step strong { display:block; color:var(--blue-dark); font-size:.88rem; }
+    .section-cta { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-top:2rem; padding:1.15rem 1.3rem; border-radius:14px; color:#fff; background:var(--blue); }
+    .section-cta strong { font-size:1rem; }
+    .section-cta p { margin:.2rem 0 0; color:#d6edf5; font-size:.84rem; }
+    .section-cta .btn { flex:0 0 auto; }
+    .floating-help { position:fixed; right:1.1rem; bottom:1.1rem; z-index:20; display:flex; align-items:center; gap:.55rem; padding:.7rem .9rem; border:1px solid #cfe0e6; border-radius:999px; color:var(--blue-dark); background:#fff; box-shadow:0 8px 24px rgba(0,61,102,.14); text-decoration:none; font-size:.8rem; font-weight:800; }
+    .floating-help:hover { border-color:var(--teal); transform:translateY(-2px); }
+
     .privacy-note {
       margin: 0 0 1.25rem;
       padding: .9rem 1rem;
@@ -531,6 +549,20 @@
       .nav-links.is-open { display: flex; }
       .nav-links a { padding: .75rem; }
       .section { padding: 4rem 1rem; }
+
+      .process-strip { grid-template-columns:1fr; }
+      .process-step { border-right:0; border-bottom:1px solid var(--line); }
+      .process-step:last-child { border-bottom:0; }
+      .section-cta { align-items:flex-start; flex-direction:column; }
+      .section-cta .btn { width:100%; }
+      .floating-help { display:none; }
+      .mobile-sticky-cta { position:fixed; left:0; right:0; bottom:0; z-index:30; display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.72rem 1rem; color:#fff; background:var(--blue-deep); box-shadow:0 -8px 24px rgba(0,0,0,.14); text-decoration:none; }
+      .mobile-sticky-cta span { display:grid; gap:.08rem; }
+      .mobile-sticky-cta strong { font-size:.82rem; }
+      .mobile-sticky-cta small { color:#bff2ea; font-size:.68rem; }
+      .mobile-sticky-cta b { padding:.55rem .7rem; border-radius:8px; color:var(--blue-dark); background:var(--yellow); font-size:.76rem; white-space:nowrap; }
+      body { padding-bottom:3.8rem; }
+
       .hero-inner { padding-right: 1rem; padding-left: 1rem; }
       .hospital-grid { grid-template-columns: 1fr 1fr; }
       .network-head, .network-footer { align-items:flex-start; flex-direction:column; }
@@ -701,6 +733,11 @@
 
           <form class="form-card" id="registration-form" novalidate>
             <div class="form-notice"><span aria-hidden="true">⚠</span><span><strong>Importante:</strong> só envie esta inscrição se você não for realizar a prova do concurso da SES-TO em 01/11/2026.</span></div>
+            <div class="process-strip" aria-label="Como funciona a inscrição">
+              <div class="process-step"><b>1</b><span><strong>Cadastre-se</strong>Informe seus dados e registro.</span></div>
+              <div class="process-step"><b>2</b><span><strong>Escolha</strong>Indique hospitais e plantões.</span></div>
+              <div class="process-step"><b>3</b><span><strong>Aguarde</strong>A gestão fará a análise e o contato.</span></div>
+            </div>
             <div class="form-grid">
               <div class="field field-full">
                 <label for="nome">Nome completo *</label>
@@ -822,10 +859,20 @@
             <details><summary>Preciso enviar documentos agora?</summary><p>Não. Neste primeiro cadastro, informe os dados solicitados e o número do registro profissional. Caso necessário, a gestão pedirá a documentação nas próximas etapas.</p></details>
           </div>
         </div>
+
+        <div class="section-cta">
+          <div><strong>Pronto para participar?</strong><p>Faça seu cadastro e indique onde você pode atuar.</p></div>
+          <a class="btn btn-primary" href="#inscricao">Fazer inscrição <span aria-hidden="true">→</span></a>
+        </div>
       </div>
     </section>
   </main>
 
+  <a class="mobile-sticky-cta" href="#inscricao" aria-label="Ir para inscrição">
+    <span><strong>Plantão TO Saúde</strong><small>Inscrição aberta</small></span><b>Inscrever-se →</b>
+  </a>
+
+<a class="floating-help" href="#duvidas" aria-label="Ir para dúvidas">? Dúvidas</a>
   <footer>
     <div class="footer-inner">
       <div>
