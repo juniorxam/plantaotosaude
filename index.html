@@ -657,7 +657,7 @@
               </div>
               <div class="field">
                 <label for="nascimento">Data de nascimento *</label>
-                <input id="nascimento" name="nascimento" type="date" required />
+                <input id="nascimento" name="nascimento" type="date" min="1900-01-01" max="new Date().toISOString().slice(0, 10)" required />
               </div>
               <div class="field">
                 <label for="telefone">Telefone/WhatsApp *</label>
@@ -801,6 +801,7 @@
       const shiftError = document.querySelector('#shift-error');
       const declarationError = document.querySelector('#declaration-error');
       const declaration = document.querySelector('#declaracao');
+      const birthInput = document.querySelector('#nascimento');
 
       const onlyDigits = (value) => value.replace(/\D/g, '');
       const isValidCpf = (value) => {
@@ -878,6 +879,10 @@
         }
         if (!isValidCpf(cpfInput.value)) {
           setInvalid(cpfInput, true);
+          valid = false;
+        }
+        if (birthInput.value && (birthInput.value < '1900-01-01' || birthInput.value > new Date().toISOString().slice(0, 10))) {
+          setInvalid(birthInput, true);
           valid = false;
         }
         if (onlyDigits(phoneInput.value).length < 10) {
