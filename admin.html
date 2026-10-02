@@ -18,6 +18,8 @@
     label{display:block;font-size:.9rem;font-weight:750;margin:16px 0 7px}input,select{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
     input:focus,select:focus{outline:3px solid #00897b33;border-color:var(--teal)}
     .btn{border:0;border-radius:11px;padding:12px 16px;font-weight:800;cursor:pointer}.primary{width:100%;margin-top:20px;color:#fff;background:var(--blue)}.primary:disabled{opacity:.6;cursor:wait}
+    .github-btn{width:100%;margin-top:11px;color:#fff;background:#24292f}.github-btn:disabled{opacity:.6;cursor:wait}.login-divider{display:flex;align-items:center;gap:10px;margin:18px 0 0;color:var(--muted);font-size:.78rem}.login-divider::before,.login-divider::after{content:"";height:1px;flex:1;background:var(--line)}
+    .login-help{margin:13px 0 0;color:var(--muted);font-size:.78rem;line-height:1.45}
     .error{margin-top:14px;padding:11px 13px;border-radius:10px;background:#fff0ef;color:var(--danger);font-size:.9rem}
     .app-header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}.header-inner{max-width:1400px;margin:auto;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;gap:15px}
     .header-actions{display:flex;align-items:center;gap:10px}.user-email{color:var(--muted);font-size:.86rem}.ghost{background:#eef4f7;color:var(--deep)}
@@ -82,7 +84,10 @@
         <input id="email" type="email" autocomplete="username" required placeholder="seu@email.com">
         <label for="password">Senha</label>
         <input id="password" type="password" autocomplete="current-password" required placeholder="••••••••">
-        <button id="login-button" class="btn primary" type="submit">Entrar</button>
+        <button id="login-button" class="btn primary" type="submit">Entrar com e-mail</button>
+        <div class="login-divider"><span>ou</span></div>
+        <button id="github-login" class="btn github-btn" type="button">Entrar com GitHub</button>
+        <p class="login-help">Use o GitHub associado ao e-mail autorizado no painel administrativo.</p>
         <div id="login-error" class="error hidden" role="alert"></div>
       </form>
     </div>
@@ -354,7 +359,20 @@
         $('app-view').classList.remove('hidden');
         await load();
       }
-      $('login-button').disabled=false; $('login-button').textContent='Entrar';
+      $('login-button').disabled=false; $('login-button').textContent='Entrar com e-mail';
+    }
+    async function loginWithGithub() {
+      $('login-error').classList.add('hidden');
+      const button = $('github-login'); button.disabled = true; button.textContent = 'Redirecionando para o GitHub…';
+      const { error } = await client.auth.signInWithOAuth({
+        provider: 'github',
+        options: { redirectTo: window.location.origin + window.location.pathname }
+      });
+      if (error) {
+        $('login-error').textContent = 'Não foi possível iniciar o login com GitHub. Confirme se o provedor GitHub está habilitado no Supabase.';
+        $('login-error').classList.remove('hidden');
+        button.disabled = false; button.textContent = 'Entrar com GitHub';
+      }
     }
 
     async function updateStatus(id, select, button) {
@@ -396,6 +414,7 @@
     $('page-prev').addEventListener('click', () => { if (currentPage > 1) { currentPage -= 1; render(); window.scrollTo({top:0,behavior:'smooth'}); } });
     $('page-next').addEventListener('click', () => { const totalPages = Math.max(1, Math.ceil(filtered().length / PAGE_SIZE)); if (currentPage < totalPages) { currentPage += 1; render(); window.scrollTo({top:0,behavior:'smooth'}); } });
     $('login-form').addEventListener('submit',login);
+    $('github-login').addEventListener('click', loginWithGithub);
     $('logout').addEventListener('click',async()=>{await client.auth.signOut({scope:'local'});location.reload();});
     let autoRefreshTimer = null;
     $('auto-refresh').addEventListener('change', (event) => {
