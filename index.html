@@ -904,6 +904,8 @@
       const submitButton = form.querySelector('button[type="submit"]');
       const navToggle = document.querySelector('.nav-toggle');
       const navLinks = document.querySelector('#nav-links');
+      const nameInput = document.querySelector('#nome');
+      nameInput.addEventListener('input', () => { nameInput.value = formatNameInput(nameInput.value); });
       const cpfInput = document.querySelector('#cpf');
       const phoneInput = document.querySelector('#telefone');
       const hospitalCheckboxes = [...document.querySelectorAll('.hospital-checkbox')];
@@ -920,6 +922,7 @@
       const declaration = document.querySelector('#declaracao');
       const birthInput = document.querySelector('#nascimento');
       const onlyDigits = (value) => value.replace(/\D/g, '');
+      const formatNameInput = (value) => value.replace(/\\s+/g, ' ').replace(/^\\s+/, '');
       const formatCpfInput = (value) => value.replace(/\D/g, '').slice(0, 11).replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
       const formatPhoneInput = (value) => {
         const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -997,8 +1000,10 @@
         input.addEventListener('change', () => setInvalid(input, false));
       });
 
+      const submitBtn = form.querySelector('.submit-btn');
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.dataset.originalText = submitBtn.textContent; submitBtn.textContent = 'Enviando inscrição…'; }
         successMessage.classList.remove('is-visible');
         protocolActions.hidden = true;
         copyFeedback.textContent = '';
@@ -1109,6 +1114,8 @@
         } finally {
           submitButton.disabled = false;
           submitButton.innerHTML = 'Enviar inscrição <span aria-hidden="true">→</span>';
+        } finally {
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.originalText || 'Enviar inscrição →'; }
         }
       });
 
