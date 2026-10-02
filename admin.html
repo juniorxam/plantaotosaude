@@ -52,6 +52,7 @@
     .table-wrap table{min-width:1120px}
     .muted{color:var(--muted)}
     .last-updated{font-size:.78rem;color:var(--muted);margin-top:5px}
+.filter-summary{font-size:.78rem;color:var(--muted);font-weight:700;margin:-8px 0 10px}
     .toolbar{position:sticky;top:0;z-index:5}
 
     .pagination button:disabled{opacity:.45;cursor:not-allowed}
@@ -100,6 +101,7 @@
         <div class="insight-card"><div class="insight-head"><strong>Hospitais mais escolhidos</strong><span>geral</span></div><div id="hospital-summary" class="summary-list"></div></div>
         <div class="insight-card"><div class="insight-head"><strong>Plantões selecionados</strong><span>geral</span></div><div id="shift-summary" class="summary-list"></div></div>
       </div>
+      <div class="filter-summary" id="filter-summary" aria-live="polite">Sem filtros ativos</div>
       <div class="toolbar">
         <input id="search" class="search" type="search" placeholder="Buscar por nome, CPF, telefone, e-mail ou protocolo">
         <select id="filter-status" aria-label="Filtrar por status"><option value="">Todos os status</option><option value="pendente">Pendente</option><option value="confirmado">Confirmado</option><option value="escalado">Escalado</option><option value="recusado">Recusado</option></select>
@@ -182,6 +184,12 @@
 
     function render() {
       const rows=filtered(); updateStats();
+      const active = [];
+      if ($('search').value.trim()) active.push('busca');
+      if ($('filter-status').value) active.push($('filter-status').value);
+      if ($('filter-hospital').value) active.push('hospital');
+      if ($('filter-shift').value) active.push('plantão');
+      $('filter-summary').textContent = active.length ? 'Filtros ativos: ' + active.join(' · ') : 'Sem filtros ativos';
       const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
       currentPage = Math.min(currentPage, totalPages);
       const start = (currentPage - 1) * PAGE_SIZE;
