@@ -947,7 +947,16 @@
           successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
         } catch (error) {
           console.error('Plantão TO Saúde — erro ao enviar inscrição:', error);
-          window.alert('Não foi possível enviar sua inscrição agora. Verifique sua conexão e tente novamente.');
+          let message = 'Não foi possível enviar sua inscrição agora. Verifique sua conexão e tente novamente.';
+          try {
+            const body = JSON.parse(error.message);
+            if (body?.message === 'Dados da inscrição inválidos.') {
+              message = 'Alguns dados da inscrição são inválidos. Confira os campos e tente novamente.';
+            } else if (body?.message === 'Hospital de interesse inválido.' || body?.message === 'Plantão selecionado inválido.') {
+              message = 'Uma das opções selecionadas não está mais disponível. Atualize a página e tente novamente.';
+            }
+          } catch (_) {}
+          window.alert(message);
         } finally {
           submitButton.disabled = false;
           submitButton.innerHTML = 'Enviar inscrição <span aria-hidden="true">→</span>';
