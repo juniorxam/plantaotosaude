@@ -252,6 +252,7 @@
         ['Observações', r.observacoes || 'Nenhuma observação informada.']
       ];
       $('detail-grid').innerHTML = fields.map(([label, value], index) => '<div class="detail' + (index >= 11 ? ' full' : '') + '"><small>' + esc(label) + '</small><div>' + esc(value) + '</div></div>').join('');
+      $('detail-grid').insertAdjacentHTML('beforeend', '<div class="detail full"><small>Currículo anexado</small><div>' + (r.curriculo_path ? '<button class="btn" type="button" data-curriculum="' + esc(r.id) + '">Baixar currículo</button>' : 'Não anexado') + '</div></div>');
       $('detail-modal').classList.remove('hidden');
       $('close-modal').focus();
     }
