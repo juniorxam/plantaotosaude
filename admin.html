@@ -69,7 +69,7 @@
     <main>
       <div class="page-title">
         <div><h2>Inscrições</h2><p>Gerencie os profissionais cadastrados para os plantões.</p></div>
-        <button id="refresh" class="btn ghost">Atualizar</button>
+        <div class="header-actions"><button id="refresh" class="btn ghost">Atualizar</button><button id="export-top" class="btn ghost">Exportar CSV</button></div>
       </div>
       <div id="notice" class="notice hidden"></div>
       <div class="stats">
@@ -250,7 +250,7 @@
 
     $('login-form').addEventListener('submit',login);
     $('logout').addEventListener('click',async()=>{await client.auth.signOut({scope:'local'});location.reload();});
-    $('refresh').addEventListener('click',load); $('search').addEventListener('input',render); $('filter-status').addEventListener('change',render); $('filter-hospital').addEventListener('change',render); $('filter-shift').addEventListener('change',render); $('export').addEventListener('click',exportCsv);
+    $('refresh').addEventListener('click',load); $('export-top').addEventListener('click',exportCsv); $('search').addEventListener('input',render); $('filter-status').addEventListener('change',render); $('filter-hospital').addEventListener('change',render); $('filter-shift').addEventListener('change',render); $('export').addEventListener('click',exportCsv);
     $('tbody').addEventListener('click',(event)=>{
       const btn=event.target.closest('[data-save]');
       if(!btn)return;
