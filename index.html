@@ -912,23 +912,37 @@
         submitButton.textContent = 'Enviando…';
 
         try {
-          const response = await fetch(`${SUPABASE_URL}/rest/v1/inscricoes`, {
+          const payload = {
+            p_nome: data.nome,
+            p_cpf: data.cpf,
+            p_nascimento: data.nascimento,
+            p_telefone: data.telefone,
+            p_email: data.email,
+            p_profissao: data.profissao,
+            p_registro: data.registro,
+            p_hospitais: data.hospitais,
+            p_plantoes: data.plantoes,
+            p_observacoes: data.observacoes || null
+          };
+          const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/register_plantao_inscricao`, {
             method: 'POST',
             headers: {
               apikey: SUPABASE_PUBLISHABLE_KEY,
               Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
-              'Content-Type': 'application/json',
-              Prefer: 'return=minimal'
+              'Content-Type': 'application/json'
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify(payload)
           });
           if (!response.ok) throw new Error(await response.text() || 'Falha ao enviar inscrição.');
 
-          console.log('Plantão TO Saúde — inscrição enviada ao Supabase:', data);
+          const result = await response.json();
+          const protocol = Array.isArray(result) && result[0]?.protocolo ? result[0].protocolo : null;
           form.reset();
           updateChoiceState();
           form.querySelectorAll('[aria-invalid="true"]').forEach((input) => input.removeAttribute('aria-invalid'));
-          successMessage.textContent = 'Inscrição enviada com sucesso. A gestão responsável analisará os dados e entrará em contato pelos canais informados.';
+          successMessage.textContent = protocol
+            ? `Inscrição enviada com sucesso! Seu protocolo é ${protocol}. Guarde esse número para referência. A gestão responsável entrará em contato pelos canais informados.`
+            : 'Inscrição enviada com sucesso. A gestão responsável analisará os dados e entrará em contato pelos canais informados.';
           successMessage.classList.add('is-visible');
           successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
         } catch (error) {
