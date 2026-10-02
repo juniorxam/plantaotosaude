@@ -6,7 +6,7 @@ O formulário já está conectado ao projeto Supabase configurado para o site. A
 
 Para consultar as inscrições, use o painel autenticado do Supabase ou um backend/admin com credenciais próprias. Nunca coloque uma `service_role key` no HTML.
 
-O `index.html` valida os dados no navegador (incluindo CPF, telefone e data de nascimento), envia o objeto ao Supabase, exibe uma mensagem de sucesso e limpa o formulário após resposta HTTP bem-sucedida. A permissão pública de INSERT foi limitada às colunas do formulário e a política do banco restringe hospitais e plantões aos valores oficiais cadastrados. O bloco de integração fica no final do `<script>`.
+O `index.html` valida os dados no navegador (incluindo CPF, telefone e data de nascimento) e chama a função RPC `register_plantao_inscricao`. A função grava a inscrição com status `pendente` e retorna somente o protocolo gerado; o navegador não recebe a linha completa da tabela. A função RPC usa `SECURITY DEFINER` com `search_path` vazio, valida novamente os campos e valores permitidos no banco e tem execução liberada somente para `anon`. O acesso direto de leitura à tabela continua bloqueado. O bloco de integração fica no final do `<script>`.
 
 > Antes de publicar, defina também política de privacidade, responsável pelo tratamento dos dados e prazo de retenção. O formulário coleta dados pessoais e profissionais, incluindo CPF.
 
