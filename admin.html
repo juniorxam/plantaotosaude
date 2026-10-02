@@ -140,7 +140,7 @@
       <div class="table-wrap">
         <div id="loading" class="loading">Carregando inscrições…</div>
         <table id="table" class="table hidden">
-          <thead><tr><th>Profissional</th><th>Contato</th><th>Profissão / registro</th><th>Hospitais</th><th>Plantões</th><th>Protocolo</th><th>Cadastro</th><th>Status</th><th>Ação</th></tr></thead>
+          <thead><tr><th>Profissional</th><th>Contato</th><th>Profissão / registro</th><th>Vínculo estadual</th><th>Hospitais</th><th>Plantões</th><th>Protocolo</th><th>Cadastro</th><th>Status</th><th>Ação</th></tr></thead>
           <tbody id="tbody"></tbody>
         </table>
         <div id="empty" class="empty hidden">Nenhuma inscrição encontrada.</div>
@@ -245,6 +245,7 @@
           <td><div class="name">${esc(r.nome)}</div><div class="muted">${esc(r.cpf)}</div></td>
           <td>${esc(r.telefone)}<br><span class="muted">${esc(r.email)}</span></td>
           <td>${esc(r.profissao)}<br><span class="muted">${esc(r.registro)}</span></td>
+          <td>${r.servidor_estado === true ? 'Sim' : r.servidor_estado === false ? 'Não' : 'Não informado'}</td>
           <td>${fmtArray(r.hospitais)}</td>
           <td>${fmtArray(r.plantoes)}</td>
           <td><strong>${esc(r.protocolo)}</strong></td>
@@ -289,6 +290,7 @@
         ['Nome', r.nome], ['CPF', r.cpf],
         ['Nascimento', r.nascimento ? new Intl.DateTimeFormat('pt-BR').format(new Date(r.nascimento + 'T00:00:00')) : '—'],
         ['Telefone', r.telefone], ['E-mail', r.email], ['Profissão', r.profissao],
+        ['Servidor do Estado', r.servidor_estado === true ? 'Sim' : r.servidor_estado === false ? 'Não' : 'Não informado'],
         ['Registro profissional', r.registro], ['Protocolo', r.protocolo],
         ['Status', statusLabel[r.status] || r.status], ['Cadastro', fmtDate(r.created_at)],
         ['Atualização', fmtDate(r.updated_at)], ['Hospitais de interesse', (r.hospitais || []).join('\n') || '—'],
@@ -426,9 +428,9 @@
 
     function exportCsv() {
       const rows=filtered(); if(!rows.length){showNotice('Não há inscrições para exportar.',true);return;}
-      const header=['Protocolo','Nome','CPF','Nascimento','Telefone','E-mail','Profissão','Registro','Hospitais','Plantões','Observações','Declaração','Status','Criado em'];
+      const header=['Protocolo','Nome','CPF','Nascimento','Telefone','E-mail','Profissão','Registro','Servidor do Estado','Hospitais','Plantões','Observações','Declaração','Status','Criado em'];
       const quote=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-      const lines=rows.map(r=>[r.protocolo,r.nome,r.cpf,r.nascimento,r.telefone,r.email,r.profissao,r.registro,(r.hospitais||[]).join(' | '),(r.plantoes||[]).join(' | '),r.observacoes,r.declaracao?'Sim':'Não',r.status,fmtDate(r.created_at)].map(quote).join(';'));
+      const lines=rows.map(r=>[r.protocolo,r.nome,r.cpf,r.nascimento,r.telefone,r.email,r.profissao,r.registro,r.servidor_estado === true ? 'Sim' : r.servidor_estado === false ? 'Não' : 'Não informado',(r.hospitais||[]).join(' | '),(r.plantoes||[]).join(' | '),r.observacoes,r.declaracao?'Sim':'Não',r.status,fmtDate(r.created_at)].map(quote).join(';'));
       const blob=new Blob(['\ufeff'+[header.map(quote).join(';'),...lines].join('\r\n')],{type:'text/csv;charset=utf-8'});
       const url=URL.createObjectURL(blob), a=document.createElement('a'); a.href=url; a.download='inscricoes-plantao-to-saude.csv'; a.click(); URL.revokeObjectURL(url);
     }

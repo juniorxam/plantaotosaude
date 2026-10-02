@@ -39,11 +39,13 @@ Deno.serve(async (request) => {
     const nome = String(form.get("nome") ?? "").trim(), cpf = digits(form.get("cpf")), nascimento = String(form.get("nascimento") ?? "");
     const telefone = String(form.get("telefone") ?? "").trim(), email = String(form.get("email") ?? "").trim().toLowerCase();
     const profissao = String(form.get("profissao") ?? "").trim(), registro = String(form.get("registro") ?? "").trim();
+    const servidorEstadoRaw = String(form.get("servidor_estado") ?? "");
+    const servidorEstado = servidorEstadoRaw === "true" ? true : servidorEstadoRaw === "false" ? false : null;
     const observacoes = String(form.get("observacoes") ?? "").trim().slice(0,2000), declaracao = form.get("declaracao") === "true";
     let selectedHospitals: string[], selectedShifts: string[];
     try { selectedHospitals = JSON.parse(String(form.get("hospitais") ?? "[]")); selectedShifts = JSON.parse(String(form.get("plantoes") ?? "[]")); } catch { return json({ message: "Seleções inválidas." }, 400); }
     const today = new Date().toISOString().slice(0,10);
-    if (nome.length < 5 || nome.length > 150 || !validCpf(cpf) || !/^\d{4}-\d{2}-\d{2}$/.test(nascimento) || nascimento < "1900-01-01" || nascimento > today || digits(telefone).length < 10 || digits(telefone).length > 15 || email.length < 5 || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !professions.has(profissao) || registro.length < 2 || registro.length > 100 || !declaracao || !Array.isArray(selectedHospitals) || selectedHospitals.length < 1 || selectedHospitals.length > 6 || !Array.isArray(selectedShifts) || selectedShifts.length < 1 || selectedShifts.length > 3 || selectedHospitals.some((v) => !hospitals.has(v)) || selectedShifts.some((v) => !shifts.has(v)) || new Set(selectedHospitals).size !== selectedHospitals.length || new Set(selectedShifts).size !== selectedShifts.length) return json({ message: "Confira os dados da inscrição e tente novamente." }, 400);
+    if (nome.length < 5 || nome.length > 150 || !validCpf(cpf) || !/^\d{4}-\d{2}-\d{2}$/.test(nascimento) || nascimento < "1900-01-01" || nascimento > today || digits(telefone).length < 10 || digits(telefone).length > 15 || email.length < 5 || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !professions.has(profissao) || registro.length < 2 || registro.length > 100 || servidorEstado === null || !declaracao || !Array.isArray(selectedHospitals) || selectedHospitals.length < 1 || selectedHospitals.length > 6 || !Array.isArray(selectedShifts) || selectedShifts.length < 1 || selectedShifts.length > 3 || selectedHospitals.some((v) => !hospitals.has(v)) || selectedShifts.some((v) => !shifts.has(v)) || new Set(selectedHospitals).size !== selectedHospitals.length || new Set(selectedShifts).size !== selectedShifts.length) return json({ message: "Confira os dados da inscrição e tente novamente." }, 400);
     const ip = request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
     const ipHash = await hash(ip + ":" + (Deno.env.get("RATE_LIMIT_SALT") ?? "plantao-to-saude"));
     const { data: last } = await supabase.from("submission_rate_limits").select("last_submitted_at").eq("ip_hash",ipHash).maybeSingle();
@@ -51,7 +53,7 @@ Deno.serve(async (request) => {
     uploadedPath = "curriculos/" + crypto.randomUUID() + "." + ext;
     const upload = await supabase.storage.from("curriculos").upload(uploadedPath,file,{contentType:mimeMap[ext],upsert:false});
     if (upload.error) throw upload.error;
-    const { data, error } = await supabase.rpc("register_plantao_inscricao",{p_nome:nome,p_cpf:cpf,p_nascimento:nascimento,p_telefone:telefone,p_email:email,p_profissao:profissao,p_registro:registro,p_hospitais:selectedHospitals,p_plantoes:selectedShifts,p_observacoes:observacoes || null,p_curriculo_path:uploadedPath});
+    const { data, error } = await supabase.rpc("register_plantao_inscricao",{p_nome:nome,p_cpf:cpf,p_nascimento:nascimento,p_telefone:telefone,p_email:email,p_profissao:profissao,p_registro:registro,p_hospitais:selectedHospitals,p_plantoes:selectedShifts,p_servidor_estado:servidorEstado,p_observacoes:observacoes || null,p_curriculo_path:uploadedPath});
     if (error) {
       if (error.code === "23505" || String(error.message).includes("Já existe uma inscrição")) { await supabase.storage.from("curriculos").remove([uploadedPath]); uploadedPath = ""; return json({ message: "Este CPF já possui uma inscrição registrada." },409); }
       throw error;
