@@ -1,0 +1,8 @@
+{
+  "name": "plantaotosaude",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "mkdir -p dist && cp index.html manus-routes.json dist/ && cp INTEGRACAO.md dist/"
+  }
+}

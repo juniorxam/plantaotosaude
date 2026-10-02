@@ -1,0 +1,899 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Inscrição de profissionais de saúde para reforço temporário nos hospitais estaduais do Tocantins durante o concurso da SES-TO em 01/11/2026." />
+  <meta name="theme-color" content="#005a9c" />
+  <title>Plantão TO Saúde | Reforço profissional SES-TO</title>
+  <style>
+    :root {
+      --blue: #005a9c;
+      --blue-dark: #003d66;
+      --blue-deep: #022f4e;
+      --teal: #00897b;
+      --teal-light: #dff4f0;
+      --yellow: #ffcc00;
+      --yellow-soft: #fff7d6;
+      --ink: #122b3b;
+      --muted: #5e7482;
+      --line: #d9e5ea;
+      --surface: #ffffff;
+      --canvas: #f4f7fa;
+      --success: #18784b;
+      --danger: #b42318;
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --shadow-sm: 0 8px 24px rgba(0, 61, 102, 0.08);
+      --shadow-md: 0 18px 50px rgba(0, 61, 102, 0.14);
+      --max-width: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: "Segoe UI", Arial, sans-serif;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 3px solid rgba(0, 137, 123, .38); outline-offset: 3px; }
+
+    .skip-link {
+      position: fixed;
+      left: 1rem;
+      top: -4rem;
+      z-index: 1000;
+      padding: .75rem 1rem;
+      color: #fff;
+      background: var(--blue-dark);
+      border-radius: 8px;
+    }
+    .skip-link:focus { top: 1rem; }
+
+    .topbar {
+      padding: .7rem 1rem;
+      color: #dff9f5;
+      background: var(--blue-deep);
+      font-size: .84rem;
+      letter-spacing: .02em;
+    }
+    .topbar-inner {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      max-width: var(--max-width);
+      margin: 0 auto;
+    }
+    .topbar strong { color: #fff; }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      color: #fff;
+      background:
+        radial-gradient(circle at 88% 14%, rgba(255, 204, 0, .2), transparent 22rem),
+        linear-gradient(120deg, var(--blue-dark) 0%, var(--blue) 52%, var(--teal) 100%);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 40rem;
+      height: 40rem;
+      right: -15rem;
+      bottom: -24rem;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 50%;
+      box-shadow: 0 0 0 2.2rem rgba(255,255,255,.04), 0 0 0 4.4rem rgba(255,255,255,.03);
+      pointer-events: none;
+    }
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1.3fr .7fr;
+      align-items: center;
+      gap: 4rem;
+      max-width: var(--max-width);
+      min-height: 500px;
+      margin: 0 auto;
+      padding: 5.5rem 1.25rem 5rem;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      margin: 0 0 1.2rem;
+      color: #bff2ea;
+      font-size: .79rem;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+    .eyebrow::before {
+      content: "";
+      width: 2.25rem;
+      height: 2px;
+      background: var(--yellow);
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 {
+      max-width: 720px;
+      margin-bottom: 1.4rem;
+      font-size: clamp(2.65rem, 6vw, 5rem);
+      line-height: 1.03;
+      letter-spacing: -.055em;
+    }
+    .hero-copy {
+      max-width: 680px;
+      margin-bottom: 2rem;
+      color: #e4f4f9;
+      font-size: clamp(1.08rem, 2vw, 1.25rem);
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: .9rem; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .55rem;
+      min-height: 3.1rem;
+      padding: .82rem 1.35rem;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      font-weight: 750;
+      text-decoration: none;
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(0,0,0,.16); }
+    .btn-primary { color: var(--blue-deep); background: var(--yellow); }
+    .btn-secondary { color: #fff; border-color: rgba(255,255,255,.45); background: rgba(255,255,255,.08); }
+    .hero-panel {
+      position: relative;
+      padding: 1.6rem;
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: var(--radius-lg);
+      background: rgba(0, 42, 70, .27);
+      box-shadow: 0 24px 55px rgba(0, 34, 58, .16);
+      backdrop-filter: blur(8px);
+    }
+    .hero-panel-label {
+      margin-bottom: 1.1rem;
+      color: #bff2ea;
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .hero-date {
+      display: block;
+      margin-bottom: 1.3rem;
+      font-size: 2.35rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .hero-panel p { margin-bottom: 0; color: #e4f4f9; }
+    .hero-rule { height: 1px; margin: 1.35rem 0; background: rgba(255,255,255,.2); }
+    .hero-note { display: flex; gap: .7rem; align-items: flex-start; font-size: .93rem; }
+    .hero-note b { color: var(--yellow); }
+
+    .nav-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.94);
+      box-shadow: 0 3px 18px rgba(0, 50, 80, .06);
+      backdrop-filter: blur(12px);
+    }
+    .site-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      max-width: var(--max-width);
+      min-height: 4.5rem;
+      margin: 0 auto;
+      padding: .6rem 1.25rem;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: .75rem;
+      color: var(--blue-dark);
+      font-weight: 850;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .brand-mark {
+      display: grid;
+      width: 2.55rem;
+      height: 2.55rem;
+      place-items: center;
+      color: #fff;
+      border-radius: 12px 12px 12px 4px;
+      background: linear-gradient(145deg, var(--blue), var(--teal));
+      box-shadow: 0 8px 18px rgba(0, 137, 123, .2);
+      font-size: 1.35rem;
+    }
+    .nav-links { display: flex; align-items: center; gap: .2rem; }
+    .nav-links a {
+      padding: .65rem .8rem;
+      color: var(--muted);
+      border-radius: 10px;
+      font-size: .92rem;
+      font-weight: 650;
+      text-decoration: none;
+    }
+    .nav-links a:hover, .nav-links a:focus-visible { color: var(--blue); background: #edf6fa; }
+    .nav-toggle { display: none; border: 0; color: var(--blue-dark); background: transparent; font-size: 1.5rem; }
+
+    .section { padding: 5.5rem 1.25rem; }
+    .section-alt { background: #eef4f7; }
+    .section-inner { max-width: var(--max-width); margin: 0 auto; }
+    .section-heading { max-width: 700px; margin-bottom: 2.5rem; }
+    .section-kicker {
+      margin-bottom: .6rem;
+      color: var(--teal);
+      font-size: .78rem;
+      font-weight: 850;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    h2 {
+      margin-bottom: .8rem;
+      color: var(--blue-dark);
+      font-size: clamp(2rem, 4vw, 3.15rem);
+      line-height: 1.08;
+      letter-spacing: -.04em;
+    }
+    .section-heading p { margin-bottom: 0; color: var(--muted); font-size: 1.06rem; }
+
+    .about-layout {
+      display: grid;
+      grid-template-columns: .8fr 1.2fr;
+      gap: 4rem;
+      align-items: start;
+    }
+    .about-lead {
+      margin: 0;
+      color: var(--blue-dark);
+      font-size: clamp(1.25rem, 2vw, 1.6rem);
+      font-weight: 650;
+      line-height: 1.35;
+    }
+    .about-copy { color: var(--muted); }
+    .important {
+      display: flex;
+      align-items: flex-start;
+      gap: .8rem;
+      margin: 1.5rem 0 0;
+      padding: 1.1rem 1.2rem;
+      border-left: 4px solid var(--yellow);
+      border-radius: 0 14px 14px 0;
+      background: var(--yellow-soft);
+      color: #674f00;
+      font-weight: 650;
+    }
+    .shift-overview { display: grid; gap: .8rem; margin-top: 1.5rem; }
+    .shift-row {
+      display: grid;
+      grid-template-columns: 3.2rem 1fr auto;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.1rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      box-shadow: var(--shadow-sm);
+    }
+    .shift-code {
+      display: grid;
+      width: 2.65rem;
+      height: 2.65rem;
+      place-items: center;
+      color: var(--blue-dark);
+      border-radius: 11px;
+      background: var(--teal-light);
+      font-size: 1.1rem;
+      font-weight: 850;
+    }
+    .shift-row strong { display: block; color: var(--blue-dark); }
+    .shift-row small { color: var(--muted); }
+    .shift-time { color: var(--teal); font-size: .9rem; font-weight: 800; text-align: right; }
+
+    .hospital-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .hospital-card {
+      position: relative;
+      min-height: 170px;
+      padding: 1.5rem;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--blue);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      box-shadow: var(--shadow-sm);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .hospital-card:nth-child(3n+2) { border-top-color: var(--teal); }
+    .hospital-card:nth-child(3n+3) { border-top-color: var(--yellow); }
+    .hospital-card::after {
+      content: "";
+      position: absolute;
+      right: -2rem;
+      bottom: -2.8rem;
+      width: 7rem;
+      height: 7rem;
+      border: 1px solid #e5eff2;
+      border-radius: 50%;
+    }
+    .hospital-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .hospital-city { margin-bottom: .55rem; color: var(--teal); font-size: .83rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+    .hospital-card h3 { max-width: 210px; margin-bottom: .5rem; color: var(--blue-dark); font-size: 1.18rem; line-height: 1.25; }
+    .hospital-card p { margin: 0; color: var(--muted); font-size: .92rem; }
+
+    .signup-section { background: var(--blue-dark); }
+    .signup-section h2, .signup-section .section-kicker { color: #fff; }
+    .signup-section .section-heading p { color: #bdd5df; }
+    .form-shell {
+      display: grid;
+      grid-template-columns: .38fr .62fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    .form-aside, .form-card { border-radius: var(--radius-lg); }
+    .form-aside {
+      position: sticky;
+      top: 6rem;
+      padding: 1.6rem;
+      color: #e0f3f6;
+      background: linear-gradient(145deg, rgba(0,137,123,.95), rgba(0,90,156,.98));
+      box-shadow: var(--shadow-md);
+    }
+    .form-aside h3 { margin-bottom: .65rem; color: #fff; font-size: 1.35rem; }
+    .form-aside p { color: #d4eeef; font-size: .94rem; }
+    .aside-points { display: grid; gap: .85rem; margin: 1.5rem 0 0; padding: 0; list-style: none; }
+    .aside-points li { display: flex; gap: .65rem; align-items: flex-start; color: #ecffff; font-size: .94rem; }
+    .aside-points li::before { content: "✓"; display: grid; flex: 0 0 1.45rem; width: 1.45rem; height: 1.45rem; place-items: center; color: var(--blue-dark); border-radius: 50%; background: var(--yellow); font-weight: 900; }
+    .form-card { padding: clamp(1.25rem, 3vw, 2.25rem); background: var(--surface); box-shadow: var(--shadow-md); }
+    .form-notice {
+      display: flex;
+      gap: .75rem;
+      align-items: flex-start;
+      margin-bottom: 1.6rem;
+      padding: 1rem 1.1rem;
+      border: 1px solid #ead68a;
+      border-left: 4px solid var(--yellow);
+      border-radius: 10px;
+      background: var(--yellow-soft);
+      color: #674f00;
+      font-size: .92rem;
+      font-weight: 650;
+    }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.1rem; }
+    .field { display: grid; gap: .45rem; }
+    .field-full { grid-column: 1 / -1; }
+    label, legend { color: var(--blue-dark); font-size: .89rem; font-weight: 750; }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #c9d9df;
+      border-radius: 10px;
+      outline: 0;
+      background: #fbfdfe;
+      color: var(--ink);
+      transition: border .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    input, select { min-height: 2.85rem; padding: .68rem .8rem; }
+    textarea { min-height: 110px; resize: vertical; padding: .75rem .8rem; }
+    input:focus, select:focus, textarea:focus { border-color: var(--teal); background: #fff; box-shadow: 0 0 0 4px rgba(0, 137, 123, .12); }
+    input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--danger); }
+    .helper { margin: 0; color: var(--muted); font-size: .78rem; }
+    fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+    .choice-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; margin-top: .55rem; }
+    .choice-grid-shifts { grid-template-columns: 1fr; }
+    .choice {
+      position: relative;
+      display: flex;
+      gap: .6rem;
+      align-items: flex-start;
+      min-height: 3.7rem;
+      padding: .8rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fbfdfe;
+      cursor: pointer;
+      transition: background .2s ease, border .2s ease, transform .2s ease;
+    }
+    .choice:hover { transform: translateY(-1px); border-color: #9fc8ce; }
+    .choice:has(input:checked) { border-color: var(--teal); background: var(--teal-light); box-shadow: 0 0 0 2px rgba(0,137,123,.08); }
+    .choice input { width: 1.05rem; height: 1.05rem; flex: 0 0 auto; margin-top: .13rem; accent-color: var(--teal); }
+    .choice-content { display: grid; gap: .1rem; }
+    .choice-content strong { color: var(--blue-dark); font-size: .9rem; line-height: 1.25; }
+    .choice-content small { color: var(--muted); font-size: .77rem; line-height: 1.35; }
+    .declaration {
+      display: flex;
+      gap: .7rem;
+      align-items: flex-start;
+      margin: 1.45rem 0 1.25rem;
+      padding: 1.05rem 1.1rem;
+      border-left: 4px solid var(--yellow);
+      border-radius: 0 12px 12px 0;
+      background: var(--yellow-soft);
+      color: #674f00;
+      font-size: .92rem;
+      font-weight: 700;
+    }
+    .declaration input { width: 1.15rem; height: 1.15rem; flex: 0 0 auto; margin-top: .18rem; accent-color: var(--blue); }
+    .form-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .required-note { margin: 0; color: var(--muted); font-size: .8rem; }
+    .submit-btn { color: #fff; border: 0; background: var(--teal); }
+    .submit-btn:hover { background: #00766b; }
+    .success-message {
+      display: none;
+      margin-top: 1.2rem;
+      padding: 1rem 1.1rem;
+      border: 1px solid #9dd9b8;
+      border-radius: 12px;
+      background: #e9f8ef;
+      color: var(--success);
+      font-weight: 700;
+    }
+    .success-message.is-visible { display: block; }
+    .error-message { min-height: 1.1rem; margin: .8rem 0 0; color: var(--danger); font-size: .84rem; font-weight: 650; }
+
+    .requirements-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    .requirement {
+      padding: 1.45rem;
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--teal);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      box-shadow: var(--shadow-sm);
+    }
+    .requirement:nth-child(2) { border-top-color: var(--blue); }
+    .requirement:nth-child(3) { border-top-color: var(--yellow); }
+    .requirement:nth-child(4) { border-top-color: #6c63b5; }
+    .requirement-icon { margin-bottom: .8rem; color: var(--teal); font-size: 1.8rem; }
+    .requirement h3 { margin-bottom: .35rem; color: var(--blue-dark); font-size: 1.05rem; }
+    .requirement p { margin-bottom: 0; color: var(--muted); font-size: .9rem; }
+
+    .faq-layout { display: grid; grid-template-columns: .72fr 1.28fr; gap: 4rem; align-items: start; }
+    .faq-intro { color: var(--muted); }
+    .faq-list { display: grid; gap: .75rem; }
+    details { padding: 0 1rem; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: 0 5px 16px rgba(0,61,102,.04); }
+    summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 0; color: var(--blue-dark); cursor: pointer; font-weight: 750; list-style: none; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; color: var(--teal); font-size: 1.4rem; font-weight: 500; }
+    details[open] summary::after { content: "−"; }
+    details p { margin: 0 0 1.05rem; color: var(--muted); font-size: .93rem; }
+
+    footer { padding: 2.4rem 1.25rem; color: #c0d7e1; background: var(--blue-deep); }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 2rem; max-width: var(--max-width); margin: 0 auto; }
+    .footer-brand { display: flex; gap: .75rem; align-items: center; color: #fff; font-weight: 850; }
+    .footer-inner p { max-width: 560px; margin: .35rem 0 0; font-size: .87rem; }
+    .footer-contact { color: #bff2ea; font-size: .9rem; text-align: right; }
+    .footer-contact a { color: #fff; font-weight: 750; text-decoration: none; }
+    .footer-contact a:hover { text-decoration: underline; }
+
+    @media (max-width: 940px) {
+      .hero-inner { grid-template-columns: 1fr; gap: 2.5rem; min-height: auto; padding-top: 4.5rem; }
+      .hero-panel { max-width: 500px; }
+      .about-layout, .faq-layout { grid-template-columns: 1fr; gap: 2rem; }
+      .form-shell { grid-template-columns: 1fr; }
+      .form-aside { position: static; }
+      .requirements-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 720px) {
+      .topbar-inner { flex-direction: column; gap: .15rem; }
+      .site-nav { min-height: 4rem; }
+      .nav-toggle { display: block; }
+      .nav-links { display: none; position: absolute; top: 4rem; left: 0; right: 0; flex-direction: column; align-items: stretch; padding: .75rem 1.25rem 1rem; border-bottom: 1px solid var(--line); background: #fff; box-shadow: var(--shadow-sm); }
+      .nav-links.is-open { display: flex; }
+      .nav-links a { padding: .75rem; }
+      .section { padding: 4rem 1rem; }
+      .hero-inner { padding-right: 1rem; padding-left: 1rem; }
+      .hospital-grid { grid-template-columns: 1fr 1fr; }
+      .form-grid, .choice-grid { grid-template-columns: 1fr; }
+      .field-full { grid-column: auto; }
+      .form-footer, .footer-inner { align-items: flex-start; flex-direction: column; }
+      .footer-contact { text-align: left; }
+    }
+    @media (max-width: 480px) {
+      h1 { font-size: 2.65rem; }
+      .hospital-grid, .requirements-grid { grid-template-columns: 1fr; }
+      .shift-row { grid-template-columns: 2.8rem 1fr; }
+      .shift-time { grid-column: 2; text-align: left; }
+      .hero-actions .btn { width: 100%; }
+      .form-card { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+  <div class="topbar">
+    <div class="topbar-inner">
+      <span><strong>Mobilização temporária de saúde</strong> · Tocantins</span>
+      <span>Inscrições para profissionais que não farão a prova</span>
+    </div>
+  </div>
+
+  <header class="hero" id="inicio">
+    <div class="hero-inner">
+      <div>
+        <p class="eyebrow">Plantão TO Saúde</p>
+        <h1>Reforço que cuida quando o Estado mais precisa.</h1>
+        <p class="hero-copy">Profissionais de saúde unidos para manter o atendimento nos hospitais estaduais do Tocantins durante o concurso da SES-TO.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#inscricao">Quero me inscrever <span aria-hidden="true">→</span></a>
+          <a class="btn btn-secondary" href="#sobre">Entender a mobilização</a>
+        </div>
+      </div>
+      <aside class="hero-panel" aria-label="Informações do concurso">
+        <div class="hero-panel-label">Data de referência</div>
+        <strong class="hero-date">01 nov.<br />2026</strong>
+        <p>Durante a realização do concurso do quadro da saúde do Estado do Tocantins, alguns profissionais estarão envolvidos na aplicação das provas.</p>
+        <div class="hero-rule"></div>
+        <p class="hero-note"><span aria-hidden="true">📌</span><span><b>Atenção:</b> a inscrição é exclusiva para quem não vai realizar a prova nessa data.</span></p>
+      </aside>
+    </div>
+  </header>
+
+  <nav class="nav-wrap" aria-label="Navegação principal">
+    <div class="site-nav">
+      <a class="brand" href="#inicio" aria-label="Plantão TO Saúde, início">
+        <span class="brand-mark" aria-hidden="true">✚</span>
+        <span>Plantão TO Saúde</span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Abrir menu">☰</button>
+      <div class="nav-links" id="nav-links">
+        <a href="#sobre">Sobre</a>
+        <a href="#hospitais">Hospitais</a>
+        <a href="#inscricao">Inscrição</a>
+        <a href="#requisitos">Requisitos</a>
+        <a href="#duvidas">Dúvidas</a>
+      </div>
+    </div>
+  </nav>
+
+  <main id="conteudo">
+    <section class="section" id="sobre">
+      <div class="section-inner">
+        <div class="section-heading">
+          <p class="section-kicker">Por que estamos aqui</p>
+          <h2>Uma rede de cuidado para um dia de grande mobilização.</h2>
+        </div>
+        <div class="about-layout">
+          <div>
+            <p class="about-lead">No dia 01/11/2026, o Tocantins contará com o compromisso de profissionais prontos para reforçar o atendimento hospitalar.</p>
+            <div class="important"><span aria-hidden="true">📌</span><span>Esta inscrição é destinada <strong>exclusivamente</strong> a profissionais que não vão fazer a prova do concurso em 01/11/2026.</span></div>
+          </div>
+          <div>
+            <p class="about-copy">O concurso do quadro da saúde da SES-TO mobilizará servidores na aplicação das provas. Para que os hospitais estaduais continuem funcionando com segurança e acolhimento, estamos formando uma escala de reforço temporário.</p>
+            <p class="about-copy">Escolha os hospitais onde gostaria de atuar e um ou mais plantões de 12 horas. As informações serão analisadas pela gestão responsável, que entrará em contato com os próximos passos.</p>
+            <div class="shift-overview" aria-label="Plantões disponíveis">
+              <div class="shift-row">
+                <span class="shift-code">A</span>
+                <span><strong>Véspera · Noturno</strong><small>31/10/2026 → 01/11/2026</small></span>
+                <span class="shift-time">19h — 7h</span>
+              </div>
+              <div class="shift-row">
+                <span class="shift-code">B</span>
+                <span><strong>Dia do concurso · Diurno</strong><small>01/11/2026</small></span>
+                <span class="shift-time">7h — 19h</span>
+              </div>
+              <div class="shift-row">
+                <span class="shift-code">C</span>
+                <span><strong>Dia do concurso · Noturno</strong><small>01/11/2026 → 02/11/2026</small></span>
+                <span class="shift-time">19h — 7h</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="hospitais">
+      <div class="section-inner">
+        <div class="section-heading">
+          <p class="section-kicker">Onde a sua presença importa</p>
+          <h2>Hospitais participantes</h2>
+          <p>Indique uma ou mais cidades de interesse no formulário de inscrição.</p>
+        </div>
+        <div class="hospital-grid">
+          <article class="hospital-card"><div class="hospital-city">Palmas</div><h3>Hospital Geral de Palmas</h3><p>Capital · HGP</p></article>
+          <article class="hospital-card"><div class="hospital-city">Araguaína</div><h3>Hospital Regional de Araguaína</h3><p>Região norte</p></article>
+          <article class="hospital-card"><div class="hospital-city">Gurupi</div><h3>Hospital Regional de Gurupi</h3><p>Região sul</p></article>
+          <article class="hospital-card"><div class="hospital-city">Paraíso do Tocantins</div><h3>Hospital Regional de Paraíso</h3><p>Região central</p></article>
+          <article class="hospital-card"><div class="hospital-city">Porto Nacional</div><h3>Hospital Regional de Porto Nacional</h3><p>Região central</p></article>
+          <article class="hospital-card"><div class="hospital-city">Augustinópolis</div><h3>Hospital Regional de Augustinópolis</h3><p>Região do Bico do Papagaio</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section signup-section" id="inscricao">
+      <div class="section-inner">
+        <div class="section-heading">
+          <p class="section-kicker">Faça parte da escala</p>
+          <h2>Inscrição de profissionais</h2>
+          <p>Preencha seus dados com atenção. O cadastro leva poucos minutos.</p>
+        </div>
+        <div class="form-shell">
+          <aside class="form-aside">
+            <h3>Antes de começar</h3>
+            <p>Este formulário é para quem tem formação e registro profissional compatíveis com a atuação escolhida e não participará da prova da SES-TO.</p>
+            <ul class="aside-points">
+              <li>Tenha seu número de registro profissional em mãos.</li>
+              <li>Selecione todos os hospitais e plantões possíveis para você.</li>
+              <li>A gestão responsável fará o contato após a análise dos cadastros.</li>
+            </ul>
+          </aside>
+
+          <form class="form-card" id="registration-form" novalidate>
+            <div class="form-notice"><span aria-hidden="true">⚠</span><span><strong>Importante:</strong> só envie esta inscrição se você não for realizar a prova do concurso da SES-TO em 01/11/2026.</span></div>
+            <div class="form-grid">
+              <div class="field field-full">
+                <label for="nome">Nome completo *</label>
+                <input id="nome" name="nome" type="text" autocomplete="name" placeholder="Digite seu nome completo" required />
+              </div>
+              <div class="field">
+                <label for="cpf">CPF *</label>
+                <input id="cpf" name="cpf" type="text" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" maxlength="14" required />
+              </div>
+              <div class="field">
+                <label for="nascimento">Data de nascimento *</label>
+                <input id="nascimento" name="nascimento" type="date" required />
+              </div>
+              <div class="field">
+                <label for="telefone">Telefone/WhatsApp *</label>
+                <input id="telefone" name="telefone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(63) 99999-9999" maxlength="15" required />
+              </div>
+              <div class="field">
+                <label for="email">E-mail *</label>
+                <input id="email" name="email" type="email" autocomplete="email" placeholder="voce@exemplo.com" required />
+              </div>
+              <div class="field">
+                <label for="profissao">Profissão/cargo *</label>
+                <select id="profissao" name="profissao" required>
+                  <option value="">Selecione uma opção</option>
+                  <option>Médico</option>
+                  <option>Enfermeiro</option>
+                  <option>Técnico em Enfermagem</option>
+                  <option>Fisioterapeuta</option>
+                  <option>Nutricionista</option>
+                  <option>Psicólogo</option>
+                  <option>Farmacêutico</option>
+                  <option>Assistente Social</option>
+                  <option>Técnico em Radiologia</option>
+                  <option>Técnico em Laboratório</option>
+                  <option>Outro</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="registro">Registro profissional *</label>
+                <input id="registro" name="registro" type="text" placeholder="Ex.: COREN-TO 000000" required />
+                <p class="helper">Informe CRM, COREN, CREFITO, CRN, CRP, CRF ou equivalente.</p>
+              </div>
+
+              <fieldset class="field field-full" id="hospital-fieldset">
+                <legend>Hospitais de interesse * <span class="helper">(selecione ao menos um)</span></legend>
+                <div class="choice-grid">
+                  <label class="choice"><input class="hospital-checkbox" type="checkbox" name="hospitais" value="Palmas — Hospital Geral de Palmas" /><span class="choice-content"><strong>Palmas</strong><small>Hospital Geral de Palmas</small></span></label>
+                  <label class="choice"><input class="hospital-checkbox" type="checkbox" name="hospitais" value="Araguaína — Hospital Regional de Araguaína" /><span class="choice-content"><strong>Araguaína</strong><small>Hospital Regional de Araguaína</small></span></label>
+                  <label class="choice"><input class="hospital-checkbox" type="checkbox" name="hospitais" value="Gurupi — Hospital Regional de Gurupi" /><span class="choice-content"><strong>Gurupi</strong><small>Hospital Regional de Gurupi</small></span></label>
+                  <label class="choice"><input class="hospital-checkbox" type="checkbox" name="hospitais" value="Paraíso do Tocantins — Hospital Regional de Paraíso" /><span class="choice-content"><strong>Paraíso do Tocantins</strong><small>Hospital Regional de Paraíso</small></span></label>
+                  <label class="choice"><input class="hospital-checkbox" type="checkbox" name="hospitais" value="Porto Nacional — Hospital Regional de Porto Nacional" /><span class="choice-content"><strong>Porto Nacional</strong><small>Hospital Regional de Porto Nacional</small></span></label>
+                  <label class="choice"><input class="hospital-checkbox" type="checkbox" name="hospitais" value="Augustinópolis — Hospital Regional de Augustinópolis" /><span class="choice-content"><strong>Augustinópolis</strong><small>Hospital Regional de Augustinópolis</small></span></label>
+                </div>
+                <p class="error-message" id="hospital-error" aria-live="polite"></p>
+              </fieldset>
+
+              <fieldset class="field field-full" id="shift-fieldset">
+                <legend>Disponibilidade de plantão * <span class="helper">(cada plantão tem 12 horas; selecione um ou mais)</span></legend>
+                <div class="choice-grid choice-grid-shifts">
+                  <label class="choice"><input class="shift-checkbox" type="checkbox" name="plantões" value="A — Véspera, noturno — 31/10/2026, 19h às 7h de 01/11" /><span class="choice-content"><strong>Plantão A · Véspera — noturno</strong><small>31/10/2026, das 19h às 7h de 01/11</small></span></label>
+                  <label class="choice"><input class="shift-checkbox" type="checkbox" name="plantões" value="B — Dia do concurso, diurno — 01/11/2026, 7h às 19h" /><span class="choice-content"><strong>Plantão B · Dia do concurso — diurno</strong><small>01/11/2026, das 7h às 19h</small></span></label>
+                  <label class="choice"><input class="shift-checkbox" type="checkbox" name="plantões" value="C — Dia do concurso, noturno — 01/11/2026, 19h às 7h de 02/11" /><span class="choice-content"><strong>Plantão C · Dia do concurso — noturno</strong><small>01/11/2026, das 19h às 7h de 02/11</small></span></label>
+                </div>
+                <p class="error-message" id="shift-error" aria-live="polite"></p>
+              </fieldset>
+
+              <div class="field field-full">
+                <label for="observacoes">Observações <span class="helper">(opcional)</span></label>
+                <textarea id="observacoes" name="observacoes" placeholder="Conte algo importante sobre sua disponibilidade, experiência ou preferência."></textarea>
+              </div>
+            </div>
+
+            <label class="declaration" for="declaracao"><input id="declaracao" name="declaracao" type="checkbox" required /><span>Declaro que <strong>não vou realizar a prova do concurso da SES-TO em 01/11/2026</strong> e que tenho disponibilidade para atuar nos plantões selecionados. *</span></label>
+            <p class="error-message" id="declaration-error" aria-live="polite"></p>
+            <div class="form-footer">
+              <p class="required-note">* Campos obrigatórios</p>
+              <button class="btn submit-btn" type="submit">Enviar inscrição <span aria-hidden="true">→</span></button>
+            </div>
+            <div class="success-message" id="success-message" role="status" aria-live="polite">Inscrição registrada para teste. Seus dados foram preparados no navegador; a integração com o canal oficial de recebimento ainda precisa ser configurada.</div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="requisitos">
+      <div class="section-inner">
+        <div class="section-heading">
+          <p class="section-kicker">Critérios de participação</p>
+          <h2>O que você precisa ter</h2>
+          <p>Confira os quatro pontos essenciais antes de enviar sua inscrição.</p>
+        </div>
+        <div class="requirements-grid">
+          <article class="requirement"><div class="requirement-icon" aria-hidden="true">⌁</div><h3>Formação</h3><p>Formação compatível com a profissão ou cargo informado.</p></article>
+          <article class="requirement"><div class="requirement-icon" aria-hidden="true">▣</div><h3>Registro ativo</h3><p>Registro profissional ativo no conselho correspondente.</p></article>
+          <article class="requirement"><div class="requirement-icon" aria-hidden="true">◷</div><h3>Disponibilidade</h3><p>Disponibilidade real para os plantões de 12 horas escolhidos.</p></article>
+          <article class="requirement"><div class="requirement-icon" aria-hidden="true">✓</div><h3>Não fará a prova</h3><p>Não participar da prova do concurso da SES-TO em 01/11/2026.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="duvidas">
+      <div class="section-inner">
+        <div class="faq-layout">
+          <div>
+            <p class="section-kicker">Ainda ficou alguma dúvida?</p>
+            <h2>Perguntas frequentes</h2>
+            <p class="faq-intro">Reunimos as principais informações para ajudar você a decidir e preencher seu cadastro com segurança.</p>
+          </div>
+          <div class="faq-list">
+            <details><summary>Quem pode se inscrever?</summary><p>Profissionais de saúde com formação e registro compatíveis com a função, disponibilidade para os plantões e que não vão realizar a prova da SES-TO em 01/11/2026.</p></details>
+            <details><summary>Posso me inscrever se vou fazer a prova?</summary><p>Não. A inscrição é exclusiva para quem não participará da prova do concurso nessa data, pois o objetivo é reforçar as equipes durante a mobilização.</p></details>
+            <details><summary>Qual a duração de cada plantão?</summary><p>Cada plantão tem 12 horas de duração. Os horários completos estão descritos na seção Sobre e no formulário.</p></details>
+            <details><summary>Posso pegar mais de um plantão?</summary><p>Sim. Você pode selecionar um, dois ou os três plantões, desde que tenha disponibilidade para cumprir todos os períodos escolhidos.</p></details>
+            <details><summary>O plantão da véspera é confirmado?</summary><p>O plantão A faz parte da mobilização prevista e será confirmado conforme a necessidade de cada unidade e a organização da escala.</p></details>
+            <details><summary>Qual será a remuneração?</summary><p>Os valores e as condições de remuneração serão informados pela gestão responsável aos profissionais selecionados.</p></details>
+            <details><summary>Qual o prazo de inscrição?</summary><p>O período de inscrição e eventuais encerramentos por preenchimento de vagas serão comunicados pelos canais oficiais da organização.</p></details>
+            <details><summary>Preciso enviar documentos agora?</summary><p>Não. Neste primeiro cadastro, informe os dados solicitados e o número do registro profissional. Caso necessário, a gestão pedirá a documentação nas próximas etapas.</p></details>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand"><span class="brand-mark" aria-hidden="true">✚</span><span>Plantão TO Saúde</span></div>
+        <p>Reforço profissional para os hospitais estaduais do Tocantins durante o concurso da SES-TO de 01/11/2026.</p>
+      </div>
+      <div class="footer-contact">Contato institucional<br /><a href="mailto:contato@plantaotosaude.to.gov.br">contato@plantaotosaude.to.gov.br</a></div>
+    </div>
+  </footer>
+
+  <script>
+    // Integração futura: substitua o bloco de console.log por um fetch para
+    // Google Forms/Planilha, Formspree ou uma API própria Node.js/Python.
+    (() => {
+      const form = document.querySelector('#registration-form');
+      const successMessage = document.querySelector('#success-message');
+      const navToggle = document.querySelector('.nav-toggle');
+      const navLinks = document.querySelector('#nav-links');
+      const cpfInput = document.querySelector('#cpf');
+      const phoneInput = document.querySelector('#telefone');
+      const hospitalCheckboxes = [...document.querySelectorAll('.hospital-checkbox')];
+      const shiftCheckboxes = [...document.querySelectorAll('.shift-checkbox')];
+      const hospitalError = document.querySelector('#hospital-error');
+      const shiftError = document.querySelector('#shift-error');
+      const declarationError = document.querySelector('#declaration-error');
+      const declaration = document.querySelector('#declaracao');
+
+      const onlyDigits = (value) => value.replace(/\D/g, '');
+      const maskCpf = (value) => {
+        const digits = onlyDigits(value).slice(0, 11);
+        return digits.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      };
+      const maskPhone = (value) => {
+        const digits = onlyDigits(value).slice(0, 11);
+        if (digits.length <= 10) return digits.replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{4})(\d)/, '$1-$2');
+        return digits.replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2');
+      };
+
+      cpfInput.addEventListener('input', (event) => { event.target.value = maskCpf(event.target.value); });
+      phoneInput.addEventListener('input', (event) => { event.target.value = maskPhone(event.target.value); });
+
+      const updateChoiceState = () => {
+        [...document.querySelectorAll('.choice')].forEach((choice) => {
+          const input = choice.querySelector('input');
+          choice.setAttribute('aria-checked', String(input.checked));
+        });
+      };
+      [...hospitalCheckboxes, ...shiftCheckboxes].forEach((input) => input.addEventListener('change', () => {
+        updateChoiceState();
+        hospitalError.textContent = '';
+        shiftError.textContent = '';
+      }));
+      declaration.addEventListener('change', () => { declarationError.textContent = ''; });
+      updateChoiceState();
+
+      const setInvalid = (element, isInvalid) => {
+        if (element) element.setAttribute('aria-invalid', String(isInvalid));
+      };
+      form.querySelectorAll('input, select, textarea').forEach((input) => {
+        input.addEventListener('input', () => setInvalid(input, false));
+        input.addEventListener('change', () => setInvalid(input, false));
+      });
+
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        successMessage.classList.remove('is-visible');
+        hospitalError.textContent = '';
+        shiftError.textContent = '';
+        declarationError.textContent = '';
+
+        let valid = true;
+        const requiredFields = [...form.querySelectorAll('[required]')].filter((input) => input.type !== 'checkbox');
+        requiredFields.forEach((input) => {
+          const isEmpty = !input.value.trim();
+          setInvalid(input, isEmpty);
+          if (isEmpty) valid = false;
+        });
+
+        const email = document.querySelector('#email');
+        if (email.value && !email.validity.valid) {
+          setInvalid(email, true);
+          valid = false;
+        }
+        if (onlyDigits(cpfInput.value).length !== 11) {
+          setInvalid(cpfInput, true);
+          valid = false;
+        }
+        if (onlyDigits(phoneInput.value).length < 10) {
+          setInvalid(phoneInput, true);
+          valid = false;
+        }
+        if (!hospitalCheckboxes.some((input) => input.checked)) {
+          hospitalError.textContent = 'Selecione pelo menos um hospital de interesse.';
+          valid = false;
+        }
+        if (!shiftCheckboxes.some((input) => input.checked)) {
+          shiftError.textContent = 'Selecione pelo menos um plantão disponível.';
+          valid = false;
+        }
+        if (!declaration.checked) {
+          declarationError.textContent = 'Você precisa confirmar a declaração para enviar a inscrição.';
+          valid = false;
+        }
+
+        if (!valid) {
+          const firstInvalid = form.querySelector('[aria-invalid="true"]') || document.querySelector('.error-message:not(:empty)');
+          firstInvalid?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          if (firstInvalid?.focus) firstInvalid.focus({ preventScroll: true });
+          return;
+        }
+
+        const data = Object.fromEntries(new FormData(form).entries());
+        data.hospitais = hospitalCheckboxes.filter((input) => input.checked).map((input) => input.value);
+        data.plantoes = shiftCheckboxes.filter((input) => input.checked).map((input) => input.value);
+        data.declaracao = declaration.checked;
+        console.log('Plantão TO Saúde — inscrição enviada (modo demonstração):', data);
+
+        form.reset();
+        updateChoiceState();
+        form.querySelectorAll('[aria-invalid="true"]').forEach((input) => input.removeAttribute('aria-invalid'));
+        successMessage.classList.add('is-visible');
+        successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+
+      navToggle.addEventListener('click', () => {
+        const isOpen = navLinks.classList.toggle('is-open');
+        navToggle.setAttribute('aria-expanded', String(isOpen));
+        navToggle.setAttribute('aria-label', isOpen ? 'Fechar menu' : 'Abrir menu');
+      });
+      navLinks.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => {
+        navLinks.classList.remove('is-open');
+        navToggle.setAttribute('aria-expanded', 'false');
+        navToggle.setAttribute('aria-label', 'Abrir menu');
+      }));
+    })();
+  </script>
+</body>
+</html>
