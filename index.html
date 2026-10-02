@@ -459,6 +459,10 @@
       font-weight: 700;
     }
     .success-message.is-visible { display: block; }
+    .protocol-actions { display:flex; align-items:center; gap:.75rem; margin-top:.7rem; }
+    .protocol-copy { border:1px solid #9dd9b8; border-radius:999px; padding:.55rem .9rem; color:var(--success); background:#fff; font-weight:800; }
+    .protocol-copy:hover { background:#f0fbf4; }
+    #copy-feedback { color:var(--success); font-size:.82rem; font-weight:700; }
     .error-message { min-height: 1.1rem; margin: .8rem 0 0; color: var(--danger); font-size: .84rem; font-weight: 650; }
 
     .mobile-sticky-cta { display:none; }
@@ -784,7 +788,7 @@
               </div>
 
               <fieldset class="field field-full" id="hospital-fieldset">
-                <legend>Hospitais de interesse * <span class="helper">(selecione ao menos um)</span></legend>
+                <legend>Hospitais de interesse * <span class="helper">(selecione 1 a 6)</span> <span class="selection-count" id="hospital-count" aria-live="polite">0 selecionados</span></legend>
                 <div class="choice-grid">
                   <label class="choice"><input class="hospital-checkbox" type="checkbox" name="hospitais" value="Palmas — Hospital Geral de Palmas" /><span class="choice-content"><strong>Palmas</strong><small>Hospital Geral de Palmas</small></span></label>
                   <label class="choice"><input class="hospital-checkbox" type="checkbox" name="hospitais" value="Araguaína — Hospital Regional de Araguaína" /><span class="choice-content"><strong>Araguaína</strong><small>Hospital Regional de Araguaína</small></span></label>
@@ -820,6 +824,10 @@
               <button class="btn submit-btn" type="submit">Enviar inscrição <span aria-hidden="true">→</span></button>
             </div>
             <div class="success-message" id="success-message" role="status" aria-live="polite">Inscrição enviada com sucesso. A gestão responsável analisará os dados e entrará em contato pelos canais informados.</div>
+            <div class="protocol-actions" id="protocol-actions" hidden>
+              <button class="protocol-copy" id="copy-protocol" type="button">Copiar protocolo</button>
+              <span id="copy-feedback" aria-live="polite"></span>
+            </div>
           </form>
         </div>
       </div>
@@ -904,6 +912,10 @@
       const shiftError = document.querySelector('#shift-error');
       const hospitalCount = document.querySelector('#hospital-count');
       const shiftCount = document.querySelector('#shift-count');
+      const protocolActions = document.querySelector('#protocol-actions');
+      const copyProtocol = document.querySelector('#copy-protocol');
+      const copyFeedback = document.querySelector('#copy-feedback');
+      let submittedProtocol = '';
       const declarationError = document.querySelector('#declaration-error');
       const declaration = document.querySelector('#declaracao');
       const birthInput = document.querySelector('#nascimento');
@@ -950,9 +962,17 @@
         shiftCount.textContent = selectedShifts === 1 ? '1 selecionado' : `${selectedShifts} selecionados`;
       };
       [...hospitalCheckboxes, ...shiftCheckboxes].forEach((input) => input.addEventListener('change', () => {
+        const isHospital = input.classList.contains('hospital-checkbox');
+        const selected = (isHospital ? hospitalCheckboxes : shiftCheckboxes).filter((item) => item.checked);
+        const max = isHospital ? 6 : 3;
+        if (selected.length > max) {
+          input.checked = false;
+          (isHospital ? hospitalError : shiftError).textContent = `Você pode selecionar no máximo ${max} opção${max > 1 ? 'ões' : ''}.`;
+        } else {
+          hospitalError.textContent = '';
+          shiftError.textContent = '';
+        }
         updateChoiceState();
-        hospitalError.textContent = '';
-        shiftError.textContent = '';
       }));
       declaration.addEventListener('change', () => { declarationError.textContent = ''; });
       updateChoiceState();
@@ -968,6 +988,8 @@
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
         successMessage.classList.remove('is-visible');
+        protocolActions.hidden = true;
+        copyFeedback.textContent = '';
         hospitalError.textContent = '';
         shiftError.textContent = '';
         declarationError.textContent = '';
@@ -1053,9 +1075,11 @@
           form.reset();
           updateChoiceState();
           form.querySelectorAll('[aria-invalid="true"]').forEach((input) => input.removeAttribute('aria-invalid'));
+          submittedProtocol = protocol || '';
           successMessage.textContent = protocol
             ? `Inscrição enviada com sucesso! Seu protocolo é ${protocol}. Guarde esse número para referência. A gestão responsável entrará em contato pelos canais informados.`
             : 'Inscrição enviada com sucesso. A gestão responsável analisará os dados e entrará em contato pelos canais informados.';
+          protocolActions.hidden = !submittedProtocol;
           successMessage.classList.add('is-visible');
           successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
         } catch (error) {
@@ -1073,6 +1097,16 @@
         } finally {
           submitButton.disabled = false;
           submitButton.innerHTML = 'Enviar inscrição <span aria-hidden="true">→</span>';
+        }
+      });
+
+      copyProtocol.addEventListener('click', async () => {
+        if (!submittedProtocol) return;
+        try {
+          await navigator.clipboard.writeText(submittedProtocol);
+          copyFeedback.textContent = 'Protocolo copiado.';
+        } catch (_) {
+          copyFeedback.textContent = `Protocolo: ${submittedProtocol}`;
         }
       });
 
