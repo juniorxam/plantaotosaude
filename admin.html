@@ -87,7 +87,8 @@
         <button id="login-button" class="btn primary" type="submit">Entrar com e-mail</button>
         <div class="login-divider"><span>ou</span></div>
         <button id="github-login" class="btn github-btn" type="button">Entrar com GitHub</button>
-        <p class="login-help">Use o GitHub associado ao e-mail autorizado no painel administrativo.</p>
+        <button id="magic-link" class="btn ghost" type="button" style="width:100%;margin-top:11px">Receber link por e-mail</button>
+        <p class="login-help">O GitHub só funcionará depois que o provedor GitHub for ativado no Supabase. Para acesso rápido, informe seu e-mail e receba um link.</p>
         <div id="login-error" class="error hidden" role="alert"></div>
       </form>
     </div>
@@ -363,16 +364,37 @@
     }
     async function loginWithGithub() {
       $('login-error').classList.add('hidden');
-      const button = $('github-login'); button.disabled = true; button.textContent = 'Redirecionando para o GitHub…';
+      const button = $('github-login'); button.disabled = true; button.textContent = 'Verificando GitHub…';
       const { error } = await client.auth.signInWithOAuth({
         provider: 'github',
         options: { redirectTo: window.location.origin + window.location.pathname }
       });
       if (error) {
-        $('login-error').textContent = 'Não foi possível iniciar o login com GitHub. Confirme se o provedor GitHub está habilitado no Supabase.';
+        $('login-error').textContent = 'O login GitHub ainda não está habilitado no Supabase. Use o link por e-mail abaixo ou ative o provedor GitHub nas configurações do projeto.';
         $('login-error').classList.remove('hidden');
         button.disabled = false; button.textContent = 'Entrar com GitHub';
       }
+    }
+    async function sendMagicLink() {
+      $('login-error').classList.add('hidden');
+      const email = $('email').value.trim();
+      if (!email || !email.includes('@')) {
+        $('login-error').textContent = 'Informe primeiro o e-mail autorizado no painel.';
+        $('login-error').classList.remove('hidden'); $('email').focus(); return;
+      }
+      const button = $('magic-link'); button.disabled = true; button.textContent = 'Enviando link…';
+      const { error } = await client.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: window.location.origin + window.location.pathname }
+      });
+      if (error) {
+        $('login-error').textContent = 'Não foi possível enviar o link. Verifique se o e-mail está autorizado e se o envio de e-mails do Supabase está configurado.';
+        $('login-error').classList.remove('hidden');
+      } else {
+        $('login-error').textContent = 'Link enviado. Verifique sua caixa de entrada e abra o link neste dispositivo.';
+        $('login-error').className = 'notice';
+      }
+      button.disabled = false; button.textContent = 'Receber link por e-mail';
     }
 
     async function updateStatus(id, select, button) {
@@ -415,6 +437,7 @@
     $('page-next').addEventListener('click', () => { const totalPages = Math.max(1, Math.ceil(filtered().length / PAGE_SIZE)); if (currentPage < totalPages) { currentPage += 1; render(); window.scrollTo({top:0,behavior:'smooth'}); } });
     $('login-form').addEventListener('submit',login);
     $('github-login').addEventListener('click', loginWithGithub);
+    $('magic-link').addEventListener('click', sendMagicLink);
     $('logout').addEventListener('click',async()=>{await client.auth.signOut({scope:'local'});location.reload();});
     let autoRefreshTimer = null;
     $('auto-refresh').addEventListener('change', (event) => {
