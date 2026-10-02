@@ -917,7 +917,9 @@
       const curriculoInput = document.querySelector('#curriculo');
       const curriculoStatus = document.querySelector('#curriculo-status');
       const formStartedAt = document.querySelector('#form-started-at');
-      if (formStartedAt) formStartedAt.value = String(Date.now());
+      const markFormStarted = () => { if (formStartedAt) formStartedAt.value = String(Date.now()); };
+      markFormStarted();
+      form.addEventListener('focusin', markFormStarted, { once: true });
       const fileLabel = document.querySelector('label[for="curriculo"]');
       curriculoInput?.addEventListener('change', () => {
         const file = curriculoInput.files?.[0];
@@ -1107,14 +1109,18 @@
 
           const response = await fetch(SUPABASE_URL + '/functions/v1/submit-plantao-inscricao', {
             method: 'POST',
-            headers: {
-              apikey: SUPABASE_PUBLISHABLE_KEY
-            },
+            headers: { apikey: SUPABASE_PUBLISHABLE_KEY },
             body: submissionData
           });
-          if (!response.ok) throw new Error(await response.text() || 'Falha ao enviar inscrição.');
-
-          const result = await response.json();
+          const rawResponse = await response.text();
+          let result = null;
+          try { result = rawResponse ? JSON.parse(rawResponse) : null; } catch (_) {}
+          if (!response.ok) {
+            const serverMessage = result?.message || '';
+            if (response.status === 409) throw new Error(JSON.stringify({ message: 'Já existe uma inscrição para este CPF.' }));
+            if (response.status === 429) throw new Error(JSON.stringify({ message: serverMessage || 'Aguarde um minuto antes de enviar outra inscrição.' }));
+            throw new Error(JSON.stringify({ message: serverMessage || 'Falha ao enviar inscrição.' }));
+          }
           const protocol = result?.protocolo || (Array.isArray(result) ? result[0]?.protocolo : null);
           form.reset();
           updateChoiceState();
