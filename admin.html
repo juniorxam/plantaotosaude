@@ -37,6 +37,8 @@
     .detail{padding:13px;border:1px solid var(--line);border-radius:12px;background:#fbfdfe}.detail.full{grid-column:1/-1}
     .detail small{display:block;color:var(--muted);font-weight:800;text-transform:uppercase;font-size:.7rem;letter-spacing:.05em;margin-bottom:4px}.detail div{white-space:pre-wrap}
     .details-btn{padding:7px 9px;color:var(--deep);background:#eef4f7}
+    .pagination{display:flex;align-items:center;justify-content:center;gap:14px;padding:16px 0;color:var(--muted);font-size:.88rem;font-weight:750}
+    .pagination button:disabled{opacity:.45;cursor:not-allowed}
     @media(max-width:600px){.detail-grid{grid-template-columns:1fr}.detail.full{grid-column:auto}}
     @media(max-width:850px){.stats{grid-template-columns:repeat(2,1fr)}.page-title{align-items:start;flex-direction:column}.user-email{display:none}}
     @media(max-width:560px){main{padding:20px 12px}.stats{grid-template-columns:1fr 1fr}.stat strong{font-size:1.6rem}.login-card{padding:25px}}
@@ -97,6 +99,11 @@
         </table>
         <div id="empty" class="empty hidden">Nenhuma inscrição encontrada.</div>
       </div>
+      <div id="pagination" class="pagination hidden" aria-label="Paginação das inscrições">
+        <button id="page-prev" class="btn ghost" type="button">← Anterior</button>
+        <span id="page-info">Página 1 de 1</span>
+        <button id="page-next" class="btn ghost" type="button">Próxima →</button>
+      </div>
     </main>
   </section>
 
@@ -114,6 +121,8 @@
     const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
     const $ = (id) => document.getElementById(id);
     let registrations = [];
+    let currentPage = 1;
+    const PAGE_SIZE = 15;
 
     const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
     const fmtDate = (value) => value ? new Intl.DateTimeFormat('pt-BR',{dateStyle:'short',timeStyle:'short'}).format(new Date(value)) : '—';
@@ -140,7 +149,11 @@
 
     function render() {
       const rows=filtered(); updateStats();
-      $('tbody').innerHTML=rows.map(r=>`
+      const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+      currentPage = Math.min(currentPage, totalPages);
+      const start = (currentPage - 1) * PAGE_SIZE;
+      const visibleRows = rows.slice(start, start + PAGE_SIZE);
+      $('tbody').innerHTML=visibleRows.map(r=>`
         <tr>
           <td><div class="name">${esc(r.nome)}</div><div class="muted">${esc(r.cpf)}</div></td>
           <td>${esc(r.telefone)}<br><span class="muted">${esc(r.email)}</span></td>
@@ -155,6 +168,10 @@
           </select><button class="btn save" data-save="${esc(r.id)}">Salvar</button></div></td>
         </tr>`).join('');
       $('loading').classList.add('hidden'); $('table').classList.toggle('hidden', rows.length===0); $('empty').classList.toggle('hidden', rows.length!==0);
+      $('pagination').classList.toggle('hidden', rows.length <= PAGE_SIZE);
+      $('page-info').textContent = `Página ${currentPage} de ${totalPages} · ${rows.length} inscrição${rows.length === 1 ? '' : 'ões'}`;
+      $('page-prev').disabled = currentPage <= 1;
+      $('page-next').disabled = currentPage >= totalPages;
     }
 
     function showDetails(id) {
@@ -248,9 +265,11 @@
       const url=URL.createObjectURL(blob), a=document.createElement('a'); a.href=url; a.download='inscricoes-plantao-to-saude.csv'; a.click(); URL.revokeObjectURL(url);
     }
 
+    $('page-prev').addEventListener('click', () => { if (currentPage > 1) { currentPage -= 1; render(); window.scrollTo({top:0,behavior:'smooth'}); } });
+    $('page-next').addEventListener('click', () => { const totalPages = Math.max(1, Math.ceil(filtered().length / PAGE_SIZE)); if (currentPage < totalPages) { currentPage += 1; render(); window.scrollTo({top:0,behavior:'smooth'}); } });
     $('login-form').addEventListener('submit',login);
     $('logout').addEventListener('click',async()=>{await client.auth.signOut({scope:'local'});location.reload();});
-    $('refresh').addEventListener('click',load); $('export-top').addEventListener('click',exportCsv); $('search').addEventListener('input',render); $('filter-status').addEventListener('change',render); $('filter-hospital').addEventListener('change',render); $('filter-shift').addEventListener('change',render); $('export').addEventListener('click',exportCsv);
+    $('refresh').addEventListener('click',load); $('export-top').addEventListener('click',exportCsv); $('search').addEventListener('input',()=>{currentPage=1;render();}); $('filter-status').addEventListener('change',()=>{currentPage=1;render();}); $('filter-hospital').addEventListener('change',()=>{currentPage=1;render();}); $('filter-shift').addEventListener('change',()=>{currentPage=1;render();}); $('export').addEventListener('click',exportCsv);
     $('tbody').addEventListener('click',(event)=>{
       const btn=event.target.closest('[data-save]');
       if(!btn)return;
