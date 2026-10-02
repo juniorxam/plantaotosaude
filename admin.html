@@ -52,7 +52,8 @@
     .table-wrap table{min-width:1120px}
     .muted{color:var(--muted)}
     .last-updated{font-size:.78rem;color:var(--muted);margin-top:5px}
-.filter-summary{font-size:.78rem;color:var(--muted);font-weight:700;margin:-8px 0 10px}
+.quick-status{display:flex;gap:7px;flex-wrap:wrap;margin:-4px 0 10px}.quick-status button{border:1px solid var(--line);background:#fff;color:var(--text);border-radius:999px;padding:7px 11px;font-size:.76rem;font-weight:800;cursor:pointer}.quick-status button.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+    .filter-summary{font-size:.78rem;color:var(--muted);font-weight:700;margin:-2px 0 10px}
     .toolbar{position:sticky;top:0;z-index:5}
 
     .pagination button:disabled{opacity:.45;cursor:not-allowed}
@@ -101,6 +102,7 @@
         <div class="insight-card"><div class="insight-head"><strong>Hospitais mais escolhidos</strong><span>geral</span></div><div id="hospital-summary" class="summary-list"></div></div>
         <div class="insight-card"><div class="insight-head"><strong>Plantões selecionados</strong><span>geral</span></div><div id="shift-summary" class="summary-list"></div></div>
       </div>
+      <div class="quick-status" id="status-quick"><button type="button" data-quick-status="">Todos</button><button type="button" data-quick-status="pendente">Pendentes</button><button type="button" data-quick-status="confirmado">Confirmados</button><button type="button" data-quick-status="escalado">Escalados</button><button type="button" data-quick-status="recusado">Recusados</button></div>
       <div class="filter-summary" id="filter-summary" aria-live="polite">Sem filtros ativos</div>
       <div class="toolbar">
         <input id="search" class="search" type="search" placeholder="Buscar por nome, CPF, telefone, e-mail ou protocolo">
@@ -271,6 +273,13 @@
       if (button) showDetails(button.dataset.details);
     });
     $('close-modal').addEventListener('click', () => $('detail-modal').classList.add('hidden'));
+    document.querySelectorAll('[data-quick-status]').forEach(button => button.addEventListener('click', () => {
+      $('filter-status').value = button.dataset.quickStatus || '';
+      currentPage = 1;
+      document.querySelectorAll('[data-quick-status]').forEach(b => b.classList.toggle('active', b === button));
+      render();
+    }));
+
     $('detail-modal').addEventListener('click', (event) => {
       if (event.target === $('detail-modal')) $('detail-modal').classList.add('hidden');
     });
