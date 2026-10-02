@@ -131,7 +131,7 @@
 
   <section id="detail-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="detail-title">
     <div class="modal-card">
-      <div class="modal-head"><h3 id="detail-title">Detalhes da inscrição</h3><button id="close-modal" class="close" type="button">Fechar</button></div>
+      <div class="modal-head"><h3 id="detail-title">Detalhes da inscrição</h3><div><button id="print-detail" class="btn" type="button">Imprimir</button><button id="close-modal" class="close" type="button">Fechar</button></div></div>
       <div id="detail-grid" class="detail-grid"></div>
     </div>
   </section>
@@ -215,9 +215,28 @@
       $('page-next').disabled = currentPage >= totalPages;
     }
 
+    function printRegistration(id) {
+      const r = registrations.find(item => item.id === id);
+      if (!r) return;
+      const w = window.open('', '_blank', 'width=900,height=700');
+      if (!w) { showNotice('Permita pop-ups para imprimir a inscrição.', 'error'); return; }
+      const safe = (v) => esc(v ?? '');
+      w.document.write('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Ficha '+safe(r.protocolo)+'</title><style>body{font:14px Arial;color:#163047;padding:32px;max-width:850px;margin:auto}h1{font-size:22px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{padding:10px;background:#f5f7f9;border-radius:6px}.label{font-size:11px;text-transform:uppercase;color:#657786;font-weight:700}.full{grid-column:1/-1}</style></head><body>');
+      w.document.write('<h1>Plantão TO Saúde — Ficha de inscrição</h1><p><strong>Protocolo:</strong> '+safe(r.protocolo)+'</p><div class="grid">');
+      w.document.write('<div class="field"><div class="label">Nome</div>'+safe(r.nome)+'</div><div class="field"><div class="label">CPF</div>'+safe(r.cpf)+'</div>');
+      w.document.write('<div class="field"><div class="label">Nascimento</div>'+safe(r.nascimento)+'</div><div class="field"><div class="label">Telefone</div>'+safe(r.telefone)+'</div>');
+      w.document.write('<div class="field"><div class="label">E-mail</div>'+safe(r.email)+'</div><div class="field"><div class="label">Profissão</div>'+safe(r.profissao)+'</div>');
+      w.document.write('<div class="field"><div class="label">Registro</div>'+safe(r.registro)+'</div><div class="field"><div class="label">Status</div>'+safe(statusLabel[r.status]||r.status)+'</div>');
+      w.document.write('<div class="field full"><div class="label">Hospitais</div>'+safe((r.hospitais||[]).join(' · '))+'</div><div class="field full"><div class="label">Plantões</div>'+safe((r.plantoes||[]).join(' · '))+'</div><div class="field full"><div class="label">Observações</div>'+safe(r.observacoes||'—')+'</div></div><p>Gerado em '+new Date().toLocaleString('pt-BR')+'</p><script>window.onload=function(){window.print()}<\/script></body></html>');
+      w.document.close();
+    }
+
     function showDetails(id) {
       const r = registrations.find(item => item.id === id);
       if (!r) return;
+      document.querySelectorAll('[data-details].selected-detail').forEach(el => el.classList.remove('selected-detail'));
+      const sourceButton = document.querySelector('[data-details="'+CSS.escape(id)+'"]');
+      if (sourceButton) sourceButton.classList.add('selected-detail');
       $('detail-title').textContent = r.nome || 'Detalhes da inscrição';
       const fields = [
         ['Nome', r.nome], ['CPF', r.cpf],
