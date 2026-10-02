@@ -23,6 +23,10 @@ A tabela `public.inscricoes` é criada pela migração `create_inscricoes_planta
 
 Detalhes adicionais estão em [INTEGRACAO.md](INTEGRACAO.md).
 
+## Administração
+
+O painel administrativo está em `/admin.html`. O acesso usa Supabase Auth e a tabela `admin_users` como segunda camada de autorização. O painel permite consultar inscrições, filtrar por status, atualizar o status e exportar os resultados para CSV. Nenhuma senha ou `service_role` é armazenada no código.
+
 ## Deploy no Vercel
 
 O projeto é estático. No Vercel, use:
@@ -30,6 +34,7 @@ O projeto é estático. No Vercel, use:
 - **Framework Preset:** Other;
 - **Build Command:** `npm run build`;
 - **Output Directory:** `dist`;
+- O build copia `index.html` e `admin.html` para o diretório final;
 - **Install Command:** deixe vazio.
 
 O repositório está preparado para implantação automática a cada push na branch `main`.
