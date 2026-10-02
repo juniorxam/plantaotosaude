@@ -1,6 +1,12 @@
 # Integração do formulário — Plantão TO Saúde
 
-O `index.html` entregue funciona em modo demonstração: valida os campos no navegador, exibe uma mensagem de sucesso, limpa o formulário e registra o objeto enviado no console com `console.log`. Para receber inscrições de verdade, substitua o bloco indicado no final do `<script>` por uma das opções abaixo.
+## Supabase configurado
+
+O formulário já está conectado ao projeto Supabase configurado para o site. As inscrições são enviadas para `public.inscricoes` pela API REST. A tabela possui RLS habilitado e a chave usada no frontend é uma chave publicável; a política permite somente inserções com declaração marcada, pelo menos um hospital e pelo menos um plantão. Não há política de leitura pública.
+
+Para consultar as inscrições, use o painel autenticado do Supabase ou um backend/admin com credenciais próprias. Nunca coloque uma `service_role key` no HTML.
+
+O `index.html` valida os dados no navegador, envia o objeto ao Supabase, exibe uma mensagem de sucesso e limpa o formulário após resposta HTTP bem-sucedida. O bloco de integração fica no final do `<script>`.
 
 > Antes de publicar, defina também política de privacidade, responsável pelo tratamento dos dados e prazo de retenção. O formulário coleta dados pessoais e profissionais, incluindo CPF.
 

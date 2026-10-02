@@ -714,7 +714,7 @@
               <p class="required-note">* Campos obrigatórios</p>
               <button class="btn submit-btn" type="submit">Enviar inscrição <span aria-hidden="true">→</span></button>
             </div>
-            <div class="success-message" id="success-message" role="status" aria-live="polite">Inscrição registrada para teste. Seus dados foram preparados no navegador; a integração com o canal oficial de recebimento ainda precisa ser configurada.</div>
+            <div class="success-message" id="success-message" role="status" aria-live="polite">Inscrição enviada com sucesso. A gestão responsável analisará os dados e entrará em contato pelos canais informados.</div>
           </form>
         </div>
       </div>
@@ -770,11 +770,15 @@
   </footer>
 
   <script>
-    // Integração futura: substitua o bloco de console.log por um fetch para
-    // Google Forms/Planilha, Formspree ou uma API própria Node.js/Python.
+    // A chave publicável pode ficar no frontend; a tabela Supabase usa RLS e
+    // permite somente INSERT público com declaração, hospital e plantão válidos.
+    const SUPABASE_URL = 'https://jyrzbfnaitdmilxxcbyv.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_WDE_s2HYfWUCI3iuodaG4w_RFGGwm9m';
+
     (() => {
       const form = document.querySelector('#registration-form');
       const successMessage = document.querySelector('#success-message');
+      const submitButton = form.querySelector('button[type="submit"]');
       const navToggle = document.querySelector('.nav-toggle');
       const navLinks = document.querySelector('#nav-links');
       const cpfInput = document.querySelector('#cpf');
@@ -822,7 +826,7 @@
         input.addEventListener('change', () => setInvalid(input, false));
       });
 
-      form.addEventListener('submit', (event) => {
+      form.addEventListener('submit', async (event) => {
         event.preventDefault();
         successMessage.classList.remove('is-visible');
         hospitalError.textContent = '';
@@ -874,13 +878,36 @@
         data.hospitais = hospitalCheckboxes.filter((input) => input.checked).map((input) => input.value);
         data.plantoes = shiftCheckboxes.filter((input) => input.checked).map((input) => input.value);
         data.declaracao = declaration.checked;
-        console.log('Plantão TO Saúde — inscrição enviada (modo demonstração):', data);
+        submitButton.disabled = true;
+        submitButton.textContent = 'Enviando…';
 
-        form.reset();
-        updateChoiceState();
-        form.querySelectorAll('[aria-invalid="true"]').forEach((input) => input.removeAttribute('aria-invalid'));
-        successMessage.classList.add('is-visible');
-        successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        try {
+          const response = await fetch(`${SUPABASE_URL}/rest/v1/inscricoes`, {
+            method: 'POST',
+            headers: {
+              apikey: SUPABASE_PUBLISHABLE_KEY,
+              Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+              'Content-Type': 'application/json',
+              Prefer: 'return=minimal'
+            },
+            body: JSON.stringify(data)
+          });
+          if (!response.ok) throw new Error(await response.text() || 'Falha ao enviar inscrição.');
+
+          console.log('Plantão TO Saúde — inscrição enviada ao Supabase:', data);
+          form.reset();
+          updateChoiceState();
+          form.querySelectorAll('[aria-invalid="true"]').forEach((input) => input.removeAttribute('aria-invalid'));
+          successMessage.textContent = 'Inscrição enviada com sucesso. A gestão responsável analisará os dados e entrará em contato pelos canais informados.';
+          successMessage.classList.add('is-visible');
+          successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } catch (error) {
+          console.error('Plantão TO Saúde — erro ao enviar inscrição:', error);
+          window.alert('Não foi possível enviar sua inscrição agora. Verifique sua conexão e tente novamente.');
+        } finally {
+          submitButton.disabled = false;
+          submitButton.innerHTML = 'Enviar inscrição <span aria-hidden="true">→</span>';
+        }
       });
 
       navToggle.addEventListener('click', () => {
