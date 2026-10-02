@@ -80,7 +80,13 @@
       </div>
       <div class="toolbar">
         <input id="search" class="search" type="search" placeholder="Buscar por nome, CPF, telefone, e-mail ou protocolo">
-        <select id="filter-status"><option value="">Todos os status</option><option value="pendente">Pendente</option><option value="confirmado">Confirmado</option><option value="escalado">Escalado</option><option value="recusado">Recusado</option></select>
+        <select id="filter-status" aria-label="Filtrar por status"><option value="">Todos os status</option><option value="pendente">Pendente</option><option value="confirmado">Confirmado</option><option value="escalado">Escalado</option><option value="recusado">Recusado</option></select>
+        <select id="filter-hospital" aria-label="Filtrar por hospital"><option value="">Todos os hospitais</option>
+          <option value="Palmas — Hospital Geral de Palmas">HGP</option><option value="Araguaína — Hospital Regional de Araguaína">Araguaína</option><option value="Gurupi — Hospital Regional de Gurupi">Gurupi</option><option value="Paraíso do Tocantins — Hospital Regional de Paraíso">Paraíso</option><option value="Porto Nacional — Hospital Regional de Porto Nacional">Porto Nacional</option><option value="Augustinópolis — Hospital Regional de Augustinópolis">Augustinópolis</option>
+        </select>
+        <select id="filter-shift" aria-label="Filtrar por plantão"><option value="">Todos os plantões</option>
+          <option value="A — Véspera, noturno — 31/10/2026, 19h às 7h de 01/11">A · Véspera</option><option value="B — Dia do concurso, diurno — 01/11/2026, 7h às 19h">B · Diurno</option><option value="C — Dia do concurso, noturno — 01/11/2026, 19h às 7h de 02/11">C · Noturno</option>
+        </select>
         <button id="export" class="btn ghost">Exportar CSV</button>
       </div>
       <div class="table-wrap">
@@ -125,10 +131,10 @@
     }
 
     function filtered() {
-      const q=$('search').value.trim().toLowerCase(), status=$('filter-status').value;
+      const q=$('search').value.trim().toLowerCase(), status=$('filter-status').value, hospital=$('filter-hospital').value, shift=$('filter-shift').value;
       return registrations.filter(r => {
         const hay=[r.nome,r.cpf,r.telefone,r.email,r.protocolo,r.profissao,r.registro,...(r.hospitais||[]),...(r.plantoes||[])].join(' ').toLowerCase();
-        return (!q || hay.includes(q)) && (!status || r.status===status);
+        return (!q || hay.includes(q)) && (!status || r.status===status) && (!hospital || (r.hospitais||[]).includes(hospital)) && (!shift || (r.plantoes||[]).includes(shift));
       });
     }
 
@@ -224,7 +230,7 @@
 
     $('login-form').addEventListener('submit',login);
     $('logout').addEventListener('click',async()=>{await client.auth.signOut({scope:'local'});location.reload();});
-    $('refresh').addEventListener('click',load); $('search').addEventListener('input',render); $('filter-status').addEventListener('change',render); $('export').addEventListener('click',exportCsv);
+    $('refresh').addEventListener('click',load); $('search').addEventListener('input',render); $('filter-status').addEventListener('change',render); $('filter-hospital').addEventListener('change',render); $('filter-shift').addEventListener('change',render); $('export').addEventListener('click',exportCsv);
     $('tbody').addEventListener('click',(event)=>{const btn=event.target.closest('[data-save]');if(!btn)return;const id=btn.dataset.save;const select=$('tbody').querySelector('select[data-id="'+CSS.escape(id)+'"]');if(select)updateStatus(id,select);});
 
     client.auth.getSession().then(async({data})=>{
