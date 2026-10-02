@@ -1130,7 +1130,19 @@
             },
             body: JSON.stringify(payload)
           });
-          if (!response.ok) throw new Error(await response.text() || 'Falha ao enviar inscrição.');
+          if (!response.ok) {
+            const detail = await response.text();
+            try {
+              await fetch(SUPABASE_URL + '/storage/v1/object/curriculos/' + curriculumPath.replace('curriculos/', ''), {
+                method: 'DELETE',
+                headers: {
+                  apikey: SUPABASE_PUBLISHABLE_KEY,
+                  Authorization: 'Bearer ' + SUPABASE_PUBLISHABLE_KEY
+                }
+              });
+            } catch (_) {}
+            throw new Error(detail || 'Falha ao enviar inscrição.');
+          }
 
           const result = await response.json();
           const protocol = Array.isArray(result) && result[0]?.protocolo ? result[0].protocolo : null;
