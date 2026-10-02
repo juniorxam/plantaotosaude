@@ -78,6 +78,21 @@
     }
     .gov-brand { display: inline-flex; align-items: center; gap: .55rem; }
     .gov-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--yellow); box-shadow: 0 0 0 3px rgba(255,204,0,.14); }
+    .quick-access { position: relative; z-index: 5; margin-top: -1px; background: #fff; border-bottom: 1px solid var(--line); box-shadow: 0 8px 25px rgba(0,61,102,.07); }
+    .quick-inner { display: grid; grid-template-columns: 1.15fr repeat(4,1fr); max-width: var(--max-width); margin: 0 auto; }
+    .quick-title { display: grid; align-content: center; gap: .25rem; padding: 1rem 1.25rem; border-right: 1px solid var(--line); }
+    .quick-title span { color: var(--teal); font-size: .68rem; font-weight: 850; letter-spacing: .14em; }
+    .quick-title strong { color: var(--blue-dark); font-size: 1.05rem; }
+    .quick-inner > a { display: grid; grid-template-columns: 2.3rem 1fr auto; align-items: center; gap: .65rem; min-width: 0; padding: .9rem 1rem; color: var(--blue-dark); text-decoration: none; border-right: 1px solid var(--line); transition: background .2s ease, color .2s ease; }
+    .quick-inner > a:hover { background: #eef7fa; color: var(--teal); }
+    .quick-icon { display: grid; width: 2.25rem; height: 2.25rem; place-items: center; color: #fff; border-radius: 7px; background: var(--blue); font-weight: 850; }
+    .quick-inner > a:nth-child(3) .quick-icon { background: var(--teal); }
+    .quick-inner > a:nth-child(4) .quick-icon { color: var(--blue-dark); background: var(--yellow); }
+    .quick-inner > a:nth-child(5) .quick-icon { background: #5c6bc0; }
+    .quick-inner > a strong, .quick-inner > a small { display: block; }
+    .quick-inner > a strong { font-size: .86rem; }
+    .quick-inner > a small { margin-top: .12rem; color: var(--muted); font-size: .7rem; line-height: 1.25; }
+    .quick-inner > a b { color: var(--teal); font-size: 1.15rem; }
     .hero {
       position: relative;
       overflow: hidden;
@@ -503,6 +518,11 @@
     .footer-contact a:hover { text-decoration: underline; }
 
     @media (max-width: 940px) {
+      .quick-inner { grid-template-columns: repeat(2,1fr); }
+      .quick-title { grid-column: 1/-1; border-right: 0; border-bottom: 1px solid var(--line); }
+      .quick-inner > a:nth-child(3) { border-right: 0; }
+      .quick-inner > a:nth-child(4), .quick-inner > a:nth-child(5) { border-top: 1px solid var(--line); }
+
       .hero-inner { grid-template-columns: 1fr; gap: 2.5rem; min-height: auto; padding-top: 4.5rem; }
       .hero-panel { max-width: 500px; }
       .about-layout, .faq-layout { grid-template-columns: 1fr; gap: 2rem; }
@@ -565,6 +585,16 @@
       </aside>
     </div>
   </header>
+
+  <section class="quick-access" aria-label="Acesso rápido">
+    <div class="quick-inner">
+      <div class="quick-title"><span>PLANTÃO TO SAÚDE</span><strong>Acesso rápido</strong></div>
+      <a href="#inscricao"><span class="quick-icon">✚</span><span><strong>Inscrição</strong><small>Cadastre-se para os plantões</small></span><b>→</b></a>
+      <a href="#hospitais"><span class="quick-icon">⌂</span><span><strong>Hospitais</strong><small>Veja os locais participantes</small></span><b>→</b></a>
+      <a href="#sobre"><span class="quick-icon">◷</span><span><strong>Plantões</strong><small>Confira datas e horários</small></span><b>→</b></a>
+      <a href="#duvidas"><span class="quick-icon">?</span><span><strong>Dúvidas</strong><small>Perguntas frequentes</small></span><b>→</b></a>
+    </div>
+  </section>
 
   <nav class="nav-wrap" aria-label="Navegação principal">
     <div class="site-nav">
