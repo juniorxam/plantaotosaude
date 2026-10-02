@@ -6,48 +6,117 @@ Landing page institucional para inscrição de profissionais de saúde que não 
 
 - HTML5, CSS3 e JavaScript puro;
 - formulário responsivo com validação client-side;
-- Supabase + Edge Function para receber inscrições públicas com validação no servidor;
+- Supabase Edge Function para recebimento público das inscrições;
 - Supabase Storage privado para currículos;
-- RLS e Supabase Auth para proteger o painel administrativo;
-- build estático compatível com Vercel.
+- PostgreSQL/RLS e Supabase Auth para o painel administrativo;
+- deploy estático compatível com Vercel.
+
+## Estrutura
+
+- `index.html` — página pública e formulário;
+- `admin.html` — painel administrativo;
+- `logo.svg` — identidade visual do projeto;
+- `supabase/functions/submit-plantao-inscricao/index.ts` — endpoint público seguro;
+- `supabase/migrations/` — histórico das alterações do banco;
+- `INTEGRACAO.md` — arquitetura e checklist operacional;
+- `package.json` / `vercel.json` — build estático.
 
 ## Desenvolvimento local
 
-```bash
+~~~bash
 python3 -m http.server 3000
-```
+~~~
 
 Abra `http://localhost:3000`.
 
+Para validar o pacote estático no mesmo formato usado pelo Vercel:
+
+~~~bash
+npm run build
+~~~
+
+O comando gera `dist/` com os arquivos públicos necessários. A Edge Function do Supabase é implantada separadamente e não faz parte do build do Vercel.
+
+## Arquitetura de inscrição
+
+O fluxo público é:
+
+`index.html` → `submit-plantao-inscricao` → bucket privado `curriculos` → RPC `register_plantao_inscricao` → `public.inscricoes`
+
+A inscrição pública **não** faz INSERT direto na tabela e **não** acessa o Storage diretamente.
+
+A Edge Function:
+
+1. recebe `multipart/form-data`;
+2. valida CPF, e-mail, telefone, profissão, hospitais, plantões e declaração;
+3. exige currículo PDF/DOC/DOCX de até 5 MB;
+4. aplica proteção anti-bot e rate limiting;
+5. grava o currículo com nome aleatório no bucket privado;
+6. chama a RPC com privilégios de servidor;
+7. remove o currículo se a gravação da inscrição falhar;
+8. retorna somente o protocolo da inscrição.
+
+A RPC fica disponível para execução apenas pelo `service_role`, usado internamente pela Edge Function.
+
 ## Supabase
 
-A tabela `public.inscricoes` é criada pelas migrações do diretório `supabase/migrations`. O envio público passa pela Edge Function `submit-plantao-inscricao`, que recebe o formulário e o currículo, aplica validações e rate limiting, grava o currículo no bucket privado e chama a RPC `register_plantao_inscricao` com privilégios de servidor. A RPC valida novamente os dados, grava a inscrição como `pendente` e retorna somente o protocolo. O navegador não executa a RPC diretamente e não possui acesso público ao Storage ou à tabela de inscrições.
+O projeto utiliza:
 
-Detalhes adicionais estão em [INTEGRACAO.md](INTEGRACAO.md).
+- tabela `public.inscricoes`;
+- tabela `public.admin_users`;
+- tabela técnica `public.submission_rate_limits`;
+- bucket privado `curriculos`;
+- Supabase Auth para administradores;
+- Edge Function `submit-plantao-inscricao`;
+- RPC `register_plantao_inscricao`.
+
+A chave publicável pode permanecer no frontend. **Nunca coloque uma chave `service_role` no HTML, no repositório ou em arquivos públicos.**
+
+O banco atualmente permanece sem dados de teste: nenhuma inscrição e nenhum currículo foram inseridos.
 
 ## Administração
 
-O painel administrativo está em `/admin.html`. O acesso usa Supabase Auth e a tabela `admin_users` como segunda camada de autorização. O painel permite consultar inscrições, filtrar por status, atualizar o status e exportar os resultados para CSV. Nenhuma senha ou `service_role` é armazenada no código.
+O painel está em `/admin.html`.
+
+O acesso exige autenticação no Supabase Auth e autorização adicional pela tabela `admin_users`. Usuários administrativos autorizados podem:
+
+- consultar inscrições;
+- pesquisar por diversos campos;
+- filtrar por status, hospital e plantão;
+- visualizar detalhes;
+- atualizar status;
+- gerar link temporário para currículo;
+- imprimir uma inscrição;
+- exportar CSV.
+
+O bucket de currículos permanece privado e os links de download são temporários.
 
 ## Deploy no Vercel
 
-O projeto é estático. No Vercel, use:
+Configuração atual:
 
 - **Framework Preset:** Other;
 - **Build Command:** `npm run build`;
 - **Output Directory:** `dist`;
-- O build copia `index.html` e `admin.html` para o diretório final;
-- **Install Command:** deixe vazio.
+- **Install Command:** vazio.
 
-O repositório está preparado para implantação automática a cada push na branch `main`.
+O Vercel hospeda apenas a camada estática. O backend de inscrição permanece no Supabase.
 
-### Fluxo público de inscrição
+Antes de publicar, confirme:
 
-`index.html` → `submit-plantao-inscricao` → Storage privado (`curriculos`) → `register_plantao_inscricao` → `inscricoes`.
+- domínio e HTTPS configurados;
+- Edge Function implantada e ativa;
+- variáveis/segredos da Edge Function configurados no Supabase;
+- usuário administrativo criado no Supabase Auth e autorizado em `admin_users`;
+- política de privacidade e responsável pelo tratamento dos dados definidos;
+- prazo de retenção e canal de atendimento aos titulares definidos.
 
-A `service_role` existe somente no ambiente da Edge Function e nunca deve ser colocada no HTML. O cadastro público não possui privilégio de `INSERT` direto na tabela.
+## Separação de projetos
 
+Este repositório é exclusivamente do **Plantão TO Saúde**.
 
-### Currículo anexado
+O projeto **Karine Joias** é independente e não faz parte desta aplicação. Não há código de Karine Joias neste repositório.
 
-O formulário público aceita currículo em **PDF, DOC ou DOCX até 5 MB**. Os arquivos ficam em bucket privado do Supabase Storage e o painel administrativo gera links temporários somente para usuários administrativos autorizados.
+## Limite do teste atual
+
+A infraestrutura, permissões, RLS, Storage e Edge Function foram revisados sem inserir dados reais ou fictícios. Um teste público completo de POST não foi executado porque ele criaria uma inscrição; o banco foi mantido deliberadamente com zero registros.
