@@ -78,3 +78,10 @@ No backend, recomenda-se:
 - documentar base legal, prazo de retenção e canal de atendimento à LGPD.
 
 O projeto está em HTML estático de propósito: a camada de recebimento pode ser adicionada depois sem reescrever a interface.
+
+
+## Currículo profissional
+
+O formulário público exige currículo em PDF, DOC ou DOCX de até 5 MB. O arquivo é armazenado no bucket privado `curriculos` do Supabase Storage, com nome aleatório e sem CPF/nome no caminho.
+
+A inscrição grava apenas o caminho do objeto em `inscricoes.curriculo_path`. O painel administrativo, após autenticação, pode gerar um link temporário para baixar o currículo. O arquivo não é exposto por URL pública permanente.
