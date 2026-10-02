@@ -1162,6 +1162,8 @@
             const body = JSON.parse(error.message);
             if (body?.message === 'Dados da inscrição inválidos.') {
               message = 'Alguns dados da inscrição são inválidos. Confira os campos e tente novamente.';
+            } else if (body?.message === 'Já existe uma inscrição para este CPF.') {
+              message = 'Este CPF já possui uma inscrição registrada. Se precisar corrigir seus dados, entre em contato com a gestão responsável.';
             } else if (body?.message === 'Hospital de interesse inválido.' || body?.message === 'Plantão selecionado inválido.') {
               message = 'Uma das opções selecionadas não está mais disponível. Atualize a página e tente novamente.';
             }
