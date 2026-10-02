@@ -1115,7 +1115,7 @@
           if (!response.ok) throw new Error(await response.text() || 'Falha ao enviar inscrição.');
 
           const result = await response.json();
-          const protocol = Array.isArray(result) && result[0]?.protocolo ? result[0].protocolo : null;
+          const protocol = result?.protocolo || (Array.isArray(result) ? result[0]?.protocolo : null);
           form.reset();
           updateChoiceState();
           form.querySelectorAll('[aria-invalid="true"]').forEach((input) => input.removeAttribute('aria-invalid'));
