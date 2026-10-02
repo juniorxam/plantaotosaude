@@ -781,6 +781,12 @@
                   <option>Outro</option>
                 </select>
               </div>
+              <div class="field field-full">
+                <label for="curriculo">Currículo profissional *</label>
+                <input id="curriculo" name="curriculo" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required />
+                <p class="helper">Envie seu currículo em PDF, DOC ou DOCX, com até 5 MB.</p>
+                <p class="file-status" id="curriculo-status" aria-live="polite"></p>
+              </div>
               <div class="field">
                 <label for="registro">Registro profissional *</label>
                 <input id="registro" name="registro" type="text" placeholder="Ex.: COREN-TO 000000" required />
@@ -1060,10 +1066,37 @@
         data.hospitais = hospitalCheckboxes.filter((input) => input.checked).map((input) => input.value);
         data.plantoes = shiftCheckboxes.filter((input) => input.checked).map((input) => input.value);
         data.declaracao = declaration.checked;
+        const curriculoFile = document.querySelector('#curriculo')?.files?.[0];
+        if (!curriculoFile) {
+          document.querySelector('#curriculo')?.setAttribute('aria-invalid', 'true');
+          document.querySelector('#curriculo')?.focus();
+          return;
+        }
+        const allowedTypes = ['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        const allowedExt = ['pdf','doc','docx'];
+        const fileExt = curriculoFile.name.toLowerCase().split('.').pop();
+        if (curriculoFile.size > 5 * 1024 * 1024 || !allowedTypes.includes(curriculoFile.type) || !allowedExt.includes(fileExt)) {
+          alert('O currículo deve estar em PDF, DOC ou DOCX e ter no máximo 5 MB.');
+          return;
+        }
         submitButton.disabled = true;
         submitButton.textContent = 'Enviando…';
 
         try {
+          const extension = fileExt;
+          const curriculumPath = 'curriculos/' + crypto.randomUUID() + '.' + extension;
+          const uploadResponse = await fetch(SUPABASE_URL + '/storage/v1/object/curriculos/' + curriculumPath.replace('curriculos/', ''), {
+            method: 'POST',
+            headers: {
+              apikey: SUPABASE_PUBLISHABLE_KEY,
+              Authorization: 'Bearer ' + SUPABASE_PUBLISHABLE_KEY,
+              'Content-Type': curriculoFile.type,
+              'x-upsert': 'false'
+            },
+            body: curriculoFile
+          });
+          if (!uploadResponse.ok) throw new Error(await uploadResponse.text() || 'Falha ao enviar currículo.');
+
           const payload = {
             p_nome: data.nome,
             p_cpf: data.cpf,
@@ -1074,13 +1107,14 @@
             p_registro: data.registro,
             p_hospitais: data.hospitais,
             p_plantoes: data.plantoes,
-            p_observacoes: data.observacoes || null
+            p_observacoes: data.observacoes || null,
+            p_curriculo_path: curriculumPath
           };
-          const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/register_plantao_inscricao`, {
+          const response = await fetch(SUPABASE_URL + '/rest/v1/rpc/register_plantao_inscricao', {
             method: 'POST',
             headers: {
               apikey: SUPABASE_PUBLISHABLE_KEY,
-              Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+              Authorization: 'Bearer ' + SUPABASE_PUBLISHABLE_KEY,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify(payload)
