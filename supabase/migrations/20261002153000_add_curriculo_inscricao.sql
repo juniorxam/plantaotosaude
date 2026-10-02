@@ -93,3 +93,7 @@ $function$;
 revoke execute on function public.register_plantao_inscricao(text,text,date,text,text,text,text,text[],text[],text) from public,authenticated;
 revoke execute on function public.register_plantao_inscricao(text,text,date,text,text,text,text,text[],text[],text,text) from public,authenticated;
 grant execute on function public.register_plantao_inscricao(text,text,date,text,text,text,text,text[],text[],text,text) to anon;
+
+
+-- O formulário pode remover somente o arquivo aleatório que acabou de enviar
+-- quando a gravação da inscrição falhar. O caminho não contém dados pessoais.
