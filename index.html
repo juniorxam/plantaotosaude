@@ -912,6 +912,15 @@
       const navLinks = document.querySelector('#nav-links');
       const nameInput = document.querySelector('#nome');
       nameInput.addEventListener('input', () => { nameInput.value = formatNameInput(nameInput.value); });
+      const curriculoInput = document.querySelector('#curriculo');
+      const curriculoStatus = document.querySelector('#curriculo-status');
+      curriculoInput?.addEventListener('change', () => {
+        const file = curriculoInput.files?.[0];
+        if (!file) { if (curriculoStatus) curriculoStatus.textContent = ''; return; }
+        const sizeMb = (file.size / 1024 / 1024).toFixed(2);
+        if (curriculoStatus) curriculoStatus.textContent = file.name + ' · ' + sizeMb + ' MB';
+        curriculoInput.removeAttribute('aria-invalid');
+      });
       const cpfInput = document.querySelector('#cpf');
       const phoneInput = document.querySelector('#telefone');
       const hospitalCheckboxes = [...document.querySelectorAll('.hospital-checkbox')];
