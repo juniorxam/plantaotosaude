@@ -212,11 +212,31 @@
       $('login-button').disabled=false; $('login-button').textContent='Entrar';
     }
 
-    async function updateStatus(id, select) {
-      const status=select.value;
+    async function updateStatus(id, select, button) {
+      const item = registrations.find(r => r.id === id);
+      if (!item) return;
+      const status = select.value;
+      if (status === item.status) {
+        showNotice('O status selecionado já é o status atual.', true);
+        return;
+      }
+      const labels = {pendente:'Pendente', confirmado:'Confirmado', escalado:'Escalado', recusado:'Recusado'};
+      const confirmed = window.confirm(`Alterar o status de "${item.nome}" de "${labels[item.status] || item.status}" para "${labels[status] || status}"?`);
+      if (!confirmed) {
+        select.value = item.status;
+        return;
+      }
+      button.disabled = true;
+      button.textContent = 'Salvando…';
+      select.disabled = true;
       const {error}=await client.from('inscricoes').update({status,updated_at:new Date().toISOString()}).eq('id',id);
-      if(error){showNotice('Não foi possível atualizar o status: '+error.message,true);return;}
-      const item=registrations.find(r=>r.id===id); if(item)item.status=status; render(); showNotice('Status atualizado.');
+      button.disabled = false;
+      button.textContent = 'Salvar';
+      select.disabled = false;
+      if(error){showNotice('Não foi possível atualizar o status. Verifique sua autorização e tente novamente.',true);select.value=item.status;return;}
+      item.status=status;
+      render();
+      showNotice(`Status de ${item.nome} atualizado para ${labels[status] || status}.`);
     }
 
     function exportCsv() {
@@ -231,7 +251,13 @@
     $('login-form').addEventListener('submit',login);
     $('logout').addEventListener('click',async()=>{await client.auth.signOut({scope:'local'});location.reload();});
     $('refresh').addEventListener('click',load); $('search').addEventListener('input',render); $('filter-status').addEventListener('change',render); $('filter-hospital').addEventListener('change',render); $('filter-shift').addEventListener('change',render); $('export').addEventListener('click',exportCsv);
-    $('tbody').addEventListener('click',(event)=>{const btn=event.target.closest('[data-save]');if(!btn)return;const id=btn.dataset.save;const select=$('tbody').querySelector('select[data-id="'+CSS.escape(id)+'"]');if(select)updateStatus(id,select);});
+    $('tbody').addEventListener('click',(event)=>{
+      const btn=event.target.closest('[data-save]');
+      if(!btn)return;
+      const id=btn.dataset.save;
+      const select=btn.closest('.actions')?.querySelector('select[data-id="'+CSS.escape(id)+'"]');
+      if(select)updateStatus(id,select,btn);
+    });
 
     client.auth.getSession().then(async({data})=>{
       if(data.session){$('user-email').textContent=data.session.user?.email||'';$('login-view').classList.add('hidden');$('app-view').classList.remove('hidden');await load();}
