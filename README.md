@@ -38,3 +38,8 @@ O projeto é estático. No Vercel, use:
 - **Install Command:** deixe vazio.
 
 O repositório está preparado para implantação automática a cada push na branch `main`.
+
+
+### Currículo anexado
+
+O formulário público aceita currículo em **PDF, DOC ou DOCX até 5 MB**. Os arquivos ficam em bucket privado do Supabase Storage e o painel administrativo gera links temporários somente para usuários administrativos autorizados.
