@@ -281,7 +281,23 @@
       render();
     }));
 
-    $('detail-modal').addEventListener('click', (event) => {
+    $('detail-modal').addEventListener('click', async (event) => {
+      const button = event.target.closest('[data-curriculum]');
+      if (!button) return;
+      const item = registrations.find(r => r.id === button.dataset.curriculum);
+      if (!item?.curriculo_path) return;
+      button.disabled = true; button.textContent = 'Gerando link…';
+      try {
+        const { data, error } = await client.storage.from('curriculos').createSignedUrl(item.curriculo_path, 300, { download: true });
+        if (error) throw error;
+        if (data?.signedUrl) window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+      } catch (error) {
+        showNotice('Não foi possível gerar o link do currículo.', 'error');
+      } finally {
+        button.disabled = false; button.textContent = 'Baixar currículo';
+      }
+    });
+
       if (event.target === $('detail-modal')) $('detail-modal').classList.add('hidden');
     });
     document.addEventListener('keydown', (event) => {
