@@ -2,11 +2,11 @@
 
 ## Supabase configurado
 
-O formulário já está conectado ao projeto Supabase configurado para o site. As inscrições são enviadas para `public.inscricoes` pela API REST. A tabela possui RLS habilitado e a chave usada no frontend é uma chave publicável; a política permite somente inserções com declaração marcada, pelo menos um hospital e pelo menos um plantão. Não há política de leitura pública.
+O formulário já está conectado ao projeto Supabase configurado para o site. O envio público é feito pela Edge Function `submit-plantao-inscricao`. O navegador usa apenas a chave publicável e envia um `multipart/form-data` com os dados e o currículo. A Edge Function valida os campos, aplica proteção antispam/rate limiting, grava o currículo no bucket privado e chama a RPC de cadastro com privilégios de servidor. A tabela `public.inscricoes` possui RLS habilitado e não concede `INSERT` ao papel público; não há leitura pública.
 
 Para consultar as inscrições, use o painel autenticado do Supabase ou um backend/admin com credenciais próprias. Nunca coloque uma `service_role key` no HTML.
 
-O `index.html` valida os dados no navegador (incluindo CPF, telefone e data de nascimento) e chama a função RPC `register_plantao_inscricao`. A função grava a inscrição com status `pendente` e retorna somente o protocolo gerado; o navegador não recebe a linha completa da tabela. A função RPC usa `SECURITY DEFINER` com `search_path` vazio, valida novamente os campos e valores permitidos no banco e tem execução liberada somente para `anon`. O acesso direto de leitura à tabela continua bloqueado. O bloco de integração fica no final do `<script>`.
+O `index.html` faz a validação de experiência no navegador (incluindo CPF, telefone e data de nascimento), mas a validação de segurança é repetida no servidor. A Edge Function chama `register_plantao_inscricao`, que grava a inscrição com status `pendente` e retorna somente o protocolo. A RPC usa `SECURITY DEFINER` com `search_path` vazio, valida novamente os campos e valores permitidos no banco e tem execução liberada somente para `service_role`, usada internamente pela Edge Function. O acesso direto de leitura à tabela continua bloqueado. O bloco de integração fica no final do `<script>`.
 
 > Antes de publicar, defina também política de privacidade, responsável pelo tratamento dos dados e prazo de retenção. O formulário coleta dados pessoais e profissionais, incluindo CPF.
 
