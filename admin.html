@@ -25,6 +25,14 @@
     .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:22px}.stat{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px}.stat small{color:var(--muted);font-weight:700}.stat strong{display:block;font-size:2rem;margin-top:4px;color:var(--deep)}
     .insights{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:22px}
     .insight-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:17px}
+    .monitoring{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:14px;margin-bottom:22px}
+    .monitor-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:17px}
+    .monitor-card h3{margin:0;color:var(--deep);font-size:1rem}.monitor-card p{margin:5px 0 14px;color:var(--muted);font-size:.82rem}
+    .coverage-list{display:grid;gap:10px}.coverage-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}.coverage-name{font-size:.83rem;font-weight:750}.coverage-count{font-size:.82rem;font-weight:850;color:var(--deep)}
+    .coverage-track{height:7px;background:#edf2f4;border-radius:999px;overflow:hidden;margin-top:4px}.coverage-track i{display:block;height:100%;width:var(--w);background:linear-gradient(90deg,var(--blue),var(--teal));border-radius:inherit}
+    .monitor-empty{color:var(--muted);font-size:.84rem;padding:7px 0}.alert-list{display:grid;gap:8px}.alert-item{display:flex;align-items:flex-start;gap:8px;padding:9px 10px;border-radius:10px;background:#fff7d6;color:#735900;font-size:.82rem}.alert-item strong{display:block;color:var(--deep)}
+    .monitor-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-8px 0 18px;color:var(--muted);font-size:.78rem}.refresh-options{display:flex;align-items:center;gap:7px}.refresh-options input{width:auto}.refresh-options label{display:inline;margin:0;font-size:.78rem;font-weight:700}
+
     .insight-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:12px;color:var(--deep)}
     .insight-head span{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
     .summary-list{display:grid;gap:9px}
@@ -59,7 +67,7 @@
     .pagination button:disabled{opacity:.45;cursor:not-allowed}
     @media(max-width:600px){.detail-grid{grid-template-columns:1fr}.detail.full{grid-column:auto}}
     .mobile-help{font-size:.78rem;color:var(--muted);margin-bottom:8px}
-    @media(max-width:850px){.stats{grid-template-columns:repeat(2,1fr)}.insights{grid-template-columns:1fr}.page-title{align-items:start;flex-direction:column}.user-email{display:none}}
+    @media(max-width:850px){.stats{grid-template-columns:repeat(2,1fr)}.insights,.monitoring{grid-template-columns:1fr}.page-title{align-items:start;flex-direction:column}.user-email{display:none}}
     @media(max-width:560px){main{padding:20px 12px}.stats{grid-template-columns:1fr 1fr}.stat strong{font-size:1.6rem}.login-card{padding:25px}}
   </style>
 </head>
@@ -89,7 +97,7 @@
     </header>
     <main>
       <div class="page-title">
-        <div><h2>Inscrições</h2><p>Gerencie os profissionais cadastrados para os plantões.</p></div>
+        <div><h2>Acompanhamento das inscrições</h2><p>Monitore a mobilização, analise os cadastros e organize os plantões.</p></div>
         <div class="header-actions"><button id="refresh" class="btn ghost">Atualizar</button><button id="export-top" class="btn ghost">Exportar CSV</button></div>
       </div>
       <div id="notice" class="notice hidden"></div>
@@ -104,6 +112,12 @@
         <div class="insight-card"><div class="insight-head"><strong>Hospitais mais escolhidos</strong><span>geral</span></div><div id="hospital-summary" class="summary-list"></div></div>
         <div class="insight-card"><div class="insight-head"><strong>Plantões selecionados</strong><span>geral</span></div><div id="shift-summary" class="summary-list"></div></div>
       </div>
+      <section class="monitoring" aria-label="Monitoramento operacional">
+        <article class="monitor-card"><h3>Distribuição por hospital</h3><p>Quantidade de inscrições que indicaram cada unidade.</p><div id="hospital-monitor" class="coverage-list"></div></article>
+        <article class="monitor-card"><h3>Disponibilidade por plantão</h3><p>Quantidade de profissionais por turno.</p><div id="shift-monitor" class="coverage-list"></div></article>
+        <article class="monitor-card"><h3>Atenção da gestão</h3><p>Itens que pedem acompanhamento.</p><div id="management-alerts" class="alert-list"></div></article>
+      </section>
+      <div class="monitor-footer"><span id="last-updated">Ainda não atualizado</span><div class="refresh-options"><input id="auto-refresh" type="checkbox"><label for="auto-refresh">Atualizar automaticamente a cada 1 minuto</label></div></div>
       <div class="quick-status" id="status-quick"><button type="button" data-quick-status="">Todos</button><button type="button" data-quick-status="pendente">Pendentes</button><button type="button" data-quick-status="confirmado">Confirmados</button><button type="button" data-quick-status="escalado">Escalados</button><button type="button" data-quick-status="recusado">Recusados</button></div>
       <div class="filter-summary" id="filter-summary" aria-live="polite">Sem filtros ativos</div>
       <div class="toolbar">
@@ -179,6 +193,27 @@
       renderSummary('shift-summary', countValues('plantoes'), label => label.split(' — ')[0] || label);
     }
 
+    function renderMonitoring() {
+      const hospitals = [
+        ['Palmas', 'Palmas — Hospital Geral de Palmas'], ['Araguaína', 'Araguaína — Hospital Regional de Araguaína'], ['Gurupi', 'Gurupi — Hospital Regional de Gurupi'],
+        ['Paraíso', 'Paraíso do Tocantins — Hospital Regional de Paraíso'], ['Porto Nacional', 'Porto Nacional — Hospital Regional de Porto Nacional'], ['Augustinópolis', 'Augustinópolis — Hospital Regional de Augustinópolis']
+      ];
+      const shifts = [['A · Véspera / noturno', 'A — Véspera, noturno — 31/10/2026, 19h às 7h de 01/11'], ['B · Concurso / diurno', 'B — Dia do concurso, diurno — 01/11/2026, 7h às 19h'], ['C · Concurso / noturno', 'C — Dia do concurso, noturno — 01/11/2026, 19h às 7h de 02/11']];
+      const renderCoverage = (target, options, field) => {
+        const counts = options.map(([label, value]) => [label, registrations.filter(r => (r[field] || []).includes(value)).length]);
+        const max = Math.max(1, ...counts.map(([, count]) => count));
+        $(target).innerHTML = counts.map(([label, count]) => '<div class="coverage-row"><div><div class="coverage-name">' + esc(label) + '</div><div class="coverage-track"><i style="--w:' + Math.max(count ? 10 : 0, Math.round(count / max * 100)) + '%"></i></div></div><span class="coverage-count">' + count + '</span></div>').join('');
+      };
+      renderCoverage('hospital-monitor', hospitals, 'hospitais');
+      renderCoverage('shift-monitor', shifts, 'plantoes');
+      const pending = registrations.filter(r => r.status === 'pendente').length;
+      const missingCurriculum = registrations.filter(r => !r.curriculo_path).length;
+      const alerts = [];
+      if (pending) alerts.push('<div class="alert-item"><span aria-hidden="true">!</span><div><strong>' + pending + ' inscrição' + (pending === 1 ? ' pendente' : 's pendentes') + '</strong>Revise e classifique os cadastros.</div></div>');
+      if (missingCurriculum) alerts.push('<div class="alert-item"><span aria-hidden="true">!</span><div><strong>' + missingCurriculum + ' sem currículo anexado</strong>Verifique antes da análise.</div></div>');
+      if (!alerts.length) alerts.push('<div class="monitor-empty">Nenhuma pendência identificada.</div>');
+      $('management-alerts').innerHTML = alerts.join('');
+    }
     function filtered() {
       const q=$('search').value.trim().toLowerCase(), status=$('filter-status').value, hospital=$('filter-hospital').value, shift=$('filter-shift').value;
       return registrations.filter(r => {
@@ -188,7 +223,7 @@
     }
 
     function render() {
-      const rows=filtered(); updateStats();
+      const rows=filtered(); updateStats(); renderMonitoring();
       const active = [];
       if ($('search').value.trim()) active.push('busca');
       if ($('filter-status').value) active.push($('filter-status').value);
@@ -362,6 +397,11 @@
     $('page-next').addEventListener('click', () => { const totalPages = Math.max(1, Math.ceil(filtered().length / PAGE_SIZE)); if (currentPage < totalPages) { currentPage += 1; render(); window.scrollTo({top:0,behavior:'smooth'}); } });
     $('login-form').addEventListener('submit',login);
     $('logout').addEventListener('click',async()=>{await client.auth.signOut({scope:'local'});location.reload();});
+    let autoRefreshTimer = null;
+    $('auto-refresh').addEventListener('change', (event) => {
+      if (autoRefreshTimer) { clearInterval(autoRefreshTimer); autoRefreshTimer = null; }
+      if (event.target.checked) autoRefreshTimer = setInterval(load, 60000);
+    });
     $('refresh').addEventListener('click',load); $('export-top').addEventListener('click',exportCsv); $('search').addEventListener('input',()=>{currentPage=1;render();}); $('filter-status').addEventListener('change',()=>{currentPage=1;render();}); $('filter-hospital').addEventListener('change',()=>{currentPage=1;render();}); $('filter-shift').addEventListener('change',()=>{currentPage=1;render();}); $('export').addEventListener('click',exportCsv);
     $('tbody').addEventListener('click',(event)=>{
       const btn=event.target.closest('[data-save]');
