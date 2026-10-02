@@ -98,6 +98,7 @@
         <div class="stat"><small>Pendentes</small><strong id="stat-pendente">0</strong></div>
         <div class="stat"><small>Confirmados</small><strong id="stat-confirmado">0</strong></div>
         <div class="stat"><small>Escalados</small><strong id="stat-escalado">0</strong></div>
+        <div class="stat"><small>Recusados</small><strong id="stat-recusado">0</strong></div>
       </div>
       <div class="insights">
         <div class="insight-card"><div class="insight-head"><strong>Hospitais mais escolhidos</strong><span>geral</span></div><div id="hospital-summary" class="summary-list"></div></div>
@@ -147,6 +148,7 @@
     const $ = (id) => document.getElementById(id);
     let registrations = [];
     let currentPage = 1;
+    let selectedRegistrationId = '';
     const PAGE_SIZE = 15;
 
     const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
@@ -161,7 +163,7 @@
 
     function updateStats() {
       $('stat-total').textContent=registrations.length;
-      for (const s of ['pendente','confirmado','escalado']) $('stat-'+s).textContent=registrations.filter(r=>r.status===s).length;
+      for (const s of ['pendente','confirmado','escalado','recusado']) $('stat-'+s).textContent=registrations.filter(r=>r.status===s).length;
       const countValues = (field) => {
         const counts = new Map();
         registrations.forEach(r => (r[field] || []).forEach(value => counts.set(value, (counts.get(value) || 0) + 1)));
@@ -237,6 +239,7 @@
     function showDetails(id) {
       const r = registrations.find(item => item.id === id);
       if (!r) return;
+      selectedRegistrationId = id;
       document.querySelectorAll('[data-details].selected-detail').forEach(el => el.classList.remove('selected-detail'));
       const sourceButton = document.querySelector('[data-details="'+CSS.escape(id)+'"]');
       if (sourceButton) sourceButton.classList.add('selected-detail');
@@ -275,6 +278,7 @@
       if (button) showDetails(button.dataset.details);
     });
     $('close-modal').addEventListener('click', () => $('detail-modal').classList.add('hidden'));
+    $('print-detail').addEventListener('click', () => { if (selectedRegistrationId) printRegistration(selectedRegistrationId); });
     document.querySelectorAll('[data-quick-status]').forEach(button => button.addEventListener('click', () => {
       $('filter-status').value = button.dataset.quickStatus || '';
       currentPage = 1;
