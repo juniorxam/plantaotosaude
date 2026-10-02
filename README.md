@@ -19,7 +19,7 @@ Abra `http://localhost:3000`.
 
 ## Supabase
 
-A tabela `public.inscricoes` é criada pela migração `create_inscricoes_plantao_to_saude`. Ela permite apenas `INSERT` público com declaração, hospitais e plantões válidos. A leitura deve ser feita apenas por usuários/serviços administrativos autenticados.
+A tabela `public.inscricoes` é criada pelas migrações do diretório `supabase/migrations`. O envio público aceita somente as colunas do formulário e exige declaração, CPF/telefone/e-mail válidos em formato básico e hospitais/plantões pertencentes às opções oficiais. A leitura deve ser feita apenas por usuários administrativos autenticados.
 
 Detalhes adicionais estão em [INTEGRACAO.md](INTEGRACAO.md).
 
