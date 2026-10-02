@@ -37,21 +37,6 @@ begin
      or p_curriculo_path !~ '^curriculos/[0-9a-fA-F-]{36}.(pdf|doc|docx)$'
   then raise exception using errcode='22023',message='Dados da inscrição inválidos.'; end if;
 
-  if not (
-    substring(v_cpf,1,1) = substring(v_cpf,2,1)
-    and substring(v_cpf,2,1) = substring(v_cpf,3,1)
-    and substring(v_cpf,3,1) = substring(v_cpf,4,1)
-    and substring(v_cpf,4,1) = substring(v_cpf,5,1)
-    and substring(v_cpf,5,1) = substring(v_cpf,6,1)
-    and substring(v_cpf,6,1) = substring(v_cpf,7,1)
-    and substring(v_cpf,7,1) = substring(v_cpf,8,1)
-    and substring(v_cpf,8,1) = substring(v_cpf,9,1)
-    and substring(v_cpf,9,1) = substring(v_cpf,10,1)
-    and substring(v_cpf,10,1) = substring(v_cpf,11,1)
-  ) then
-    null;
-  end if;
-
   if exists(select 1 from unnest(p_hospitais) h where h is null or not(h=any(v_hospitais_permitidos)))
     then raise exception using errcode='22023',message='Hospital de interesse inválido.'; end if;
   if exists(select 1 from unnest(p_plantoes) p where p is null or not(p=any(v_plantoes_permitidos)))
