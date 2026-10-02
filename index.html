@@ -407,6 +407,7 @@
     input:focus, select:focus, textarea:focus { border-color: var(--teal); background: #fff; box-shadow: 0 0 0 4px rgba(0, 137, 123, .12); }
     input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--danger); }
     .helper { margin: 0; color: var(--muted); font-size: .78rem; }
+    .selection-count { float: right; padding: .2rem .5rem; border-radius: 999px; color: var(--teal); background: var(--teal-light); font-size: .72rem; font-weight: 800; }
     fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
     .choice-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; margin-top: .55rem; }
     .choice-grid-shifts { grid-template-columns: 1fr; }
@@ -796,7 +797,7 @@
               </fieldset>
 
               <fieldset class="field field-full" id="shift-fieldset">
-                <legend>Disponibilidade de plantão * <span class="helper">(cada plantão tem 12 horas; selecione um ou mais)</span></legend>
+                <legend>Disponibilidade de plantão * <span class="helper">(cada plantão tem 12 horas; selecione um ou mais)</span> <span class="selection-count" id="shift-count" aria-live="polite">0 selecionados</span></legend>
                 <div class="choice-grid choice-grid-shifts">
                   <label class="choice"><input class="shift-checkbox" type="checkbox" name="plantões" value="A — Véspera, noturno — 31/10/2026, 19h às 7h de 01/11" /><span class="choice-content"><strong>Plantão A · Véspera — noturno</strong><small>31/10/2026, das 19h às 7h de 01/11</small></span></label>
                   <label class="choice"><input class="shift-checkbox" type="checkbox" name="plantões" value="B — Dia do concurso, diurno — 01/11/2026, 7h às 19h" /><span class="choice-content"><strong>Plantão B · Dia do concurso — diurno</strong><small>01/11/2026, das 7h às 19h</small></span></label>
@@ -901,11 +902,11 @@
       const shiftCheckboxes = [...document.querySelectorAll('.shift-checkbox')];
       const hospitalError = document.querySelector('#hospital-error');
       const shiftError = document.querySelector('#shift-error');
+      const hospitalCount = document.querySelector('#hospital-count');
+      const shiftCount = document.querySelector('#shift-count');
       const declarationError = document.querySelector('#declaration-error');
       const declaration = document.querySelector('#declaracao');
       const birthInput = document.querySelector('#nascimento');
-      birthInput.max = new Date().toISOString().slice(0, 10);
-
       const onlyDigits = (value) => value.replace(/\D/g, '');
       const isValidCpf = (value) => {
         const digits = onlyDigits(value);
@@ -943,6 +944,10 @@
           const input = choice.querySelector('input');
           choice.setAttribute('aria-checked', String(input.checked));
         });
+        const selectedHospitals = hospitalCheckboxes.filter((input) => input.checked).length;
+        const selectedShifts = shiftCheckboxes.filter((input) => input.checked).length;
+        hospitalCount.textContent = selectedHospitals === 1 ? '1 selecionado' : `${selectedHospitals} selecionados`;
+        shiftCount.textContent = selectedShifts === 1 ? '1 selecionado' : `${selectedShifts} selecionados`;
       };
       [...hospitalCheckboxes, ...shiftCheckboxes].forEach((input) => input.addEventListener('change', () => {
         updateChoiceState();
