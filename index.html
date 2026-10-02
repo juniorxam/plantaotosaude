@@ -1020,7 +1020,6 @@
       const submitBtn = form.querySelector('.submit-btn');
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
-        if (submitBtn) { submitBtn.disabled = true; submitBtn.dataset.originalText = submitBtn.textContent; submitBtn.textContent = 'Enviando inscrição…'; }
         successMessage.classList.remove('is-visible');
         protocolActions.hidden = true;
         copyFeedback.textContent = '';
@@ -1171,9 +1170,6 @@
         } finally {
           submitButton.disabled = false;
           submitButton.innerHTML = 'Enviar inscrição <span aria-hidden="true">→</span>';
-        } finally {
-          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.originalText || 'Enviar inscrição →'; }
-        }
       });
 
       copyProtocol.addEventListener('click', async () => {
