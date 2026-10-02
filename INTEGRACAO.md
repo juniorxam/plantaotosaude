@@ -1,87 +1,166 @@
-# Integração do formulário — Plantão TO Saúde
+# Integração — Plantão TO Saúde
 
-## Supabase configurado
+## Arquitetura atual
 
-O formulário já está conectado ao projeto Supabase configurado para o site. O envio público é feito pela Edge Function `submit-plantao-inscricao`. O navegador usa apenas a chave publicável e envia um `multipart/form-data` com os dados e o currículo. A Edge Function valida os campos, aplica proteção antispam/rate limiting, grava o currículo no bucket privado e chama a RPC de cadastro com privilégios de servidor. A tabela `public.inscricoes` possui RLS habilitado e não concede `INSERT` ao papel público; não há leitura pública.
+O formulário público está integrado diretamente ao Supabase por meio da Edge Function `submit-plantao-inscricao`.
 
-Para consultar as inscrições, use o painel autenticado do Supabase ou um backend/admin com credenciais próprias. Nunca coloque uma `service_role key` no HTML.
+Fluxo:
 
-O `index.html` faz a validação de experiência no navegador (incluindo CPF, telefone e data de nascimento), mas a validação de segurança é repetida no servidor. A Edge Function chama `register_plantao_inscricao`, que grava a inscrição com status `pendente` e retorna somente o protocolo. A RPC usa `SECURITY DEFINER` com `search_path` vazio, valida novamente os campos e valores permitidos no banco e tem execução liberada somente para `service_role`, usada internamente pela Edge Function. O acesso direto de leitura à tabela continua bloqueado. O bloco de integração fica no final do `<script>`.
+`index.html`
+→ `POST /functions/v1/submit-plantao-inscricao`
+→ validação e rate limiting
+→ Storage privado `curriculos`
+→ RPC `register_plantao_inscricao`
+→ tabela `public.inscricoes`
+→ retorno do protocolo.
 
-> Antes de publicar, defina também política de privacidade, responsável pelo tratamento dos dados e prazo de retenção. O formulário coleta dados pessoais e profissionais, incluindo CPF.
+O navegador usa somente a chave publicável do Supabase. A `service_role` existe exclusivamente no ambiente da Edge Function.
 
-## 1. Google Forms + Planilha
+## Formulário público
 
-1. Crie um Google Formulários com uma pergunta para cada campo do site.
-2. No formulário, use caixas de seleção para hospitais e plantões.
-3. Abra **Respostas → Vincular ao Planilhas Google**.
-4. Obtenha a URL de envio pelo HTML do formulário ou use Apps Script como endpoint intermediário.
-5. No JavaScript, troque o `console.log` por um `fetch` para o endpoint do Google Apps Script:
+O `index.html` envia `multipart/form-data` com:
 
-```js
-await fetch('URL_DO_SEU_APPS_SCRIPT', {
-  method: 'POST',
-  mode: 'no-cors',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(data)
-});
-```
+- nome;
+- CPF;
+- data de nascimento;
+- telefone;
+- e-mail;
+- profissão;
+- registro profissional;
+- hospitais escolhidos;
+- plantões escolhidos;
+- observações;
+- declaração;
+- currículo;
+- campos técnicos anti-bot.
 
-Um Apps Script mínimo pode receber `e.postData.contents`, converter o JSON e usar `SpreadsheetApp.openById(...).appendRow(...)`. Proteja o endpoint com uma chave ou token próprio e não exponha credenciais sensíveis no HTML.
+A validação ocorre em duas camadas:
 
-## 2. Formspree
+1. navegador, para orientar o preenchimento;
+2. Edge Function/RPC, como validação de segurança.
 
-1. Crie um formulário em [Formspree](https://formspree.io/).
-2. Copie o endpoint fornecido, normalmente no formato `https://formspree.io/f/SEU_ID`.
-3. Altere o `<form>` para incluir `action` e `method`:
+O currículo é obrigatório e aceita:
 
-```html
-<form id="registration-form" action="https://formspree.io/f/SEU_ID" method="POST" novalidate>
-```
+- PDF;
+- DOC;
+- DOCX;
+- até 5 MB.
 
-4. No handler JavaScript, depois da validação, use:
+O nome do arquivo armazenado é aleatório e não contém CPF ou nome do profissional.
 
-```js
-const response = await fetch(form.action, {
-  method: 'POST',
-  body: new FormData(form),
-  headers: { Accept: 'application/json' }
-});
-if (!response.ok) throw new Error('Não foi possível enviar a inscrição.');
-```
+## Proteções
 
-Mantenha a mensagem de sucesso somente depois de confirmar `response.ok` e trate erros de rede com uma mensagem ao usuário.
+A Edge Function aplica:
 
-## 3. Backend próprio (Node.js ou Python)
+- validação de método HTTP;
+- validação de campos;
+- validação de CPF;
+- lista fechada de profissões;
+- lista fechada de hospitais;
+- lista fechada de plantões;
+- prevenção de seleções duplicadas;
+- honeypot;
+- tempo mínimo de preenchimento;
+- rate limiting por identificador de origem;
+- tratamento específico de CPF duplicado;
+- limpeza do currículo quando a inscrição falha após o upload.
 
-Crie uma rota `POST /api/inscricoes`, valide novamente todos os dados no servidor e armazene apenas o necessário. A validação do navegador nunca deve ser a única barreira.
+A tabela `public.inscricoes` possui RLS e não permite INSERT público.
 
-Exemplo de envio no frontend:
+A RPC `register_plantao_inscricao` é `SECURITY DEFINER`, usa `search_path` controlado, valida os dados novamente e possui execução liberada somente para `service_role`.
 
-```js
-const response = await fetch('/api/inscricoes', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(data)
-});
-const result = await response.json();
-if (!response.ok) throw new Error(result.message || 'Erro ao enviar inscrição.');
-```
+## Storage
 
-No backend, recomenda-se:
+O bucket `curriculos` é privado.
 
-- validar CPF, e-mail, telefone, profissão, hospitais e plantões permitidos;
-- registrar data/hora e um identificador da inscrição;
-- aplicar rate limiting, proteção contra spam e logs sem CPF completo;
-- usar HTTPS, controle de acesso e criptografia/segurança do banco;
-- retornar mensagens genéricas de erro ao navegador;
-- documentar base legal, prazo de retenção e canal de atendimento à LGPD.
+Não existe upload público direto pelo navegador. A Edge Function grava os arquivos usando credenciais de servidor.
 
-O projeto está em HTML estático de propósito: a camada de recebimento pode ser adicionada depois sem reescrever a interface.
+O painel administrativo gera URLs assinadas temporárias para download, somente após a autenticação e autorização do administrador.
 
+## Painel administrativo
 
-## Currículo profissional
+O arquivo `admin.html` usa Supabase Auth.
 
-O formulário público exige currículo em PDF, DOC ou DOCX de até 5 MB. O arquivo é armazenado no bucket privado `curriculos` do Supabase Storage, com nome aleatório e sem CPF/nome no caminho.
+Depois do login, a autorização é reforçada pela tabela `admin_users`.
 
-A inscrição grava apenas o caminho do objeto em `inscricoes.curriculo_path`. O painel administrativo, após autenticação, pode gerar um link temporário para baixar o currículo. O arquivo não é exposto por URL pública permanente.
+O painel oferece:
+
+- consulta das inscrições;
+- busca textual;
+- filtros por status, hospital e plantão;
+- indicadores de quantidade;
+- alteração de status;
+- visualização dos detalhes;
+- download temporário do currículo;
+- impressão;
+- exportação CSV;
+- logout.
+
+O acesso público não consegue consultar a tabela de inscrições nem a tabela de administradores.
+
+## Estado atual verificado
+
+A infraestrutura foi revisada sem inserir registros de teste.
+
+Estado atual:
+
+- inscrições: **0**;
+- currículos: **0**;
+- RLS em `inscricoes`: ativo;
+- RLS em `admin_users`: ativo;
+- INSERT público em `inscricoes`: bloqueado;
+- SELECT público em `inscricoes`: bloqueado;
+- SELECT público em `admin_users`: bloqueado;
+- execução pública da RPC: bloqueada;
+- execução da RPC por `service_role`: permitida.
+
+## Deploy
+
+### Vercel
+
+O frontend é estático.
+
+Configuração:
+
+- Framework Preset: **Other**;
+- Build Command: `npm run build`;
+- Output Directory: `dist`;
+- Install Command: vazio.
+
+A Edge Function não é publicada pelo Vercel. Ela permanece no Supabase.
+
+### Supabase
+
+A função implantada é:
+
+`submit-plantao-inscricao`
+
+Ela deve permanecer ativa com os segredos necessários configurados no ambiente do Supabase. Nunca copie a `service_role` para o frontend.
+
+## Privacidade e LGPD
+
+O formulário coleta dados pessoais e profissionais, incluindo CPF e currículo.
+
+Antes da divulgação pública, é necessário definir e publicar:
+
+- responsável pelo tratamento;
+- finalidade do tratamento;
+- base legal aplicável;
+- prazo de retenção;
+- canal para solicitações dos titulares;
+- regras de acesso interno aos dados;
+- procedimento para descarte dos currículos.
+
+O texto exibido no formulário informa que os dados serão usados para análise, contato e organização da mobilização, mas isso não substitui uma política de privacidade completa.
+
+## Teste de produção
+
+A revisão atual foi não destrutiva.
+
+Não foi feito um POST público de inscrição porque isso criaria um registro e um currículo no banco. Como o ambiente foi solicitado sem cadastros, o teste end-to-end de uma inscrição real deve ser feito posteriormente com um registro de teste controlado e depois removido, se necessário.
+
+## Separação de projetos
+
+Este documento trata exclusivamente do **Plantão TO Saúde**.
+
+**Karine Joias é outro projeto e não faz parte desta integração.**
