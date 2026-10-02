@@ -57,7 +57,7 @@ Deno.serve(async (request) => {
       throw error;
     }
     await supabase.from("submission_rate_limits").upsert({ip_hash:ipHash,last_submitted_at:new Date().toISOString()});
-    const protocol = Array.isArray(data) ? data[0]?.protocolo : null;
+    const protocol = Array.isArray(data) ? data[0]?.protocolo : data?.protocolo;
     uploadedPath = "";
     return json({ protocolo: protocol });
   } catch (error) {
