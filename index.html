@@ -914,9 +914,11 @@
       nameInput.addEventListener('input', () => { nameInput.value = formatNameInput(nameInput.value); });
       const curriculoInput = document.querySelector('#curriculo');
       const curriculoStatus = document.querySelector('#curriculo-status');
+      const fileLabel = document.querySelector('label[for="curriculo"]');
       curriculoInput?.addEventListener('change', () => {
         const file = curriculoInput.files?.[0];
-        if (!file) { if (curriculoStatus) curriculoStatus.textContent = ''; return; }
+        if (!file) { if (curriculoStatus) curriculoStatus.textContent = ''; if (fileLabel) fileLabel.textContent = 'Currículo profissional *'; return; }
+        if (fileLabel) fileLabel.textContent = 'Currículo profissional ✓';
         const sizeMb = (file.size / 1024 / 1024).toFixed(2);
         if (curriculoStatus) curriculoStatus.textContent = file.name + ' · ' + sizeMb + ' MB';
         curriculoInput.removeAttribute('aria-invalid');
