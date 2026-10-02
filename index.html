@@ -444,6 +444,17 @@
     }
     .success-message.is-visible { display: block; }
     .error-message { min-height: 1.1rem; margin: .8rem 0 0; color: var(--danger); font-size: .84rem; font-weight: 650; }
+    .privacy-note {
+      margin: 0 0 1.25rem;
+      padding: .9rem 1rem;
+      border: 1px solid #dbe8ed;
+      border-radius: 10px;
+      background: #f5f9fb;
+      color: var(--muted);
+      font-size: .82rem;
+      line-height: 1.5;
+    }
+    .privacy-note strong { color: var(--blue-dark); }
 
     .requirements-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
     .requirement {
@@ -709,6 +720,7 @@
             </div>
 
             <label class="declaration" for="declaracao"><input id="declaracao" name="declaracao" type="checkbox" required /><span>Declaro que <strong>não vou realizar a prova do concurso da SES-TO em 01/11/2026</strong> e que tenho disponibilidade para atuar nos plantões selecionados. *</span></label>
+            <div class="privacy-note"><strong>Privacidade:</strong> os dados informados serão utilizados exclusivamente para análise, contato e organização desta mobilização de plantões. Não envie informações além das solicitadas.</div>
             <p class="error-message" id="declaration-error" aria-live="polite"></p>
             <div class="form-footer">
               <p class="required-note">* Campos obrigatórios</p>
@@ -765,7 +777,7 @@
         <div class="footer-brand"><span class="brand-mark" aria-hidden="true">✚</span><span>Plantão TO Saúde</span></div>
         <p>Reforço profissional para os hospitais estaduais do Tocantins durante o concurso da SES-TO de 01/11/2026.</p>
       </div>
-      <div class="footer-contact">Contato institucional<br /><a href="mailto:contato@plantaotosaude.to.gov.br">contato@plantaotosaude.to.gov.br</a></div>
+      <div class="footer-contact">Mobilização temporária<br /><span>Plantão TO Saúde · Tocantins</span></div>
     </div>
   </footer>
 
@@ -791,6 +803,20 @@
       const declaration = document.querySelector('#declaracao');
 
       const onlyDigits = (value) => value.replace(/\D/g, '');
+      const isValidCpf = (value) => {
+        const digits = onlyDigits(value);
+        if (digits.length !== 11 || /^([0-9])\1{10}$/.test(digits)) return false;
+        let sum = 0;
+        for (let i = 0; i < 9; i += 1) sum += Number(digits[i]) * (10 - i);
+        let check = (sum * 10) % 11;
+        if (check === 10) check = 0;
+        if (check !== Number(digits[9])) return false;
+        sum = 0;
+        for (let i = 0; i < 10; i += 1) sum += Number(digits[i]) * (11 - i);
+        check = (sum * 10) % 11;
+        if (check === 10) check = 0;
+        return check === Number(digits[10]);
+      };
       const maskCpf = (value) => {
         const digits = onlyDigits(value).slice(0, 11);
         return digits.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
@@ -803,6 +829,10 @@
 
       cpfInput.addEventListener('input', (event) => { event.target.value = maskCpf(event.target.value); });
       phoneInput.addEventListener('input', (event) => { event.target.value = maskPhone(event.target.value); });
+      const birthDateInput = document.querySelector('#nascimento');
+      const today = new Date();
+      birthDateInput.max = today.toISOString().slice(0, 10);
+      birthDateInput.min = '1900-01-01';
 
       const updateChoiceState = () => {
         [...document.querySelectorAll('.choice')].forEach((choice) => {
@@ -846,7 +876,7 @@
           setInvalid(email, true);
           valid = false;
         }
-        if (onlyDigits(cpfInput.value).length !== 11) {
+        if (!isValidCpf(cpfInput.value)) {
           setInvalid(cpfInput, true);
           valid = false;
         }
