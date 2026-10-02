@@ -267,7 +267,7 @@
         return;
       }
       registrations=data||[]; render();
-      $('last-updated').textContent = 'Atualizado em ' + new Date().toLocaleString('pt-BR', {dateStyle:'short', timeStyle:'short'});
+      const updated = $('last-updated'); if (updated) updated.textContent = 'Atualizado em ' + new Date().toLocaleString('pt-BR', {dateStyle:'short', timeStyle:'short'});
     }
 
     $('tbody').addEventListener('click', (event) => {
@@ -283,6 +283,10 @@
     }));
 
     $('detail-modal').addEventListener('click', async (event) => {
+      if (event.target === $('detail-modal')) {
+        $('detail-modal').classList.add('hidden');
+        return;
+      }
       const button = event.target.closest('[data-curriculum]');
       if (!button) return;
       const item = registrations.find(r => r.id === button.dataset.curriculum);
@@ -297,9 +301,6 @@
       } finally {
         button.disabled = false; button.textContent = 'Baixar currículo';
       }
-    });
-
-      if (event.target === $('detail-modal')) $('detail-modal').classList.add('hidden');
     });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') $('detail-modal').classList.add('hidden');
