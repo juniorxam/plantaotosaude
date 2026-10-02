@@ -6,7 +6,9 @@ Landing page institucional para inscrição de profissionais de saúde que não 
 
 - HTML5, CSS3 e JavaScript puro;
 - formulário responsivo com validação client-side;
-- Supabase REST API com RLS para armazenar inscrições;
+- Supabase + Edge Function para receber inscrições públicas com validação no servidor;
+- Supabase Storage privado para currículos;
+- RLS e Supabase Auth para proteger o painel administrativo;
 - build estático compatível com Vercel.
 
 ## Desenvolvimento local
@@ -19,7 +21,7 @@ Abra `http://localhost:3000`.
 
 ## Supabase
 
-A tabela `public.inscricoes` é criada pelas migrações do diretório `supabase/migrations`. O envio público passa por uma função RPC segura que valida novamente os dados, grava a inscrição como `pendente` e retorna ao usuário somente o protocolo. A leitura da tabela deve ser feita apenas por usuários administrativos autenticados.
+A tabela `public.inscricoes` é criada pelas migrações do diretório `supabase/migrations`. O envio público passa pela Edge Function `submit-plantao-inscricao`, que recebe o formulário e o currículo, aplica validações e rate limiting, grava o currículo no bucket privado e chama a RPC `register_plantao_inscricao` com privilégios de servidor. A RPC valida novamente os dados, grava a inscrição como `pendente` e retorna somente o protocolo. O navegador não executa a RPC diretamente e não possui acesso público ao Storage ou à tabela de inscrições.
 
 Detalhes adicionais estão em [INTEGRACAO.md](INTEGRACAO.md).
 
@@ -38,6 +40,12 @@ O projeto é estático. No Vercel, use:
 - **Install Command:** deixe vazio.
 
 O repositório está preparado para implantação automática a cada push na branch `main`.
+
+### Fluxo público de inscrição
+
+`index.html` → `submit-plantao-inscricao` → Storage privado (`curriculos`) → `register_plantao_inscricao` → `inscricoes`.
+
+A `service_role` existe somente no ambiente da Edge Function e nunca deve ser colocada no HTML. O cadastro público não possui privilégio de `INSERT` direto na tabela.
 
 
 ### Currículo anexado
