@@ -635,6 +635,52 @@
       .requirements-grid { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 720px) {
+      html { overflow-x: hidden; }
+      body { width: 100%; max-width: 100%; overflow-x: hidden; }
+      img, svg { max-width: 100%; height: auto; }
+      .topbar-inner, .site-nav, .section-inner, .hero-inner, .shift-timeline-inner { width: 100%; }
+      .brand { min-width: 0; }
+      .brand > span:last-child { min-width: 0; }
+      .brand > span:last-child strong, .brand > span:last-child small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .quick-inner { width: 100%; }
+      .quick-inner > a { min-width: 0; }
+      .quick-inner > a strong, .quick-inner > a small { overflow-wrap: anywhere; }
+      .hero { overflow: hidden; }
+      .hero-inner { width: 100%; }
+      h1 { max-width: 100%; overflow-wrap: anywhere; }
+      .hero-copy, .hero-subtitle { overflow-wrap: anywhere; }
+      .hero-panel { width: 100%; max-width: none; }
+      .nav-wrap { position: sticky; }
+      .nav-links { max-height: calc(100vh - 4rem); overflow-y: auto; }
+      .shift-timeline { overflow: hidden; }
+      .timeline-card, .hospital-card, .shift-row, .form-card, .form-aside { min-width: 0; }
+      .timeline-card strong, .hospital-card h3, .shift-row strong { overflow-wrap: anywhere; }
+      .form-tabs {
+        display: flex;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+        padding-bottom: .35rem;
+      }
+      .form-tabs::-webkit-scrollbar { display: none; }
+      .form-tab { flex: 0 0 auto; min-width: 7.2rem; scroll-snap-align: start; }
+      .form-step { min-width: 0; }
+      .form-step-actions { position: relative; z-index: 2; }
+      .form-step-actions .btn, .form-step-actions button { min-height: 3rem; }
+      .choice { min-width: 0; }
+      .choice label, .choice span, .choice strong { overflow-wrap: anywhere; }
+      input, select, textarea { min-width: 0; max-width: 100%; }
+      input[type="file"] { max-width: 100%; font-size: .84rem; }
+      input[type="date"] { min-height: 3rem; }
+      textarea { min-height: 125px; }
+      .review-card { min-width: 0; }
+      .review-item { min-width: 0; overflow-wrap: anywhere; }
+      .success-message { overflow-wrap: anywhere; }
+      .protocol-actions { flex-wrap: wrap; }
+    }
+
       .topbar-inner { align-items: flex-start; flex-direction: column; gap: .2rem; }
       .site-nav { min-height: 4rem; }
       .nav-toggle { display: block; }
