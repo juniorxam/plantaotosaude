@@ -430,6 +430,65 @@
     .choice-content { display: grid; gap: .1rem; }
     .choice-content strong { color: var(--blue-dark); font-size: .9rem; line-height: 1.25; }
     .choice-content small { color: var(--muted); font-size: .77rem; line-height: 1.35; }
+    /* Formulário em etapas */
+    .form-tabs {
+      display: flex;
+      gap: .45rem;
+      margin: 1.5rem 0 1.25rem;
+      padding: .45rem;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #f4f8fa;
+      scrollbar-width: thin;
+    }
+    .form-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      flex: 1 0 auto;
+      min-height: 3rem;
+      padding: .55rem .8rem;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      color: var(--muted);
+      background: transparent;
+      font-size: .78rem;
+      font-weight: 800;
+      white-space: nowrap;
+      transition: .2s ease;
+    }
+    .form-tab-number {
+      display: grid;
+      width: 1.65rem;
+      height: 1.65rem;
+      place-items: center;
+      flex: 0 0 1.65rem;
+      border-radius: 50%;
+      background: #dce8ed;
+      color: var(--blue-dark);
+      font-size: .72rem;
+    }
+    .form-tab.is-active { color: var(--blue-dark); border-color: #b9d8dc; background: #fff; box-shadow: 0 4px 12px rgba(0,61,102,.07); }
+    .form-tab.is-active .form-tab-number { color: #fff; background: var(--teal); }
+    .form-tab.is-complete .form-tab-number { color: var(--blue-dark); background: var(--yellow); }
+    .form-tab:disabled { cursor: default; }
+    .form-progress { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin:0 0 1.2rem; }
+    .form-progress-text { margin:0; color:var(--muted); font-size:.82rem; font-weight:700; }
+    .form-progress-bar { height:5px; flex:1; overflow:hidden; border-radius:99px; background:#e5eef2; }
+    .form-progress-bar span { display:block; width:20%; height:100%; border-radius:99px; background:var(--teal); transition:width .25s ease; }
+    .form-step { display:none; animation:stepIn .2s ease; }
+    .form-step.is-active { display:block; }
+    .form-step-title { margin:0 0 .35rem; color:var(--blue-dark); font-size:1.3rem; }
+    .form-step-intro { margin:0 0 1.2rem; color:var(--muted); font-size:.9rem; }
+    .form-step-actions { display:flex; align-items:center; justify-content:space-between; gap:.8rem; margin-top:1.35rem; padding-top:1.1rem; border-top:1px solid var(--line); }
+    .step-back, .step-next { min-height:2.8rem; padding:.7rem 1rem; border-radius:10px; font-weight:800; }
+    .step-back { border:1px solid #c9d9df; color:var(--blue-dark); background:#fff; }
+    .step-next { border:0; color:#fff; background:var(--blue); }
+    .step-next:hover { background:var(--blue-dark); }
+    .step-back:disabled { opacity:.45; cursor:not-allowed; }
+    @keyframes stepIn { from { opacity:.35; transform:translateY(4px); } to { opacity:1; transform:none; } }
+
     .declaration {
       display: flex;
       gap: .7rem;
@@ -745,65 +804,83 @@
               <div class="process-step"><b>2</b><span><strong>Escolha</strong>Indique hospitais e plantões.</span></div>
               <div class="process-step"><b>3</b><span><strong>Aguarde</strong>A gestão fará a análise e o contato.</span></div>
             </div>
-            <div class="form-grid">
-              <div class="field field-full">
-                <label for="nome">Nome completo *</label>
-                <input id="nome" name="nome" type="text" autocomplete="name" placeholder="Digite seu nome completo" required />
-              </div>
-              <div class="field">
-                <label for="cpf">CPF *</label>
-                <input id="cpf" name="cpf" type="text" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="000.000.000-00" required />
-              </div>
-              <div class="field">
-                <label for="nascimento">Data de nascimento *</label>
-                <input id="nascimento" name="nascimento" autocomplete="bday" type="date" min="1900-01-01" max="2026-10-02" required />
-              </div>
-              <div class="field">
-                <label for="telefone">Telefone/WhatsApp *</label>
-                <input id="telefone" name="telefone" type="tel" inputmode="tel" maxlength="15" placeholder="(63) 99999-9999" autocomplete="tel" required />
-              </div>
-              <div class="field">
-                <label for="email">E-mail *</label>
-                <input id="email" name="email" type="email" autocomplete="email" maxlength="254" placeholder="voce@exemplo.com" required />
-              </div>
-              <div class="field">
-                <label for="profissao">Profissão/cargo *</label>
-                <select id="profissao" name="profissao" required>
-                  <option value="">Selecione uma opção</option>
-                  <option>Médico</option>
-                  <option>Enfermeiro</option>
-                  <option>Técnico em Enfermagem</option>
-                  <option>Fisioterapeuta</option>
-                  <option>Nutricionista</option>
-                  <option>Psicólogo</option>
-                  <option>Farmacêutico</option>
-                  <option>Assistente Social</option>
-                  <option>Técnico em Radiologia</option>
-                  <option>Técnico em Laboratório</option>
-                  <option>Outro</option>
-                </select>
-              </div>
-              <div class="field field-full">
-                <label for="curriculo">Currículo profissional *</label>
-                <input id="curriculo" name="curriculo" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" aria-describedby="curriculo-help" required />
-                <p class="helper" id="curriculo-help">Envie seu currículo em PDF, DOC ou DOCX, com até 5 MB.</p>
-                <p class="file-status" id="curriculo-status" aria-live="polite"></p>
-              </div>
-              <div class="field">
-                <label for="registro">Registro profissional *</label>
-                <input id="registro" name="registro" type="text" placeholder="Ex.: COREN-TO 000000" required />
-                <p class="helper">Informe CRM, COREN, CREFITO, CRN, CRP, CRF ou equivalente.</p>
-              </div>
 
-              <div class="field">
-                <label for="servidor-estado">Já é servidor do Estado? *</label>
-                <select id="servidor-estado" name="servidor_estado" required>
-                  <option value="">Selecione uma opção</option>
-                  <option value="true">Sim</option>
-                  <option value="false">Não</option>
-                </select>
-                <p class="helper">Informe se já possui vínculo como servidor estadual.</p>
+            <div class="form-tabs" role="tablist" aria-label="Etapas da inscrição">
+              <button class="form-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="step-1" data-step="1"><span class="form-tab-number">1</span>Dados pessoais</button>
+              <button class="form-tab" type="button" role="tab" aria-selected="false" aria-controls="step-2" data-step="2"><span class="form-tab-number">2</span>Documentos</button>
+              <button class="form-tab" type="button" role="tab" aria-selected="false" aria-controls="step-3" data-step="3"><span class="form-tab-number">3</span>Hospitais</button>
+              <button class="form-tab" type="button" role="tab" aria-selected="false" aria-controls="step-4" data-step="4"><span class="form-tab-number">4</span>Plantões</button>
+              <button class="form-tab" type="button" role="tab" aria-selected="false" aria-controls="step-5" data-step="5"><span class="form-tab-number">5</span>Finalização</button>
+            </div>
+            <div class="form-progress" aria-live="polite">
+              <p class="form-progress-text" id="form-progress-text">Etapa 1 de 5 · Dados pessoais</p>
+              <div class="form-progress-bar" aria-hidden="true"><span id="form-progress-bar"></span></div>
+            </div>
+
+            <section class="form-step is-active" id="step-1" data-step-panel="1" role="tabpanel" aria-labelledby="step-tab-1">
+              <h3 class="form-step-title">Seus dados</h3>
+              <p class="form-step-intro">Comece informando seus dados básicos e profissionais.</p>
+              <div class="form-grid">
+                <div class="field field-full">
+                  <label for="nome">Nome completo *</label>
+                  <input id="nome" name="nome" type="text" autocomplete="name" placeholder="Digite seu nome completo" required />
+                </div>
+                <div class="field">
+                  <label for="cpf">CPF *</label>
+                  <input id="cpf" name="cpf" type="text" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="000.000.000-00" required />
+                </div>
+                <div class="field">
+                  <label for="nascimento">Data de nascimento *</label>
+                  <input id="nascimento" name="nascimento" autocomplete="bday" type="date" min="1900-01-01" max="2026-10-02" required />
+                </div>
+                <div class="field">
+                  <label for="telefone">Telefone/WhatsApp *</label>
+                  <input id="telefone" name="telefone" type="tel" inputmode="tel" maxlength="15" placeholder="(63) 99999-9999" autocomplete="tel" required />
+                </div>
+                <div class="field">
+                  <label for="email">E-mail *</label>
+                  <input id="email" name="email" type="email" autocomplete="email" maxlength="254" placeholder="voce@exemplo.com" required />
+                </div>
+                <div class="field">
+                  <label for="profissao">Profissão/cargo *</label>
+                  <select id="profissao" name="profissao" required>
+                    <option value="">Selecione uma opção</option>
+                    <option>Médico</option><option>Enfermeiro</option><option>Técnico em Enfermagem</option><option>Fisioterapeuta</option><option>Nutricionista</option><option>Psicólogo</option><option>Farmacêutico</option><option>Assistente Social</option><option>Técnico em Radiologia</option><option>Técnico em Laboratório</option><option>Outro</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="registro">Registro profissional *</label>
+                  <input id="registro" name="registro" type="text" placeholder="Ex.: COREN-TO 000000" required />
+                  <p class="helper">Informe CRM, COREN, CREFITO, CRN, CRP, CRF ou equivalente.</p>
+                </div>
+                <div class="field">
+                  <label for="servidor-estado">Já é servidor do Estado? *</label>
+                  <select id="servidor-estado" name="servidor_estado" required>
+                    <option value="">Selecione uma opção</option><option value="true">Sim</option><option value="false">Não</option>
+                  </select>
+                  <p class="helper">Informe se já possui vínculo como servidor estadual.</p>
+                </div>
               </div>
+              <div class="form-step-actions"><span></span><button class="step-next" type="button" data-next="2">Continuar →</button></div>
+            </section>
+
+            <section class="form-step" id="step-2" data-step-panel="2" role="tabpanel" aria-labelledby="step-tab-2" hidden>
+              <h3 class="form-step-title">Documentação</h3>
+              <p class="form-step-intro">Envie seu currículo para completar o cadastro profissional.</p>
+              <div class="form-grid">
+                <div class="field field-full">
+                  <label for="curriculo">Currículo profissional *</label>
+                  <input id="curriculo" name="curriculo" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" aria-describedby="curriculo-help" required />
+                  <p class="helper" id="curriculo-help">PDF, DOC ou DOCX, com até 5 MB.</p>
+                  <p class="file-status" id="curriculo-status" aria-live="polite"></p>
+                </div>
+              </div>
+              <div class="form-step-actions"><button class="step-back" type="button" data-prev="1">← Voltar</button><button class="step-next" type="button" data-next="3">Continuar →</button></div>
+            </section>
+
+            <section class="form-step" id="step-3" data-step-panel="3" role="tabpanel" aria-labelledby="step-tab-3" hidden>
+              <h3 class="form-step-title">Onde você pode atuar?</h3>
+              <p class="form-step-intro">Selecione um ou mais hospitais de interesse. A disponibilidade será analisada pela gestão.</p>
               <fieldset class="field field-full" id="hospital-fieldset">
                 <legend>Hospitais de interesse * <span class="helper">(selecione 1 a 6)</span> <span class="selection-count" id="hospital-count" aria-live="polite">0 selecionados</span></legend>
                 <div class="choice-grid">
@@ -816,9 +893,14 @@
                 </div>
                 <p class="error-message" id="hospital-error" aria-live="polite"></p>
               </fieldset>
+              <div class="form-step-actions"><button class="step-back" type="button" data-prev="2">← Voltar</button><button class="step-next" type="button" data-next="4">Continuar →</button></div>
+            </section>
 
+            <section class="form-step" id="step-4" data-step-panel="4" role="tabpanel" aria-labelledby="step-tab-4" hidden>
+              <h3 class="form-step-title">Escolha seus plantões</h3>
+              <p class="form-step-intro">Você pode selecionar um, dois ou os três períodos de 12 horas.</p>
               <fieldset class="field field-full" id="shift-fieldset">
-                <legend>Disponibilidade de plantão * <span class="helper">(cada plantão tem 12 horas; selecione um ou mais)</span> <span class="selection-count" id="shift-count" aria-live="polite">0 selecionados</span></legend>
+                <legend>Disponibilidade de plantão * <span class="helper">(selecione um ou mais)</span> <span class="selection-count" id="shift-count" aria-live="polite">0 selecionados</span></legend>
                 <div class="choice-grid choice-grid-shifts">
                   <label class="choice"><input class="shift-checkbox" type="checkbox" name="plantões" value="A — Véspera, noturno — 31/10/2026, 19h às 7h de 01/11" /><span class="choice-content"><strong>Plantão A · Véspera — noturno</strong><small>31/10/2026, das 19h às 7h de 01/11</small></span></label>
                   <label class="choice"><input class="shift-checkbox" type="checkbox" name="plantões" value="B — Dia do concurso, diurno — 01/11/2026, 7h às 19h" /><span class="choice-content"><strong>Plantão B · Dia do concurso — diurno</strong><small>01/11/2026, das 7h às 19h</small></span></label>
@@ -826,21 +908,32 @@
                 </div>
                 <p class="error-message" id="shift-error" aria-live="polite"></p>
               </fieldset>
+              <div class="form-step-actions"><button class="step-back" type="button" data-prev="3">← Voltar</button><button class="step-next" type="button" data-next="5">Continuar →</button></div>
+            </section>
 
-              <div class="field field-full">
-                <label for="observacoes">Observações <span class="helper">(opcional)</span></label>
-                <textarea id="observacoes" name="observacoes" placeholder="Conte algo importante sobre sua disponibilidade, experiência ou preferência."></textarea>
+            <section class="form-step" id="step-5" data-step-panel="5" role="tabpanel" aria-labelledby="step-tab-5" hidden>
+              <h3 class="form-step-title">Revise e finalize</h3>
+              <p class="form-step-intro">Confira suas informações, aceite a declaração e envie a inscrição.</p>
+              <div class="form-grid">
+                <div class="field field-full">
+                  <label for="observacoes">Observações <span class="helper">(opcional)</span></label>
+                  <textarea id="observacoes" name="observacoes" placeholder="Conte algo importante sobre sua disponibilidade, experiência ou preferência."></textarea>
+                </div>
               </div>
-            </div>
+              <label class="declaration" for="declaracao"><input id="declaracao" name="declaracao" type="checkbox" required /><span>Declaro que <strong>não vou realizar a prova do concurso da SES-TO em 01/11/2026</strong> e que tenho disponibilidade para atuar nos plantões selecionados. *</span></label>
+              <div class="privacy-note"><strong>Privacidade:</strong> os dados informados serão utilizados exclusivamente para análise, contato e organização desta mobilização de plantões. Não envie informações além das solicitadas.</div>
+              <p class="error-message" id="declaration-error" aria-live="polite"></p>
+              <div class="form-footer">
+                <p class="required-note">* Campos obrigatórios</p>
+                <button class="btn submit-btn" type="submit">Enviar inscrição <span aria-hidden="true">→</span></button>
+              </div>
+            </section>
 
-            <label class="declaration" for="declaracao"><input id="declaracao" name="declaracao" type="checkbox" required /><span>Declaro que <strong>não vou realizar a prova do concurso da SES-TO em 01/11/2026</strong> e que tenho disponibilidade para atuar nos plantões selecionados. *</span></label>
-            <div class="privacy-note"><strong>Privacidade:</strong> os dados informados serão utilizados exclusivamente para análise, contato e organização desta mobilização de plantões. Não envie informações além das solicitadas.</div>
-            <p class="error-message" id="declaration-error" aria-live="polite"></p>
-            <div class="form-footer">
-              <p class="required-note">* Campos obrigatórios</p>
-              <button class="btn submit-btn" type="submit">Enviar inscrição <span aria-hidden="true">→</span></button>
+                        <div class="success-message" id="success-message" role="status" aria-live="polite">Inscrição enviada com sucesso. A gestão responsável analisará os dados e entrará em contato pelos canais informados.</div>
+            <div class="protocol-actions" id="protocol-actions" hidden>
+              <button class="protocol-copy" id="copy-protocol" type="button">Copiar protocolo</button>
+              <span id="copy-feedback" aria-live="polite"></span>
             </div>
-            <div class="success-message" id="success-message" role="status" aria-live="polite">Inscrição enviada com sucesso. A gestão responsável analisará os dados e entrará em contato pelos canais informados.</div>
             <div class="protocol-actions" id="protocol-actions" hidden>
               <button class="protocol-copy" id="copy-protocol" type="button">Copiar protocolo</button>
               <span id="copy-feedback" aria-live="polite"></span>
@@ -916,6 +1009,103 @@
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_WDE_s2HYfWUCI3iuodaG4w_RFGGwm9m';
 
     (() => {
+      const form = document.querySelector('#registration-form');
+      const formTabs = [...document.querySelectorAll('.form-tab')];
+      const formSteps = [...document.querySelectorAll('.form-step')];
+      const progressText = document.querySelector('#form-progress-text');
+      const progressBar = document.querySelector('#form-progress-bar');
+      const stepNames = ['Dados pessoais', 'Documentos', 'Hospitais', 'Plantões', 'Finalização'];
+      let currentStep = 1;
+
+      const showStep = (step, options = {}) => {
+        const target = Math.max(1, Math.min(5, Number(step)));
+        currentStep = target;
+        formSteps.forEach((panel) => {
+          const active = Number(panel.dataset.stepPanel) === target;
+          panel.classList.toggle('is-active', active);
+          panel.hidden = !active;
+        });
+        formTabs.forEach((tab) => {
+          const active = Number(tab.dataset.step) === target;
+          const completed = Number(tab.dataset.step) < target;
+          tab.classList.toggle('is-active', active);
+          tab.classList.toggle('is-complete', completed);
+          tab.setAttribute('aria-selected', String(active));
+        });
+        if (progressText) progressText.textContent = `Etapa ${target} de 5 · ${stepNames[target - 1]}`;
+        if (progressBar) progressBar.style.width = `${target * 20}%`;
+        if (!options.keepScroll) form.querySelector('.form-tabs')?.scrollIntoView({behavior:'smooth', block:'start'});
+      };
+
+      const validateStep = (step) => {
+        const panel = formSteps.find((item) => Number(item.dataset.stepPanel) === step);
+        if (!panel) return true;
+        let valid = true;
+        panel.querySelectorAll('[required]').forEach((input) => {
+          if (input.type === 'checkbox') return;
+          const empty = !String(input.value || '').trim();
+          input.setAttribute('aria-invalid', String(empty));
+          if (empty) valid = false;
+        });
+        const email = document.querySelector('#email');
+        if (step === 1 && email.value && !email.validity.valid) {
+          email.setAttribute('aria-invalid','true');
+          valid = false;
+        }
+        if (step === 1 && cpfInput && !isValidCpf(cpfInput.value)) {
+          cpfInput.setAttribute('aria-invalid','true');
+          valid = false;
+        }
+        if (step === 2) {
+          const file = document.querySelector('#curriculo')?.files?.[0];
+          if (!file) { document.querySelector('#curriculo')?.setAttribute('aria-invalid','true'); valid=false; }
+          else {
+            const allowedTypes = ['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            const allowedExt = ['pdf','doc','docx'];
+            const ext = file.name.toLowerCase().split('.').pop();
+            if (file.size > 5 * 1024 * 1024 || !allowedTypes.includes(file.type) || !allowedExt.includes(ext)) {
+              document.querySelector('#curriculo')?.setAttribute('aria-invalid','true'); valid=false;
+            }
+          }
+        }
+        if (step === 3 && !hospitalCheckboxes.some((input) => input.checked)) {
+          hospitalError.textContent = 'Selecione pelo menos um hospital de interesse.'; valid=false;
+        }
+        if (step === 4 && !shiftCheckboxes.some((input) => input.checked)) {
+          shiftError.textContent = 'Selecione pelo menos um plantão disponível.'; valid=false;
+        }
+        if (!valid) {
+          const first = panel.querySelector('[aria-invalid="true"]') || panel.querySelector('.error-message:not(:empty)');
+          first?.scrollIntoView({behavior:'smooth', block:'center'});
+          if (first?.focus) first.focus({preventScroll:true});
+        }
+        return valid;
+      };
+
+      formTabs.forEach((tab) => tab.addEventListener('click', () => {
+        const target = Number(tab.dataset.step);
+        if (target <= currentStep) showStep(target);
+        else {
+          let step = currentStep;
+          let canMove = true;
+          while (step < target) {
+            if (!validateStep(step)) { canMove=false; break; }
+            step += 1;
+          }
+          if (canMove) showStep(target);
+        }
+      }));
+      form.addEventListener('click', (event) => {
+        const next = event.target.closest('[data-next]');
+        const prev = event.target.closest('[data-prev]');
+        if (next) {
+          const target = Number(next.dataset.next);
+          if (validateStep(currentStep)) showStep(target);
+        }
+        if (prev) showStep(Number(prev.dataset.prev));
+      });
+      showStep(1, {keepScroll:true});
+
       const form = document.querySelector('#registration-form');
       const successMessage = document.querySelector('#success-message');
       const submitButton = form.querySelector('button[type="submit"]');
@@ -1078,6 +1268,8 @@
 
         if (!valid) {
           const firstInvalid = form.querySelector('[aria-invalid="true"]') || document.querySelector('.error-message:not(:empty)');
+          const invalidPanel = firstInvalid?.closest('.form-step');
+          if (invalidPanel) showStep(Number(invalidPanel.dataset.stepPanel), {keepScroll:true});
           firstInvalid?.scrollIntoView({ behavior: 'smooth', block: 'center' });
           if (firstInvalid?.focus) firstInvalid.focus({ preventScroll: true });
           return;
@@ -1128,6 +1320,7 @@
           }
           const protocol = result?.protocolo || (Array.isArray(result) ? result[0]?.protocolo : null);
           form.reset();
+          showStep(1, {keepScroll:true});
           if (curriculoStatus) curriculoStatus.textContent = '';
           if (fileLabel) fileLabel.textContent = 'Currículo profissional *';
           if (formStartedAt) formStartedAt.value = '';
