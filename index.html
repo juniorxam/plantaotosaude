@@ -489,6 +489,11 @@
     .step-back:disabled { opacity:.45; cursor:not-allowed; }
     @keyframes stepIn { from { opacity:.35; transform:translateY(4px); } to { opacity:1; transform:none; } }
 
+    .review-card { display:grid; grid-template-columns:repeat(2,1fr); gap:.75rem; margin:0 0 1.25rem; padding:1rem; border:1px solid var(--line); border-radius:12px; background:#f7fafb; }
+    .review-item { display:grid; gap:.2rem; min-width:0; padding:.7rem; border-radius:9px; background:#fff; }
+    .review-item span { color:var(--muted); font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+    .review-item strong { color:var(--blue-dark); font-size:.88rem; line-height:1.35; overflow-wrap:anywhere; }
+    .review-item:nth-child(4), .review-item:nth-child(5) { grid-column:1/-1; }
     .declaration {
       display: flex;
       gap: .7rem;
@@ -634,6 +639,10 @@
       .form-grid, .choice-grid { grid-template-columns: 1fr; }
       .field-full { grid-column: auto; }
       .form-footer, .footer-inner { align-items: flex-start; flex-direction: column; }
+      .form-step-actions { align-items: stretch; }
+      .form-step-actions .step-back, .form-step-actions .step-next { flex:1; }
+      .review-card { grid-template-columns:1fr; }
+      .review-item:nth-child(4), .review-item:nth-child(5) { grid-column:auto; }
       .footer-contact { text-align: left; }
     }
     @media (max-width: 480px) {
@@ -913,7 +922,14 @@
 
             <section class="form-step" id="step-5" data-step-panel="5" role="tabpanel" aria-labelledby="step-tab-5" hidden>
               <h3 class="form-step-title">Revise e finalize</h3>
-              <p class="form-step-intro">Confira suas informações, aceite a declaração e envie a inscrição.</p>
+              <p class="form-step-intro">Confira o resumo abaixo antes de enviar sua inscrição.</p>
+              <div class="review-card" aria-label="Resumo da inscrição">
+                <div class="review-item"><span>Nome</span><strong id="review-nome">—</strong></div>
+                <div class="review-item"><span>Profissão</span><strong id="review-profissao">—</strong></div>
+                <div class="review-item"><span>Contato</span><strong id="review-contato">—</strong></div>
+                <div class="review-item"><span>Hospitais</span><strong id="review-hospitais">—</strong></div>
+                <div class="review-item"><span>Plantões</span><strong id="review-plantoes">—</strong></div>
+              </div>
               <div class="form-grid">
                 <div class="field field-full">
                   <label for="observacoes">Observações <span class="helper">(opcional)</span></label>
@@ -930,10 +946,6 @@
             </section>
 
                         <div class="success-message" id="success-message" role="status" aria-live="polite">Inscrição enviada com sucesso. A gestão responsável analisará os dados e entrará em contato pelos canais informados.</div>
-            <div class="protocol-actions" id="protocol-actions" hidden>
-              <button class="protocol-copy" id="copy-protocol" type="button">Copiar protocolo</button>
-              <span id="copy-feedback" aria-live="polite"></span>
-            </div>
             <div class="protocol-actions" id="protocol-actions" hidden>
               <button class="protocol-copy" id="copy-protocol" type="button">Copiar protocolo</button>
               <span id="copy-feedback" aria-live="polite"></span>
@@ -1017,9 +1029,23 @@
       const stepNames = ['Dados pessoais', 'Documentos', 'Hospitais', 'Plantões', 'Finalização'];
       let currentStep = 1;
 
+      const updateReview = () => {
+        const text = (selector, fallback='—') => document.querySelector(selector)?.value?.trim() || fallback;
+        document.querySelector('#review-nome').textContent = text('#nome');
+        document.querySelector('#review-profissao').textContent = text('#profissao');
+        const phone = text('#telefone');
+        const email = text('#email');
+        document.querySelector('#review-contato').textContent = [phone, email].filter(Boolean).join(' · ') || '—';
+        const hospitals = hospitalCheckboxes.filter((input) => input.checked).map((input) => input.value.split(' — ')[0]);
+        document.querySelector('#review-hospitais').textContent = hospitals.length ? hospitals.join(', ') : 'Nenhum selecionado';
+        const shifts = shiftCheckboxes.filter((input) => input.checked).map((input) => input.value.split(' — ')[0]);
+        document.querySelector('#review-plantoes').textContent = shifts.length ? shifts.join(', ') : 'Nenhum selecionado';
+      };
+
       const showStep = (step, options = {}) => {
         const target = Math.max(1, Math.min(5, Number(step)));
         currentStep = target;
+        if (target === 5) updateReview();
         formSteps.forEach((panel) => {
           const active = Number(panel.dataset.stepPanel) === target;
           panel.classList.toggle('is-active', active);
@@ -1106,7 +1132,6 @@
       });
       showStep(1, {keepScroll:true});
 
-      const form = document.querySelector('#registration-form');
       const successMessage = document.querySelector('#success-message');
       const submitButton = form.querySelector('button[type="submit"]');
       const navToggle = document.querySelector('.nav-toggle');
