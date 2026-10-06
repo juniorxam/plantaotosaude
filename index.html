@@ -211,6 +211,14 @@
     .hero-note { display: flex; gap: .7rem; align-items: flex-start; font-size: .93rem; }
     .hero-note b { color: var(--yellow); }
 
+    .hero-status { display:inline-flex; align-items:center; gap:.55rem; margin-bottom:1.15rem; padding:.42rem .75rem; border:1px solid rgba(255,255,255,.24); border-radius:999px; color:#fff; background:rgba(0,0,0,.12); font-size:.72rem; font-weight:850; letter-spacing:.11em; }
+    .hero-status-dot { width:.55rem; height:.55rem; border-radius:50%; background:var(--yellow); box-shadow:0 0 0 4px rgba(255,204,0,.15); }
+    .hero-eligibility { display:flex; align-items:center; gap:.55rem; max-width:650px; margin-top:1.1rem; color:#d9f2f2; font-size:.88rem; }
+    .hero-eligibility > span { display:grid; width:1.45rem; height:1.45rem; flex:0 0 1.45rem; place-items:center; border-radius:50%; color:var(--blue-dark); background:var(--yellow); font-weight:900; }
+    .hero-panel-status { padding:1.7rem; }
+    .hero-panel-highlight { display:flex; align-items:baseline; justify-content:space-between; gap:1rem; padding:.9rem 0; }
+    .hero-panel-highlight strong { color:#fff; font-size:1.35rem; }
+    .hero-panel-highlight span { color:#bff2ea; font-size:.78rem; font-weight:700; }
     .nav-wrap {
       position: sticky;
       top: 0;
@@ -278,6 +286,22 @@
     }
     .section-heading p { margin-bottom: 0; color: var(--muted); font-size: 1.06rem; }
 
+    .shift-timeline { padding:2.4rem 1.25rem 2.7rem; background:#fff; border-bottom:1px solid var(--line); }
+    .shift-timeline-inner { max-width:var(--max-width); margin:0 auto; }
+    .timeline-heading { display:flex; align-items:end; justify-content:space-between; gap:2rem; margin-bottom:1.35rem; }
+    .timeline-heading .section-kicker { margin-bottom:.35rem; }
+    .timeline-heading h2 { margin:0; font-size:clamp(1.45rem,3vw,2.15rem); }
+    .timeline-cta { color:var(--blue); font-size:.88rem; font-weight:800; text-decoration:none; white-space:nowrap; }
+    .timeline-cta:hover { color:var(--teal); text-decoration:underline; }
+    .timeline-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:.9rem; }
+    .timeline-card { position:relative; min-height:150px; padding:1.1rem 1.2rem; border:1px solid var(--line); border-radius:var(--radius-md); background:#f9fbfc; box-shadow:var(--shadow-sm); }
+    .timeline-card-featured { border-color:#9fd0cb; background:linear-gradient(145deg,#f1fbf9,#fff); box-shadow:0 12px 30px rgba(0,137,123,.11); }
+    .timeline-card-top { display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:.8rem; }
+    .timeline-code { display:grid; width:2.1rem; height:2.1rem; place-items:center; border-radius:9px; color:var(--blue-dark); background:var(--yellow); font-weight:900; }
+    .timeline-badge { padding:.28rem .55rem; border-radius:999px; color:var(--teal); background:var(--teal-light); font-size:.68rem; font-weight:800; }
+    .timeline-card strong { display:block; color:var(--blue-dark); font-size:1rem; }
+    .timeline-hours { display:block; margin:.18rem 0 .15rem; color:var(--teal); font-size:1.15rem; font-weight:850; }
+    .timeline-card small { color:var(--muted); font-size:.77rem; }
     .about-layout {
       display: grid;
       grid-template-columns: .8fr 1.2fr;
@@ -668,20 +692,23 @@
   <header class="hero" id="inicio">
     <div class="hero-inner">
       <div>
+        <div class="hero-status"><span class="hero-status-dot"></span> INSCRIÇÕES ABERTAS</div>
         <p class="eyebrow">Plantão TO Saúde</p>
-        <h1>Reforço que cuida quando o Estado mais precisa.</h1>
-        <p class="hero-copy">Profissionais de saúde unidos para manter o atendimento nos hospitais estaduais do Tocantins durante o concurso da SES-TO.</p>
+        <h1>Reforço para cuidar de quem precisa.</h1>
+        <p class="hero-subtitle">Organização de plantões nos hospitais estaduais do Tocantins durante o concurso da Saúde.</p>
+        <p class="hero-copy">Inscreva-se para atuar em um dos plantões disponíveis no período de <strong>31/10 a 02/11/2026</strong>.</p>
         <div class="hero-actions">
-          <a class="btn btn-primary" href="#inscricao">Quero me inscrever <span aria-hidden="true">→</span></a>
-          <a class="btn btn-secondary" href="#sobre">Entender a mobilização</a>
+          <a class="btn btn-primary" href="#inscricao">Fazer inscrição <span aria-hidden="true">→</span></a>
+          <a class="btn btn-secondary" href="#plantoes">Ver plantões <span aria-hidden="true">↓</span></a>
         </div>
+        <div class="hero-eligibility"><span aria-hidden="true">✓</span> Inscrição exclusiva para profissionais que <strong>não farão a prova em 01/11/2026</strong>.</div>
       </div>
-      <aside class="hero-panel" aria-label="Informações do concurso">
-        <div class="hero-panel-label">Data de referência</div>
+      <aside class="hero-panel hero-panel-status" aria-label="Status da mobilização">
+        <div class="hero-panel-label">Concurso da Saúde</div>
         <strong class="hero-date">01 nov.<br />2026</strong>
-        <p>Durante a realização do concurso público destinado ao provimento de cargos do quadro da Saúde do Estado do Tocantins, diversos profissionais da área estarão participando das provas na condição de candidatos. Dessa forma, será necessária a organização das escalas e a adequação das atividades dos serviços de saúde, a fim de possibilitar a participação desses profissionais no certame sem comprometer a continuidade e a qualidade do atendimento à população.</p>
+        <div class="hero-panel-highlight"><strong>3 plantões</strong><span>12 horas cada</span></div>
         <div class="hero-rule"></div>
-        <p class="hero-note"><span aria-hidden="true">📌</span><span><b>Atenção:</b> a inscrição é exclusiva para quem não vai realizar a prova nessa data.</span></p>
+        <p class="hero-note"><span aria-hidden="true">📍</span><span><b>6 hospitais</b> participantes em Palmas, Araguaína, Gurupi, Paraíso, Porto Nacional e Augustinópolis.</span></p>
       </aside>
     </div>
   </header>
@@ -693,6 +720,38 @@
       <a href="#hospitais"><span class="quick-icon">⌂</span><span><strong>Hospitais</strong><small>Veja os locais participantes</small></span><b>→</b></a>
       <a href="#sobre"><span class="quick-icon">◷</span><span><strong>Plantões</strong><small>Confira datas e horários</small></span><b>→</b></a>
       <a href="#duvidas"><span class="quick-icon">?</span><span><strong>Dúvidas</strong><small>Perguntas frequentes</small></span><b>→</b></a>
+    </div>
+  </section>
+
+  <section class="shift-timeline" id="plantoes" aria-labelledby="plantoes-title">
+    <div class="shift-timeline-inner">
+      <div class="timeline-heading">
+        <div>
+          <p class="section-kicker">Agenda dos plantões</p>
+          <h2 id="plantoes-title">Escolha quando você pode atuar.</h2>
+        </div>
+        <a class="timeline-cta" href="#inscricao">Ir para inscrição →</a>
+      </div>
+      <div class="timeline-grid">
+        <article class="timeline-card">
+          <div class="timeline-card-top"><span class="timeline-code">A</span><span class="timeline-badge">Véspera</span></div>
+          <strong>31 de outubro</strong>
+          <span class="timeline-hours">19h → 7h</span>
+          <small>Até a manhã de 01/11 · 12 horas</small>
+        </article>
+        <article class="timeline-card timeline-card-featured">
+          <div class="timeline-card-top"><span class="timeline-code">B</span><span class="timeline-badge">Dia do concurso</span></div>
+          <strong>01 de novembro</strong>
+          <span class="timeline-hours">7h → 19h</span>
+          <small>Plantão diurno · 12 horas</small>
+        </article>
+        <article class="timeline-card">
+          <div class="timeline-card-top"><span class="timeline-code">C</span><span class="timeline-badge">Dia do concurso</span></div>
+          <strong>01 de novembro</strong>
+          <span class="timeline-hours">19h → 7h</span>
+          <small>Até a manhã de 02/11 · 12 horas</small>
+        </article>
+      </div>
     </div>
   </section>
 
