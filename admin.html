@@ -319,7 +319,7 @@
       $('detail-modal').classList.remove('hidden');
       $('close-modal').focus();
     }
-    const SETTING_PROFESSIONS = ["Médico","Enfermeiro","Técnico em Enfermagem","Fisioterapeuta","Nutricionista","Psicólogo","Farmacêutico","Assistente Social","Técnico em Radiologia","Técnico em Laboratório","Outro"];
+    const SETTING_PROFESSIONS = ["Médico","Enfermeiro","Técnico em Enfermagem","Fisioterapeuta","Nutricionista","Psicólogo","Farmacêutico","Assistente Social","Técnico em Laboratório","Outro"];
     function renderSettingInputs(values = {}) {
       $('setting-values-grid').innerHTML = SETTING_PROFESSIONS.map((profession, i) => {
         const value = values[profession] == null ? '' : String(values[profession]);

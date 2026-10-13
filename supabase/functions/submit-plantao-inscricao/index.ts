@@ -9,7 +9,7 @@ const corsHeaders = {
 const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 const hospitals = new Set(["Palmas — Hospital Geral de Palmas","Araguaína — Hospital Regional de Araguaína","Gurupi — Hospital Regional de Gurupi","Paraíso do Tocantins — Hospital Regional de Paraíso","Porto Nacional — Hospital Regional de Porto Nacional","Augustinópolis — Hospital Regional de Augustinópolis"]);
 const shifts = new Set(["A — Véspera, noturno — 31/10/2026, 19h às 7h de 01/11","B — Dia do concurso, diurno — 01/11/2026, 7h às 19h","C — Dia do concurso, noturno — 01/11/2026, 19h às 7h de 02/11"]);
-const professions = new Set(["Médico","Enfermeiro","Técnico em Enfermagem","Fisioterapeuta","Nutricionista","Psicólogo","Farmacêutico","Assistente Social","Técnico em Radiologia","Técnico em Laboratório","Outro"]);
+const professions = new Set(["Médico","Enfermeiro","Técnico em Enfermagem","Fisioterapeuta","Nutricionista","Psicólogo","Farmacêutico","Assistente Social","Técnico em Laboratório","Outro"]);
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 const digits = (value: FormDataEntryValue | null) => String(value ?? "").replace(/\D/g, "");
 function validCpf(value: string) {
