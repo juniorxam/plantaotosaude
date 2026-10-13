@@ -114,6 +114,22 @@
         <div class="stat"><small>Escalados</small><strong id="stat-escalado">0</strong></div>
         <div class="stat"><small>Recusados</small><strong id="stat-recusado">0</strong></div>
       </div>
+      <section class="monitor-card" id="selection-settings" style="margin-bottom:22px">
+        <h3>Configurações da seleção</h3>
+        <p>Altere aqui o prazo, a data do resultado e a remuneração prevista por cargo. As alterações ficam salvas no banco de dados e podem ser exibidas na página pública.</p>
+        <div class="detail-grid" style="padding:0;grid-template-columns:repeat(2,minmax(0,1fr))">
+          <div><label for="setting-deadline">Prazo final de inscrição</label><input id="setting-deadline" type="date"></div>
+          <div><label for="setting-result-date">Data de divulgação do resultado</label><input id="setting-result-date" type="date"><small class="muted">Deixe em branco enquanto a data não estiver definida.</small></div>
+        </div>
+        <h4 style="margin:22px 0 4px;color:var(--deep)">Valores por cargo · plantão de 12 horas</h4>
+        <p class="muted">Informe o valor em reais. Deixe em branco para não divulgar valor ainda confirmado.</p>
+        <div id="setting-values-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px"></div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:18px">
+          <button id="settings-reload" class="btn ghost" type="button">Descartar alterações</button>
+          <button id="settings-save" class="btn primary" style="width:auto;margin:0" type="button">Salvar configurações</button>
+        </div>
+        <p id="settings-feedback" class="muted" aria-live="polite" style="margin:12px 0 0"></p>
+      </section>
       <div class="insights">
         <div class="insight-card"><div class="insight-head"><strong>Hospitais mais escolhidos</strong><span>geral</span></div><div id="hospital-summary" class="summary-list"></div></div>
         <div class="insight-card"><div class="insight-head"><strong>Plantões selecionados</strong><span>geral</span></div><div id="shift-summary" class="summary-list"></div></div>
@@ -302,6 +318,63 @@
       $('detail-modal').classList.remove('hidden');
       $('close-modal').focus();
     }
+    const SETTING_PROFESSIONS = ["Médico","Enfermeiro","Técnico em Enfermagem","Fisioterapeuta","Nutricionista","Psicólogo","Farmacêutico","Assistente Social","Técnico em Radiologia","Técnico em Laboratório","Outro"];
+    function renderSettingInputs(values = {}) {
+      $('setting-values-grid').innerHTML = SETTING_PROFESSIONS.map((profession, i) => {
+        const value = values[profession] == null ? '' : String(values[profession]);
+        return '<div><label for="setting-value-' + i + '">' + esc(profession) + '</label><input id="setting-value-' + i + '" data-profession="' + esc(profession) + '" type="number" min="0" max="100000" step="0.01" inputmode="decimal" placeholder="Ex.: 850,00" value="' + esc(value) + '"></div>';
+      }).join('');
+    }
+    async function loadSettings() {
+      const feedback = $('settings-feedback');
+      feedback.textContent = 'Carregando configurações…';
+      const {data,error} = await client.from('plantao_configuracoes').select('prazo_inscricao,data_resultado,valores_cargos,updated_at').eq('id',true).maybeSingle();
+      if (error || !data) {
+        feedback.textContent = 'Não foi possível carregar as configurações. Confirme se a migração de configurações já foi aplicada ao Supabase do Plantão TO Saúde.';
+        feedback.style.color = 'var(--danger)';
+        return;
+      }
+      $('setting-deadline').value = data.prazo_inscricao || '';
+      $('setting-result-date').value = data.data_resultado || '';
+      renderSettingInputs(data.valores_cargos || {});
+      feedback.textContent = data.updated_at ? 'Última atualização: ' + fmtDate(data.updated_at) : 'Configurações carregadas.';
+      feedback.style.color = 'var(--muted)';
+    }
+    async function saveSettings() {
+      const button = $('settings-save'), feedback = $('settings-feedback');
+      const deadline = $('setting-deadline').value;
+      const resultDate = $('setting-result-date').value || null;
+      if (!deadline) { feedback.textContent = 'Informe o prazo final de inscrição.'; feedback.style.color='var(--danger)'; return; }
+      if (resultDate && resultDate < deadline) { feedback.textContent = 'A data do resultado não pode ser anterior ao prazo final de inscrição.'; feedback.style.color='var(--danger)'; return; }
+      const values = {};
+      for (const input of $('setting-values-grid').querySelectorAll('[data-profession]')) {
+        const raw = input.value.trim();
+        if (raw === '') continue;
+        const amount = Number(raw);
+        if (!Number.isFinite(amount) || amount < 0 || amount > 100000) {
+          feedback.textContent = 'Revise o valor informado para ' + input.dataset.profession + '.';
+          feedback.style.color='var(--danger)'; input.focus(); return;
+        }
+        values[input.dataset.profession] = Math.round(amount * 100) / 100;
+      }
+      button.disabled = true; button.textContent = 'Salvando…'; feedback.textContent = 'Salvando configurações…';
+      const {data:userData} = await client.auth.getUser();
+      const {error} = await client.from('plantao_configuracoes').update({
+        prazo_inscricao: deadline,
+        data_resultado: resultDate,
+        valores_cargos: values,
+        updated_at: new Date().toISOString(),
+        updated_by: userData.user?.email || null
+      }).eq('id',true);
+      button.disabled = false; button.textContent = 'Salvar configurações';
+      if (error) {
+        feedback.textContent = 'Não foi possível salvar. Verifique se a migração já foi aplicada e se sua conta está autorizada como administradora.';
+        feedback.style.color='var(--danger)'; return;
+      }
+      feedback.textContent = 'Configurações salvas. A página pública poderá exibir os novos dados após atualizar.';
+      feedback.style.color='var(--success)';
+      showNotice('Configurações da seleção salvas.');
+    }
     async function load() {
       $('loading').classList.remove('hidden'); $('table').classList.add('hidden'); $('empty').classList.add('hidden');
       const {data,error}=await client.from('inscricoes').select('*').order('created_at',{ascending:false});
@@ -360,7 +433,7 @@
         $('user-email').textContent=data.user?.email||'';
         $('login-view').classList.add('hidden');
         $('app-view').classList.remove('hidden');
-        await load();
+        await Promise.all([load(), loadSettings()]);
       }
       $('login-button').disabled=false; $('login-button').textContent='Entrar com e-mail';
     }
@@ -438,6 +511,8 @@
     $('page-prev').addEventListener('click', () => { if (currentPage > 1) { currentPage -= 1; render(); window.scrollTo({top:0,behavior:'smooth'}); } });
     $('page-next').addEventListener('click', () => { const totalPages = Math.max(1, Math.ceil(filtered().length / PAGE_SIZE)); if (currentPage < totalPages) { currentPage += 1; render(); window.scrollTo({top:0,behavior:'smooth'}); } });
     $('login-form').addEventListener('submit',login);
+    $('settings-save').addEventListener('click',saveSettings);
+    $('settings-reload').addEventListener('click',loadSettings);
     $('magic-link').addEventListener('click', sendMagicLink);
     $('logout').addEventListener('click',async()=>{await client.auth.signOut({scope:'local'});location.reload();});
     let autoRefreshTimer = null;
@@ -455,7 +530,7 @@
     });
 
     client.auth.getSession().then(async({data})=>{
-      if(data.session){$('user-email').textContent=data.session.user?.email||'';$('login-view').classList.add('hidden');$('app-view').classList.remove('hidden');await load();}
+      if(data.session){$('user-email').textContent=data.session.user?.email||'';$('login-view').classList.add('hidden');$('app-view').classList.remove('hidden');await Promise.all([load(), loadSettings()]);}
     });
   </script>
 </body>
