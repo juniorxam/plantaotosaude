@@ -759,7 +759,7 @@
       <aside class="hero-panel hero-panel-status" aria-label="Status da mobilização">
         <div class="hero-panel-label">Concurso da Saúde</div>
         <strong class="hero-date">01 nov.<br />2026</strong>
-        <div class="hero-panel-highlight"><strong>3 plantões</strong><span>12 horas cada</span></div>
+        <div class="hero-panel-highlight"><strong>10 opções de escala</strong><span>turnos de 12h ou 24h</span></div>
         <div class="hero-rule"></div>
         <p class="hero-note"><span aria-hidden="true">📍</span><span><b>6 hospitais</b> participantes em Palmas, Araguaína, Gurupi, Paraíso, Porto Nacional e Augustinópolis.</span></p>
       </aside>
@@ -787,22 +787,22 @@
       </div>
       <div class="timeline-grid">
         <article class="timeline-card">
-          <div class="timeline-card-top"><span class="timeline-code">A</span><span class="timeline-badge">Véspera</span></div>
-          <strong>31 de outubro</strong>
-          <span class="timeline-hours">19h → 7h</span>
-          <small>Até a manhã de 01/11 · 12 horas</small>
+          <div class="timeline-card-top"><span class="timeline-code">31</span><span class="timeline-badge">31/10/2026</span></div>
+          <strong>Inícios às 07h e às 19h</strong>
+          <span class="timeline-hours">12h ou 24h</span>
+          <small>Escolha a duração para cada horário; os turnos de 24h terminam no dia seguinte.</small>
         </article>
         <article class="timeline-card timeline-card-featured">
-          <div class="timeline-card-top"><span class="timeline-code">B</span><span class="timeline-badge">Dia do concurso</span></div>
-          <strong>01 de novembro</strong>
-          <span class="timeline-hours">7h → 19h</span>
-          <small>Plantão diurno · 12 horas</small>
+          <div class="timeline-card-top"><span class="timeline-code">01</span><span class="timeline-badge">01/11/2026</span></div>
+          <strong>Inícios às 07h e às 19h</strong>
+          <span class="timeline-hours">12h ou 24h</span>
+          <small>Escolha a duração para cada horário; os turnos de 24h terminam no dia seguinte.</small>
         </article>
         <article class="timeline-card">
-          <div class="timeline-card-top"><span class="timeline-code">C</span><span class="timeline-badge">Dia do concurso</span></div>
-          <strong>01 de novembro</strong>
-          <span class="timeline-hours">19h → 7h</span>
-          <small>Até a manhã de 02/11 · 12 horas</small>
+          <div class="timeline-card-top"><span class="timeline-code">02</span><span class="timeline-badge">02/11/2026</span></div>
+          <strong>Início às 07h</strong>
+          <span class="timeline-hours">12h ou 24h</span>
+          <small>O turno de 12h termina às 19h; o de 24h, às 07h de 03/11.</small>
         </article>
       </div>
     </div>
@@ -912,7 +912,7 @@
             <p>Este formulário é para quem tem formação e registro profissional compatíveis com a atuação escolhida e não participará da prova da SES-TO.</p>
             <ul class="aside-points">
               <li>Tenha seu número de registro profissional em mãos.</li>
-              <li>Selecione todos os hospitais e plantões possíveis para você.</li>
+              <li>Selecione hospitais e até três opções de preferência; a gestão confirmará a escala final.</li>
               <li>A gestão responsável fará o contato após a análise dos cadastros.</li>
             </ul>
           </aside>
@@ -920,7 +920,7 @@
           <form class="form-card" id="registration-form" novalidate>
             <div class="form-notice"><span aria-hidden="true">⚠</span><span><strong>Importante:</strong> só envie esta inscrição se você não for realizar a prova do concurso da SES-TO em 01/11/2026.</span></div>
             <section class="result-lookup" aria-labelledby="lookup-title">
-              <div><strong id="lookup-title">Já fez sua inscrição?</strong><p>Consulte a situação pelo CPF. A consulta mostra apenas o status e o protocolo.</p></div>
+              <div><strong id="lookup-title">Já fez sua inscrição?</strong><p>Consulte pelo CPF o status e, quando definidos, o hospital, o plantão e o valor previsto.</p></div>
               <div class="lookup-controls"><input id="lookup-cpf" type="text" inputmode="numeric" maxlength="14" placeholder="CPF" aria-label="CPF para consulta"><button id="lookup-submit" class="btn" type="button">Consultar resultado</button></div>
               <p id="lookup-feedback" class="lookup-feedback" role="status" aria-live="polite"></p>
             </section>
@@ -964,7 +964,8 @@
                 </div>
                 <div class="field">
                   <label for="nascimento">Data de nascimento *</label>
-                  <input id="nascimento" name="nascimento" autocomplete="bday" type="date" min="1900-01-01" max="2026-10-02" required />
+                  <input id="nascimento" name="nascimento" autocomplete="bday" type="date" min="1900-01-01" max="2008-10-31" aria-describedby="birth-help birth-error" required />
+                  <p class="helper" id="birth-help">É preciso ter 18 anos completos até 31/10/2026, início do primeiro plantão.</p><p class="error-message" id="birth-error" aria-live="polite"></p>
                 </div>
                 <div class="field">
                   <label for="telefone">Telefone/WhatsApp *</label>
@@ -1041,14 +1042,10 @@
 
             <section class="form-step" id="step-4" data-step-panel="4" role="tabpanel" aria-labelledby="step-tab-4" hidden>
               <h3 class="form-step-title">Escolha seus plantões</h3>
-              <p class="form-step-intro">Você pode selecionar um, dois ou os três períodos de 12 horas.</p>
+              <p class="form-step-intro">Escolha até três opções de preferência entre os inícios de 31/10 e 01/11 às 07h e 19h, e 02/11 às 07h; cada uma pode durar 12h ou 24h. A gestão designará um único plantão final.</p>
               <fieldset class="field field-full" id="shift-fieldset">
                 <legend>Disponibilidade de plantão * <span class="helper">(selecione um ou mais)</span> <span class="selection-count" id="shift-count" aria-live="polite">0 selecionados</span></legend>
-                <div class="choice-grid choice-grid-shifts">
-                  <label class="choice"><input class="shift-checkbox" type="checkbox" name="plantões" value="A — Véspera, noturno — 31/10/2026, 19h às 7h de 01/11" /><span class="choice-content"><strong>Plantão A · Véspera — noturno</strong><small>31/10/2026, das 19h às 7h de 01/11</small></span></label>
-                  <label class="choice"><input class="shift-checkbox" type="checkbox" name="plantões" value="B — Dia do concurso, diurno — 01/11/2026, 7h às 19h" /><span class="choice-content"><strong>Plantão B · Dia do concurso — diurno</strong><small>01/11/2026, das 7h às 19h</small></span></label>
-                  <label class="choice"><input class="shift-checkbox" type="checkbox" name="plantões" value="C — Dia do concurso, noturno — 01/11/2026, 19h às 7h de 02/11" /><span class="choice-content"><strong>Plantão C · Dia do concurso — noturno</strong><small>01/11/2026, das 19h às 7h de 02/11</small></span></label>
-                </div>
+<div id="shift-options" class="choice-grid choice-grid-shifts"></div>
                 <p class="error-message" id="shift-error" aria-live="polite"></p>
               </fieldset>
               <div class="form-step-actions"><button class="step-back" type="button" data-prev="3">← Voltar</button><button class="step-next" type="button" data-next="5">Continuar →</button></div>
@@ -1116,11 +1113,12 @@
           <div class="faq-list">
             <details><summary>Quem pode se inscrever?</summary><p>Profissionais de saúde com formação e registro compatíveis com a função, disponibilidade para os plantões e que não vão realizar a prova da SES-TO em 01/11/2026.</p></details>
             <details><summary>Posso me inscrever se vou fazer a prova?</summary><p>Não. A inscrição é exclusiva para quem não participará da prova do concurso nessa data, pois o objetivo é reforçar as equipes durante a mobilização.</p></details>
-            <details><summary>Qual a duração de cada plantão?</summary><p>Cada plantão tem 12 horas de duração. Os horários completos estão descritos na seção Sobre e no formulário.</p></details>
-            <details><summary>Posso pegar mais de um plantão?</summary><p>Sim. Você pode selecionar um, dois ou os três plantões, desde que tenha disponibilidade para cumprir todos os períodos escolhidos.</p></details>
-            <details><summary>O plantão da véspera é confirmado?</summary><p>O plantão A faz parte da mobilização prevista e será confirmado conforme a necessidade de cada unidade e a organização da escala.</p></details>
-            <details><summary>Qual será a remuneração?</summary><p>Os valores e as condições de remuneração serão informados pela gestão responsável aos profissionais selecionados.</p></details>
+            <details><summary>Qual a duração de cada plantão?</summary><p>Em cada início de turno há uma opção de 12 horas e outra de 24 horas; os horários completos aparecem na agenda e no formulário.</p></details>
+            <details><summary>Posso escolher mais de um plantão?</summary><p>Sim. Você pode indicar até três opções entre os inícios de 31/10 e 01/11 às 07h e 19h, e 02/11 às 07h, cada uma com duração de 12h ou 24h.</p></details>
+            <details><summary>Como serão definidos hospital e plantão?</summary><p>A gestão analisará as preferências informadas e, se a inscrição for aceita e escalada, o acompanhamento mostrará o hospital e o horário designados.</p></details>
+            <details><summary>Qual será a remuneração?</summary><p>A gestão informa valores separados por cargo para turnos de 12h e 24h. O valor designado aparecerá no acompanhamento quando a escala final for registrada.</p></details>
             <details><summary>Qual o prazo de inscrição?</summary><p>O período de inscrição e eventuais encerramentos por preenchimento de vagas serão comunicados pelos canais oficiais da organização.</p></details>
+            <details><summary>Qual é a idade mínima?</summary><p>É necessário ter 18 anos completos até 31/10/2026, primeiro dia dos plantões.</p></details>
             <details><summary>Preciso enviar documentos agora?</summary><p>Não. Neste primeiro cadastro, informe os dados solicitados e o número do registro profissional. Caso necessário, a gestão pedirá a documentação nas próximas etapas.</p></details>
           </div>
         </div>
@@ -1153,6 +1151,20 @@
     // pela Edge Function, que valida os dados e grava no banco com acesso de servidor.
     const SUPABASE_URL = 'https://jyrzbfnaitdmilxxcbyv.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_WDE_s2HYfWUCI3iuodaG4w_RFGGwm9m';
+    const MAX_BIRTH_DATE = '2008-10-31';
+    const SHIFT_OPTIONS = [
+      {value:'31/10/2026 · 07h às 19h (12h)',title:'31/10 · início 07h · 12h',detail:'31/10/2026, das 07h às 19h'},
+      {value:'31/10/2026 · 07h às 01/11/2026 07h (24h)',title:'31/10 · início 07h · 24h',detail:'31/10/2026 às 07h até 01/11/2026 às 07h'},
+      {value:'31/10/2026 · 19h às 01/11/2026 07h (12h)',title:'31/10 · início 19h · 12h',detail:'31/10/2026 às 19h até 01/11/2026 às 07h'},
+      {value:'31/10/2026 · 19h às 01/11/2026 19h (24h)',title:'31/10 · início 19h · 24h',detail:'31/10/2026 às 19h até 01/11/2026 às 19h'},
+      {value:'01/11/2026 · 07h às 19h (12h)',title:'01/11 · início 07h · 12h',detail:'01/11/2026, das 07h às 19h'},
+      {value:'01/11/2026 · 07h às 02/11/2026 07h (24h)',title:'01/11 · início 07h · 24h',detail:'01/11/2026 às 07h até 02/11/2026 às 07h'},
+      {value:'01/11/2026 · 19h às 02/11/2026 07h (12h)',title:'01/11 · início 19h · 12h',detail:'01/11/2026 às 19h até 02/11/2026 às 07h'},
+      {value:'01/11/2026 · 19h às 02/11/2026 19h (24h)',title:'01/11 · início 19h · 24h',detail:'01/11/2026 às 19h até 02/11/2026 às 19h'},
+      {value:'02/11/2026 · 07h às 19h (12h)',title:'02/11 · início 07h · 12h',detail:'02/11/2026, das 07h às 19h'},
+      {value:'02/11/2026 · 07h às 03/11/2026 07h (24h)',title:'02/11 · início 07h · 24h',detail:'02/11/2026 às 07h até 03/11/2026 às 07h'}
+    ];
+    document.querySelector('#shift-options').innerHTML = SHIFT_OPTIONS.map(option => `<label class="choice"><input class="shift-checkbox" type="checkbox" name="plantoes" value="${option.value}"><span class="choice-content"><strong>${option.title}</strong><small>${option.detail}</small></span></label>`).join('');
 
     (() => {
       const form = document.querySelector('#registration-form');
@@ -1171,7 +1183,7 @@
         const money = (value) => Number(value).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
         const datePt = (value) => value ? new Intl.DateTimeFormat('pt-BR',{timeZone:'UTC',dateStyle:'long'}).format(new Date(value+'T00:00:00Z')) : '';
         try {
-          const response = await fetch(SUPABASE_URL + '/rest/v1/plantao_configuracoes?id=eq.true&select=prazo_inscricao,data_resultado,valores_cargos', {
+          const response = await fetch(SUPABASE_URL + '/rest/v1/plantao_configuracoes?id=eq.true&select=prazo_inscricao,data_resultado,valores_cargos,valores_cargos_24h', {
             headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: 'Bearer ' + SUPABASE_PUBLISHABLE_KEY }
           });
           if (!response.ok) throw new Error('Configuração indisponível');
@@ -1181,10 +1193,15 @@
           const deadline = config.prazo_inscricao;
           deadlineLabel.textContent = deadline ? 'Inscrições até ' + datePt(deadline) + ', às 23h59 (horário do Tocantins).' : 'Prazo de inscrição ainda não definido.';
           resultLabel.textContent = config.data_resultado ? 'Previsão de divulgação do resultado: ' + datePt(config.data_resultado) + '.' : 'Data do resultado: a ser divulgada pela gestão.';
-          const values = config.valores_cargos || {};
-          const entries = Object.entries(values).filter(([,amount]) => Number.isFinite(Number(amount)) && Number(amount) >= 0);
-          valuesTarget.innerHTML = entries.length
-            ? '<strong style="display:block;color:#003d66;margin-bottom:6px">Valores informados pela gestão · plantão de 12 horas</strong><small style="display:block;margin-bottom:6px;color:#526b79">Referência: Anexo Único da Lei estadual nº 4.627/2025. O valor pode variar conforme porte, modalidade e especialidade previstos na lei.</small><ul style="margin:0;padding-left:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:4px 18px">' + entries.map(([role,amount]) => '<li>' + role.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])) + ': <strong>' + money(amount) + '</strong></li>').join('') + '</ul>' : '<p style="margin:6px 0 0;color:#526b79">Os valores por cargo serão informados pela gestão assim que forem confirmados.</p>';
+          const rates12 = config.valores_cargos || {};
+          const rates24 = config.valores_cargos_24h || {};
+          const renderRates = (values, duration) => {
+            const entries = Object.entries(values).filter(([,amount]) => amount !== null && amount !== '' && Number.isFinite(Number(amount)) && Number(amount) >= 0);
+            return entries.length
+              ? '<strong style="display:block;color:#003d66;margin:8px 0 4px">Plantões de ' + duration + ' horas</strong><ul style="margin:0;padding-left:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:4px 18px">' + entries.map(([role,amount]) => '<li>' + role.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])) + ': <strong>' + money(amount) + '</strong></li>').join('') + '</ul>'
+              : '<p style="margin:6px 0;color:#526b79">Valores de ' + duration + 'h ainda não informados pela gestão.</p>';
+          };
+          valuesTarget.innerHTML = '<small style="display:block;color:#526b79">Valores por cargo e duração, definidos pela gestão. A referência de 12h pode variar conforme porte, modalidade e especialidade previstos na Lei estadual nº 4.627/2025; valores de 24h são informados separadamente.</small>' + renderRates(rates12,12) + renderRates(rates24,24);
           const today = new Intl.DateTimeFormat('en-CA',{timeZone:'America/Araguaina',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
           if (deadline && today > deadline) {
             deadlineLabel.textContent = 'Prazo encerrado em ' + datePt(deadline) + '. As inscrições não estão mais abertas.';
@@ -1213,7 +1230,7 @@
         document.querySelector('#review-contato').textContent = [phone, email].filter(Boolean).join(' · ') || '—';
         const hospitals = hospitalCheckboxes.filter((input) => input.checked).map((input) => input.value.split(' — ')[0]);
         document.querySelector('#review-hospitais').textContent = hospitals.length ? hospitals.join(', ') : 'Nenhum selecionado';
-        const shifts = shiftCheckboxes.filter((input) => input.checked).map((input) => input.value.split(' — ')[0]);
+        const shifts = shiftCheckboxes.filter((input) => input.checked).map((input) => input.closest('.choice')?.querySelector('strong')?.textContent || input.value);
         document.querySelector('#review-plantoes').textContent = shifts.length ? shifts.join(', ') : 'Nenhum selecionado';
       };
 
@@ -1256,6 +1273,14 @@
         if (step === 1 && cpfInput && !isValidCpf(cpfInput.value)) {
           cpfInput.setAttribute('aria-invalid','true');
           valid = false;
+        }
+        if (step === 1) {
+          const birth = document.querySelector('#nascimento');
+          const birthError = document.querySelector('#birth-error');
+          const invalidBirth = !birth.value || birth.value < '1900-01-01' || birth.value > MAX_BIRTH_DATE;
+          birth.setAttribute('aria-invalid', String(invalidBirth));
+          birthError.textContent = invalidBirth ? (birth.value ? 'É preciso ter 18 anos completos até 31/10/2026.' : 'Informe sua data de nascimento.') : '';
+          if (invalidBirth) valid = false;
         }
         if (step === 2) {
           const file = document.querySelector('#curriculo')?.files?.[0];
@@ -1395,8 +1420,7 @@
       cpfInput.addEventListener('input', (event) => { event.target.value = maskCpf(event.target.value); });
       phoneInput.addEventListener('input', (event) => { event.target.value = maskPhone(event.target.value); });
       const birthDateInput = document.querySelector('#nascimento');
-      const today = new Date();
-      birthDateInput.max = today.toISOString().slice(0, 10);
+      birthDateInput.max = MAX_BIRTH_DATE;
       birthDateInput.min = '1900-01-01';
 
       const updateChoiceState = () => {
@@ -1460,8 +1484,9 @@
           setInvalid(cpfInput, true);
           valid = false;
         }
-        if (birthInput.value && (birthInput.value < '1900-01-01' || birthInput.value > new Date().toISOString().slice(0, 10))) {
+        if (birthInput.value && (birthInput.value < '1900-01-01' || birthInput.value > MAX_BIRTH_DATE)) {
           setInvalid(birthInput, true);
+          document.querySelector('#birth-error').textContent = 'É preciso ter 18 anos completos até 31/10/2026.';
           valid = false;
         }
         if (onlyDigits(phoneInput.value).length < 10) {
@@ -1557,6 +1582,8 @@
             const body = JSON.parse(error.message);
             if (body?.message === 'Dados da inscrição inválidos.') {
               message = 'Alguns dados da inscrição são inválidos. Confira os campos e tente novamente.';
+            } else if (body?.message === 'Idade mínima não atendida.') {
+              message = 'Para se inscrever, é preciso ter 18 anos completos até 31/10/2026.';
             } else if (body?.message === 'Já existe uma inscrição para este CPF.') {
               message = 'Este CPF já possui uma inscrição registrada. Se precisar corrigir seus dados, entre em contato com a gestão responsável.';
             } else if (body?.message === 'Hospital de interesse inválido.' || body?.message === 'Plantão selecionado inválido.') {
@@ -1593,8 +1620,9 @@
           const response = await fetch(SUPABASE_URL + '/functions/v1/consultar-resultado-plantao', { method: 'POST', headers: { apikey: SUPABASE_PUBLISHABLE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ cpf }) });
           const result = await response.json();
           if (!response.ok) throw new Error(result?.message || 'Falha na consulta');
-          const labels = { pendente: 'Inscrição recebida e em análise', confirmado: 'Inscrição confirmada', escalado: 'Selecionado para a escala', recusado: 'Não selecionado nesta etapa' };
-          lookupFeedback.textContent = result.encontrada ? `${labels[result.status] || 'Status: ' + result.status}. Protocolo: ${result.protocolo || 'não informado'}.` : 'Não encontramos uma inscrição para este CPF.';
+          const labels = { pendente: 'Inscrição recebida e em análise', confirmado: 'Inscrição aceita', escalado: 'Inscrição aceita e escalada', recusado: 'Não selecionado nesta etapa' };
+          const details = result.encontrada ? [result.unidade_escalada && `Hospital: ${result.unidade_escalada}`, result.plantao_escalado && `Plantão: ${result.plantao_escalado}`, result.valor_pagamento != null && `Pagamento previsto: ${new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(result.valor_pagamento))}`].filter(Boolean) : [];
+          lookupFeedback.textContent = result.encontrada ? `${labels[result.status] || 'Status: ' + result.status}. Protocolo: ${result.protocolo || 'não informado'}.${details.length ? ' ' + details.join(' · ') : ''}` : 'Não encontramos uma inscrição para este CPF.';
         } catch (_) { lookupFeedback.textContent = 'Não foi possível consultar agora. Tente novamente em instantes.'; }
         finally { lookupSubmit.disabled = false; lookupSubmit.textContent = 'Consultar resultado'; }
       });

@@ -86,6 +86,8 @@ Deno.serve(async (request) => {
       status: result.status,
       hospitais: result.hospitais,
       unidade_escalada: result.unidade_escalada,
+      plantao_escalado: result.plantao_escalado,
+      valor_pagamento: result.valor_pagamento,
       data_resultado: result.data_resultado,
     });
   } catch (error) {

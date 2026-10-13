@@ -56,6 +56,7 @@
     .detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding:22px}
     .detail{padding:13px;border:1px solid var(--line);border-radius:12px;background:#fbfdfe}.detail.full{grid-column:1/-1}
     .detail small{display:block;color:var(--muted);font-weight:800;text-transform:uppercase;font-size:.7rem;letter-spacing:.05em;margin-bottom:4px}.detail div{white-space:pre-wrap}
+    .assignment-editor{margin:0 22px 22px;padding:18px;border:1px solid #cfe2eb;border-radius:14px;background:#f6fafc}.assignment-editor h4{margin:0;color:var(--deep)}.assignment-editor>p{margin:5px 0 12px}.assignment-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.assignment-fields label{margin:0}.assignment-fields select{margin-top:6px}.assignment-preview{margin-top:12px;padding:12px;border-radius:10px;background:#fff}.assignment-preview small{display:block;color:var(--muted);font-size:.72rem;font-weight:800;text-transform:uppercase}.assignment-preview strong{color:var(--deep)}.assignment-actions{display:flex;justify-content:flex-end;margin-top:12px}.assignment-feedback{min-height:1.2em;margin:8px 0 0;color:var(--muted);font-size:.84rem}
     .details-btn{padding:7px 9px;color:var(--deep);background:#eef4f7}
     .pagination{display:flex;align-items:center;justify-content:center;gap:14px;padding:16px 0;color:var(--muted);font-size:.88rem;font-weight:750}
     .table-wrap{overflow-x:auto}
@@ -69,7 +70,7 @@
     @media(max-width:850px){.admin-tools{grid-template-columns:1fr}}
 
     .pagination button:disabled{opacity:.45;cursor:not-allowed}
-    @media(max-width:600px){.detail-grid{grid-template-columns:1fr}.detail.full{grid-column:auto}}
+    @media(max-width:600px){.detail-grid{grid-template-columns:1fr}.detail.full{grid-column:auto}.assignment-fields{grid-template-columns:1fr}.assignment-editor{margin:0 12px 12px}#setting-values-grid,#setting-values-24h-grid{grid-template-columns:1fr!important}}
     .mobile-help{font-size:.78rem;color:var(--muted);margin-bottom:8px}
     @media(max-width:850px){.stats{grid-template-columns:repeat(2,1fr)}.insights,.monitoring{grid-template-columns:1fr}.page-title{align-items:start;flex-direction:column}.user-email{display:none}}
     @media(max-width:560px){main{padding:20px 12px}.stats{grid-template-columns:1fr 1fr}.stat strong{font-size:1.6rem}.login-card{padding:25px}}
@@ -124,8 +125,11 @@
           <div><label for="setting-result-date">Data de divulgação do resultado</label><input id="setting-result-date" type="date"><small class="muted">Deixe em branco enquanto a data não estiver definida.</small></div>
         </div>
         <h4 style="margin:22px 0 4px;color:var(--deep)">Valores por cargo · plantão de 12 horas</h4>
-        <p class="muted">Informe o valor em reais. Deixe em branco para não divulgar valor ainda confirmado.</p>
+        <p class="muted">Informe o valor em reais para a duração de 12h.</p>
         <div id="setting-values-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px"></div>
+        <h4 style="margin:22px 0 4px;color:var(--deep)">Valores por cargo · plantão de 24 horas</h4>
+        <p class="muted">Informe o valor específico de 24h. Ele não é calculado automaticamente a partir do valor de 12h.</p>
+        <div id="setting-values-24h-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px"></div>
         <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:18px">
           <button id="settings-reload" class="btn ghost" type="button">Descartar alterações</button>
           <button id="settings-save" class="btn primary" style="width:auto;margin:0" type="button">Salvar configurações</button>
@@ -141,7 +145,7 @@
         </article>
         <article class="admin-tool">
           <h3>Histórico de alterações</h3>
-          <p>Registro de quem alterou status, unidade escalada, configurações e permissões administrativas.</p>
+          <p>Registro de quem alterou status, hospital/plantão designados, valores, configurações e permissões.</p>
           <button id="audit-refresh" class="btn ghost" type="button">Atualizar histórico</button><div id="audit-list" class="audit-list"><span class="loading">Carregando histórico…</span></div>
         </article>
       </section>
@@ -164,14 +168,13 @@
           <option value="Palmas — Hospital Geral de Palmas">HGP</option><option value="Araguaína — Hospital Regional de Araguaína">Araguaína</option><option value="Gurupi — Hospital Regional de Gurupi">Gurupi</option><option value="Paraíso do Tocantins — Hospital Regional de Paraíso">Paraíso</option><option value="Porto Nacional — Hospital Regional de Porto Nacional">Porto Nacional</option><option value="Augustinópolis — Hospital Regional de Augustinópolis">Augustinópolis</option>
         </select>
         <select id="filter-shift" aria-label="Filtrar por plantão"><option value="">Todos os plantões</option>
-          <option value="A — Véspera, noturno — 31/10/2026, 19h às 7h de 01/11">A · Véspera</option><option value="B — Dia do concurso, diurno — 01/11/2026, 7h às 19h">B · Diurno</option><option value="C — Dia do concurso, noturno — 01/11/2026, 19h às 7h de 02/11">C · Noturno</option>
         </select>
         <button id="export" class="btn ghost">Exportar CSV</button>
       </div>
       <div class="table-wrap">
         <div id="loading" class="loading">Carregando inscrições…</div>
         <table id="table" class="table hidden">
-          <thead><tr><th>Profissional</th><th>Contato</th><th>Profissão / registro</th><th>Vínculo / lotação</th><th>Hospitais</th><th>Plantões</th><th>Protocolo</th><th>Cadastro</th><th>Status</th><th>Ação</th></tr></thead>
+          <thead><tr><th>Profissional</th><th>Contato</th><th>Profissão / registro</th><th>Vínculo / lotação</th><th>Hospitais de interesse</th><th>Plantões de interesse</th><th>Escala final / pagamento</th><th>Protocolo</th><th>Cadastro</th><th>Status</th><th>Ação</th></tr></thead>
           <tbody id="tbody"></tbody>
         </table>
         <div id="empty" class="empty hidden">Nenhuma inscrição encontrada.</div>
@@ -188,6 +191,18 @@
     <div class="modal-card">
       <div class="modal-head"><h3 id="detail-title">Detalhes da inscrição</h3><div><button id="print-detail" class="btn" type="button">Imprimir</button><button id="close-modal" class="close" type="button">Fechar</button></div></div>
       <div id="detail-grid" class="detail-grid"></div>
+      <section class="assignment-editor" aria-label="Definir resultado e escala final">
+        <h4>Resultado e escala final</h4>
+        <p class="muted">Para respeitar a disponibilidade, escolha hospital e plantão entre as opções informadas pelo profissional. O valor vem da configuração específica de 12h ou 24h.</p>
+        <div class="assignment-fields">
+          <div><label for="assign-status">Resultado</label><select id="assign-status"><option value="pendente">Em análise</option><option value="confirmado">Inscrição aceita</option><option value="escalado">Aceita e escalada</option><option value="recusado">Não selecionado</option></select></div>
+          <div><label for="assign-hospital">Hospital designado</label><select id="assign-hospital"><option value="">Ainda não definido</option></select></div>
+          <div><label for="assign-shift">Plantão designado</label><select id="assign-shift"><option value="">Ainda não definido</option></select></div>
+          <div class="assignment-preview"><small>Pagamento previsto</small><strong id="assignment-payment-preview">Ainda não definido</strong></div>
+        </div>
+        <p id="assignment-guidance" class="assignment-feedback" role="status" aria-live="polite"></p>
+        <div class="assignment-actions"><button id="save-assignment" class="btn primary" style="width:auto;margin:0" type="button">Salvar resultado e escala</button></div>
+      </section>
     </div>
   </section>
 
@@ -207,6 +222,22 @@
     const fmtArray = (value) => Array.isArray(value) ? value.map(esc).join('<br>') : esc(value);
     const statusLabel = {pendente:'Pendente',confirmado:'Confirmado',escalado:'Escalado',recusado:'Recusado'};
     const unitOptions = [['','Ainda não definida'],['Palmas — Hospital Geral de Palmas','Palmas — HGP'],['Araguaína — Hospital Regional de Araguaína','Araguaína'],['Gurupi — Hospital Regional de Gurupi','Gurupi'],['Paraíso do Tocantins — Hospital Regional de Paraíso','Paraíso'],['Porto Nacional — Hospital Regional de Porto Nacional','Porto Nacional'],['Augustinópolis — Hospital Regional de Augustinópolis','Augustinópolis']];
+    const SHIFT_OPTIONS = [
+      {value:'31/10/2026 · 07h às 19h (12h)',title:'31/10 · 07h · 12h'},
+      {value:'31/10/2026 · 07h às 01/11/2026 07h (24h)',title:'31/10 · 07h · 24h'},
+      {value:'31/10/2026 · 19h às 01/11/2026 07h (12h)',title:'31/10 · 19h · 12h'},
+      {value:'31/10/2026 · 19h às 01/11/2026 19h (24h)',title:'31/10 · 19h · 24h'},
+      {value:'01/11/2026 · 07h às 19h (12h)',title:'01/11 · 07h · 12h'},
+      {value:'01/11/2026 · 07h às 02/11/2026 07h (24h)',title:'01/11 · 07h · 24h'},
+      {value:'01/11/2026 · 19h às 02/11/2026 07h (12h)',title:'01/11 · 19h · 12h'},
+      {value:'01/11/2026 · 19h às 02/11/2026 19h (24h)',title:'01/11 · 19h · 24h'},
+      {value:'02/11/2026 · 07h às 19h (12h)',title:'02/11 · 07h · 12h'},
+      {value:'02/11/2026 · 07h às 03/11/2026 07h (24h)',title:'02/11 · 07h · 24h'}
+    ];
+    const settingsValues = {valores_cargos:{}, valores_cargos_24h:{}};
+    const formatMoney = value => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(value));
+    const shiftTitle = value => SHIFT_OPTIONS.find(option => option.value === value)?.title || value || 'Ainda não definido';
+    $('filter-shift').insertAdjacentHTML('beforeend', SHIFT_OPTIONS.map(option => `<option value="${esc(option.value)}">${esc(option.title)}</option>`).join(''));
 
     function showNotice(message, isError=false) {
       const el=$('notice'); el.textContent=message; el.className='notice'+(isError?' error':''); el.classList.remove('hidden');
@@ -228,7 +259,7 @@
           : '<span class="muted">Ainda não há inscrições.</span>';
       };
       renderSummary('hospital-summary', countValues('hospitais'), label => label.split(' — ')[0] || label);
-      renderSummary('shift-summary', countValues('plantoes'), label => label.split(' — ')[0] || label);
+      renderSummary('shift-summary', countValues('plantoes'), label => shiftTitle(label));
     }
 
     function renderMonitoring() {
@@ -236,7 +267,7 @@
         ['Palmas', 'Palmas — Hospital Geral de Palmas'], ['Araguaína', 'Araguaína — Hospital Regional de Araguaína'], ['Gurupi', 'Gurupi — Hospital Regional de Gurupi'],
         ['Paraíso', 'Paraíso do Tocantins — Hospital Regional de Paraíso'], ['Porto Nacional', 'Porto Nacional — Hospital Regional de Porto Nacional'], ['Augustinópolis', 'Augustinópolis — Hospital Regional de Augustinópolis']
       ];
-      const shifts = [['A · Véspera / noturno', 'A — Véspera, noturno — 31/10/2026, 19h às 7h de 01/11'], ['B · Concurso / diurno', 'B — Dia do concurso, diurno — 01/11/2026, 7h às 19h'], ['C · Concurso / noturno', 'C — Dia do concurso, noturno — 01/11/2026, 19h às 7h de 02/11']];
+      const shifts = SHIFT_OPTIONS.map(option => [option.title, option.value]);
       const renderCoverage = (target, options, field) => {
         const counts = options.map(([label, value]) => [label, registrations.filter(r => (r[field] || []).includes(value)).length]);
         const max = Math.max(1, ...counts.map(([, count]) => count));
@@ -255,7 +286,7 @@
     function filtered() {
       const q=$('search').value.trim().toLowerCase(), status=$('filter-status').value, hospital=$('filter-hospital').value, shift=$('filter-shift').value;
       return registrations.filter(r => {
-        const hay=[r.nome,r.cpf,r.telefone,r.email,r.protocolo,r.profissao,r.registro,...(r.hospitais||[]),...(r.plantoes||[])].join(' ').toLowerCase();
+        const hay=[r.nome,r.cpf,r.telefone,r.email,r.protocolo,r.profissao,r.registro,r.unidade_escalada,r.plantao_escalado,...(r.hospitais||[]),...(r.plantoes||[])].join(' ').toLowerCase();
         return (!q || hay.includes(q)) && (!status || r.status===status) && (!hospital || (r.hospitais||[]).includes(hospital)) && (!shift || (r.plantoes||[]).includes(shift));
       });
     }
@@ -280,12 +311,11 @@
           <td>${r.servidor_estado === true ? 'Servidor' : r.servidor_estado === false ? 'Não servidor' : 'Não informado'}<br><span class="muted">${esc(r.servidor_estado === true ? (r.setor_lotacao || 'Setor não informado') : (r.orgao_lotacao || 'Órgão não informado'))}</span></td>
           <td>${fmtArray(r.hospitais)}</td>
           <td>${fmtArray(r.plantoes)}</td>
+          <td>${esc(r.unidade_escalada || 'Hospital pendente')}<br><span class="muted">${esc(shiftTitle(r.plantao_escalado))}</span><br><strong>${r.valor_pagamento != null ? formatMoney(r.valor_pagamento) : 'Valor pendente'}</strong></td>
           <td><strong>${esc(r.protocolo)}</strong></td>
           <td class="muted">${fmtDate(r.created_at)}</td>
           <td><span class="status ${esc(r.status)}">${esc(statusLabel[r.status]||r.status)}</span></td>
-          <td><div class="actions"><button class="btn details-btn" data-details="${esc(r.id)}">Detalhes</button><select data-id="${esc(r.id)}" aria-label="Novo status">
-            ${Object.entries(statusLabel).map(([value,label])=>`<option value="${value}" ${r.status===value?'selected':''}>${label}</option>`).join('')}
-          </select><select class="unit-select" data-unit-id="${esc(r.id)}" aria-label="Unidade escalada">${unitOptions.map(([value,label])=>`<option value="${esc(value)}" ${r.unidade_escalada===value?'selected':''}>${esc(label)}</option>`).join('')}</select><button class="btn save" data-save="${esc(r.id)}">Salvar</button></div></td>
+          <td><button class="btn details-btn" data-details="${esc(r.id)}">Detalhes / escala</button></td>
         </tr>`).join('');
       $('loading').classList.add('hidden'); $('table').classList.toggle('hidden', rows.length===0); $('empty').classList.toggle('hidden', rows.length!==0);
       $('pagination').classList.toggle('hidden', rows.length <= PAGE_SIZE);
@@ -306,7 +336,7 @@
       w.document.write('<div class="field"><div class="label">Nascimento</div>'+safe(r.nascimento)+'</div><div class="field"><div class="label">Telefone</div>'+safe(r.telefone)+'</div>');
       w.document.write('<div class="field"><div class="label">E-mail</div>'+safe(r.email)+'</div><div class="field"><div class="label">Profissão</div>'+safe(r.profissao)+'</div>');
       w.document.write('<div class="field"><div class="label">Registro</div>'+safe(r.registro)+'</div><div class="field"><div class="label">Status</div>'+safe(statusLabel[r.status]||r.status)+'</div>');
-      w.document.write('<div class="field full"><div class="label">Hospitais</div>'+safe((r.hospitais||[]).join(' · '))+'</div><div class="field full"><div class="label">Plantões</div>'+safe((r.plantoes||[]).join(' · '))+'</div><div class="field full"><div class="label">Observações</div>'+safe(r.observacoes||'—')+'</div></div><p>Gerado em '+new Date().toLocaleString('pt-BR')+'</p><script>window.onload=function(){window.print()}<\/script></body></html>');
+      w.document.write('<div class="field full"><div class="label">Hospitais de interesse</div>'+safe((r.hospitais||[]).join(' · '))+'</div><div class="field full"><div class="label">Plantões de interesse</div>'+safe((r.plantoes||[]).join(' · '))+'</div><div class="field full"><div class="label">Hospital escalado</div>'+safe(r.unidade_escalada||'Ainda não definido')+'</div><div class="field full"><div class="label">Plantão escalado</div>'+safe(shiftTitle(r.plantao_escalado))+'</div><div class="field"><div class="label">Pagamento previsto</div>'+safe(r.valor_pagamento!=null?formatMoney(r.valor_pagamento):'Ainda não definido')+'</div><div class="field full"><div class="label">Observações</div>'+safe(r.observacoes||'—')+'</div></div><p>Gerado em '+new Date().toLocaleString('pt-BR')+'</p><script>window.onload=function(){window.print()}<\/script></body></html>');
       w.document.close();
     }
 
@@ -325,27 +355,34 @@
         ['Servidor do Estado', r.servidor_estado === true ? 'Sim' : r.servidor_estado === false ? 'Não' : 'Não informado'],
         ['Órgão de lotação', r.orgao_lotacao || '—'], ['Setor de lotação', r.setor_lotacao || '—'],
         ['Registro profissional', r.registro], ['Protocolo', r.protocolo],
-        ['Status', statusLabel[r.status] || r.status], ['Unidade escalada', r.unidade_escalada || 'Ainda não definida'], ['Cadastro', fmtDate(r.created_at)],
+        ['Status', statusLabel[r.status] || r.status], ['Hospital escalado', r.unidade_escalada || 'Ainda não definido'], ['Plantão escalado', shiftTitle(r.plantao_escalado)], ['Pagamento previsto', r.valor_pagamento != null ? formatMoney(r.valor_pagamento) : 'Ainda não definido'], ['Cadastro', fmtDate(r.created_at)],
         ['Atualização', fmtDate(r.updated_at)], ['Hospitais de interesse', (r.hospitais || []).join('\n') || '—'],
-        ['Plantões selecionados', (r.plantoes || []).join('\n') || '—'],
+        ['Plantões de interesse', (r.plantoes || []).join('\n') || '—'], ['Plantão escalado', shiftTitle(r.plantao_escalado)], ['Pagamento previsto', r.valor_pagamento != null ? formatMoney(r.valor_pagamento) : 'Ainda não definido'],
         ['Observações', r.observacoes || 'Nenhuma observação informada.']
       ];
       $('detail-grid').innerHTML = fields.map(([label, value], index) => '<div class="detail' + (index >= 11 ? ' full' : '') + '"><small>' + esc(label) + '</small><div>' + esc(value) + '</div></div>').join('');
       $('detail-grid').insertAdjacentHTML('beforeend', '<div class="detail full"><small>Currículo anexado</small><div>' + (r.curriculo_path ? '<button class="btn" type="button" data-curriculum="' + esc(r.id) + '">Baixar currículo</button>' : 'Não anexado') + '</div></div>');
+      const hospitalChoices = [...new Set([...(r.hospitais || []), ...(r.unidade_escalada && !(r.hospitais || []).includes(r.unidade_escalada) ? [r.unidade_escalada] : [])])];
+      $('assign-hospital').innerHTML = '<option value="">Ainda não definido</option>' + hospitalChoices.map(value => '<option value="' + esc(value) + '">' + esc(value) + ((r.unidade_escalada === value && !(r.hospitais || []).includes(value)) ? ' · atual' : '') + '</option>').join('');
+      $('assign-shift').innerHTML = '<option value="">Ainda não definido</option>' + (r.plantoes || []).map(value => '<option value="' + esc(value) + '">' + esc(shiftTitle(value)) + '</option>').join('');
+      $('assign-status').value = r.status || 'pendente';
+      $('assign-hospital').value = r.unidade_escalada || '';
+      $('assign-shift').value = r.plantao_escalado || '';
+      updateAssignmentControls();
       $('detail-modal').classList.remove('hidden');
       $('close-modal').focus();
     }
     const SETTING_PROFESSIONS = ["Médico","Enfermeiro","Técnico em Enfermagem","Fisioterapeuta","Nutricionista","Psicólogo","Farmacêutico","Assistente Social","Técnico em Laboratório","Outro"];
-    function renderSettingInputs(values = {}) {
-      $('setting-values-grid').innerHTML = SETTING_PROFESSIONS.map((profession, i) => {
+    function renderSettingInputs(targetId, values = {}) {
+      $(targetId).innerHTML = SETTING_PROFESSIONS.map((profession, i) => {
         const value = values[profession] == null ? '' : String(values[profession]);
-        return '<div><label for="setting-value-' + i + '">' + esc(profession) + '</label><input id="setting-value-' + i + '" data-profession="' + esc(profession) + '" type="number" min="0" max="100000" step="0.01" inputmode="decimal" placeholder="Ex.: 850,00" value="' + esc(value) + '"></div>';
+        return '<div><label for="' + targetId + '-' + i + '">' + esc(profession) + '</label><input id="' + targetId + '-' + i + '" data-profession="' + esc(profession) + '" type="number" min="0" max="100000" step="0.01" inputmode="decimal" placeholder="Ex.: 850,00" value="' + esc(value) + '"></div>';
       }).join('');
     }
     async function loadSettings() {
       const feedback = $('settings-feedback');
       feedback.textContent = 'Carregando configurações…';
-      const {data,error} = await client.from('plantao_configuracoes').select('prazo_inscricao,data_resultado,valores_cargos,updated_at').eq('id',true).maybeSingle();
+      const {data,error} = await client.from('plantao_configuracoes').select('prazo_inscricao,data_resultado,valores_cargos,valores_cargos_24h,updated_at').eq('id',true).maybeSingle();
       if (error || !data) {
         feedback.textContent = 'Não foi possível carregar as configurações. Confirme se a migração de configurações já foi aplicada ao Supabase do Plantão TO Saúde.';
         feedback.style.color = 'var(--danger)';
@@ -353,7 +390,10 @@
       }
       $('setting-deadline').value = data.prazo_inscricao || '';
       $('setting-result-date').value = data.data_resultado || '';
-      renderSettingInputs(data.valores_cargos || {});
+      settingsValues.valores_cargos = data.valores_cargos || {};
+      settingsValues.valores_cargos_24h = data.valores_cargos_24h || {};
+      renderSettingInputs('setting-values-grid', settingsValues.valores_cargos);
+      renderSettingInputs('setting-values-24h-grid', settingsValues.valores_cargos_24h);
       feedback.textContent = data.updated_at ? 'Última atualização: ' + fmtDate(data.updated_at) : 'Configurações carregadas.';
       feedback.style.color = 'var(--muted)';
     }
@@ -363,32 +403,39 @@
       const resultDate = $('setting-result-date').value || null;
       if (!deadline) { feedback.textContent = 'Informe o prazo final de inscrição.'; feedback.style.color='var(--danger)'; return; }
       if (resultDate && resultDate < deadline) { feedback.textContent = 'A data do resultado não pode ser anterior ao prazo final de inscrição.'; feedback.style.color='var(--danger)'; return; }
-      const values = {};
-      for (const input of $('setting-values-grid').querySelectorAll('[data-profession]')) {
-        const raw = input.value.trim();
-        if (raw === '') continue;
-        const amount = Number(raw);
-        if (!Number.isFinite(amount) || amount < 0 || amount > 100000) {
-          feedback.textContent = 'Revise o valor informado para ' + input.dataset.profession + '.';
-          feedback.style.color='var(--danger)'; input.focus(); return;
+      const readValues = (targetId, existing) => {
+        const values = {...existing};
+        for (const input of $(targetId).querySelectorAll('[data-profession]')) {
+          const raw = input.value.trim();
+          if (raw === '') { delete values[input.dataset.profession]; continue; }
+          const amount = Number(raw);
+          if (!Number.isFinite(amount) || amount < 0 || amount > 100000) throw new Error('Revise o valor informado para ' + input.dataset.profession + '.');
+          values[input.dataset.profession] = Math.round(amount * 100) / 100;
         }
-        values[input.dataset.profession] = Math.round(amount * 100) / 100;
-      }
+        return values;
+      };
+      let values12, values24;
+      try {
+        values12 = readValues('setting-values-grid', settingsValues.valores_cargos);
+        values24 = readValues('setting-values-24h-grid', settingsValues.valores_cargos_24h);
+      } catch (error) { feedback.textContent = error.message; feedback.style.color='var(--danger)'; return; }
       button.disabled = true; button.textContent = 'Salvando…'; feedback.textContent = 'Salvando configurações…';
       const {data:userData} = await client.auth.getUser();
       const {error} = await client.from('plantao_configuracoes').update({
         prazo_inscricao: deadline,
         data_resultado: resultDate,
-        valores_cargos: values,
+        valores_cargos: values12,
+        valores_cargos_24h: values24,
         updated_at: new Date().toISOString(),
         updated_by: userData.user?.email || null
       }).eq('id',true);
       button.disabled = false; button.textContent = 'Salvar configurações';
       if (error) {
-        feedback.textContent = 'Não foi possível salvar. Verifique se a migração já foi aplicada e se sua conta está autorizada como administradora.';
+        feedback.textContent = 'Não foi possível salvar. Verifique se a migration já foi aplicada e se sua conta está autorizada como administradora.';
         feedback.style.color='var(--danger)'; return;
       }
-      feedback.textContent = 'Configurações salvas. A página pública poderá exibir os novos dados após atualizar.';
+      settingsValues.valores_cargos = values12; settingsValues.valores_cargos_24h = values24;
+      feedback.textContent = 'Configurações salvas. A página pública poderá exibir os valores após atualizar.';
       feedback.style.color='var(--success)';
       showNotice('Configurações da seleção salvas.');
     }
@@ -433,6 +480,8 @@
     });
     $('close-modal').addEventListener('click', () => $('detail-modal').classList.add('hidden'));
     $('print-detail').addEventListener('click', () => { if (selectedRegistrationId) printRegistration(selectedRegistrationId); });
+    $('save-assignment').addEventListener('click', saveAssignment);
+    $('detail-modal').addEventListener('change', event => { if (['assign-status','assign-hospital','assign-shift'].includes(event.target.id)) event.target.id === 'assign-status' ? updateAssignmentControls() : updateAssignmentPreview(); });
     document.querySelectorAll('[data-quick-status]').forEach(button => button.addEventListener('click', () => {
       $('filter-status').value = button.dataset.quickStatus || '';
       currentPage = 1;
@@ -510,26 +559,65 @@
       button.disabled = false; button.textContent = 'Receber link por e-mail';
     }
 
-    async function updateStatus(id, select, button) {
+    function updateAssignmentControls() {
+      const status = $('assign-status')?.value;
+      const allowed = status === 'confirmado' || status === 'escalado';
+      $('assign-hospital').disabled = !allowed;
+      $('assign-shift').disabled = !allowed;
+      if (!allowed) { $('assign-hospital').value = ''; $('assign-shift').value = ''; }
+      updateAssignmentPreview();
+    }
+    function updateAssignmentPreview() {
+      const status = $('assign-status')?.value;
+      const hospital = $('assign-hospital')?.value || '';
+      const shift = $('assign-shift')?.value || '';
+      const preview = $('assignment-payment-preview');
+      const feedback = $('assignment-guidance');
+      const button = $('save-assignment');
+      if (!status || !preview || !feedback || !button) return;
+      const active = status === 'confirmado' || status === 'escalado';
+      let invalid = false;
+      if (!active) { preview.textContent = 'Não se aplica ao status atual.'; feedback.textContent = 'Ao deixar em análise ou marcar como não selecionado, a designação será removida.'; }
+      else if ((hospital && !shift) || (!hospital && shift)) { preview.textContent = 'Selecione hospital e plantão.'; feedback.textContent = 'A escala final precisa ter hospital e plantão juntos.'; invalid = true; }
+      else if (!hospital && !shift) { preview.textContent = 'Ainda não definido'; feedback.textContent = status === 'escalado' ? 'Para marcar como escalado, defina hospital e plantão.' : 'A inscrição pode ser aceita antes da definição da escala.'; invalid = status === 'escalado'; }
+      else {
+        const hours = shift.endsWith('(24h)') ? 24 : 12;
+        const rates = hours === 24 ? settingsValues.valores_cargos_24h : settingsValues.valores_cargos;
+        const profession = registrations.find(item => item.id === selectedRegistrationId)?.profissao;
+        const raw = rates?.[profession];
+        const configured = raw !== null && raw !== undefined && raw !== '' && Number.isFinite(Number(raw));
+        preview.textContent = configured ? formatMoney(raw) + ` · ${hours}h` : `Valor de ${hours}h não configurado para ${profession || 'este cargo'}.`;
+        feedback.textContent = status === 'escalado' && !configured ? 'Configure o valor desta duração em Configurações da seleção antes de finalizar a escala.' : 'O valor será congelado no cadastro conforme o cargo e a duração selecionados.';
+        if (status === 'escalado' && !configured) invalid = true;
+      }
+      button.disabled = invalid;
+    }
+    async function saveAssignment() {
+      const id = selectedRegistrationId;
       const item = registrations.find(r => r.id === id);
       if (!item) return;
-      const status = select.value;
-      const unitSelect = document.querySelector('[data-unit-id="'+CSS.escape(id)+'"]');
-      const unidade_escalada = unitSelect?.value || null;
-      if (status === item.status && unidade_escalada === (item.unidade_escalada || null)) { showNotice('Nenhuma alteração foi feita.', true); return; }
-      const labels = {pendente:'Pendente', confirmado:'Confirmado', escalado:'Escalado', recusado:'Recusado'};
-      if (!window.confirm(`Salvar status "${labels[status] || status}" e unidade "${unidade_escalada || 'não definida'}" para "${item.nome}"?`)) { select.value = item.status; if (unitSelect) unitSelect.value = item.unidade_escalada || ''; return; }
-      button.disabled = true; button.textContent = 'Salvando…'; select.disabled = true; if (unitSelect) unitSelect.disabled = true;
-      const {error}=await client.from('inscricoes').update({status, unidade_escalada, updated_at:new Date().toISOString()}).eq('id',id);
-      button.disabled = false; button.textContent = 'Salvar'; select.disabled = false; if (unitSelect) unitSelect.disabled = false;
-      if(error){showNotice('Não foi possível salvar a alteração. Verifique sua autorização.',true);select.value=item.status;if(unitSelect)unitSelect.value=item.unidade_escalada||'';return;}
-      item.status=status; item.unidade_escalada=unidade_escalada; render(); await loadAuditLog(); showNotice(`Dados de ${item.nome} atualizados.`);
+      updateAssignmentPreview();
+      const status = $('assign-status').value;
+      const unidade_escalada = $('assign-hospital').value || null;
+      const plantao_escalado = $('assign-shift').value || null;
+      if ($('save-assignment').disabled) return;
+      const pay = plantao_escalado ? $('assignment-payment-preview').textContent : 'não definido';
+      const prompt = `Salvar “${statusLabel[status]}” para ${item.nome}? Hospital: ${unidade_escalada || 'não definido'}. Plantão: ${plantao_escalado || 'não definido'}. Pagamento: ${pay}.`;
+      if (!window.confirm(prompt)) return;
+      const button = $('save-assignment'); button.disabled = true; button.textContent = 'Salvando…';
+      const {data,error} = await client.rpc('set_plantao_assignment', {p_inscricao_id:id,p_status:status,p_unidade_escalada:unidade_escalada,p_plantao_escalado:plantao_escalado});
+      button.textContent = 'Salvar resultado e escala';
+      if (error) { updateAssignmentPreview(); showNotice('Não foi possível salvar o resultado e a escala. Confira as opções e sua autorização.', true); return; }
+      const updated = Array.isArray(data) ? data[0] : data;
+      if (updated) Object.assign(item, updated);
+      $('detail-modal').classList.add('hidden');
+      render(); await loadAuditLog(); showNotice(`Resultado e escala de ${item.nome} atualizados.`);
     }
     function exportCsv() {
       const rows=filtered(); if(!rows.length){showNotice('Não há inscrições para exportar.',true);return;}
-      const header=['Protocolo','Nome','CPF','Nascimento','Telefone','E-mail','Profissão','Registro','Servidor do Estado','Órgão de lotação','Setor de lotação','Hospitais','Plantões','Observações','Declaração','Status','Criado em'];
+      const header=['Protocolo','Nome','CPF','Nascimento','Telefone','E-mail','Profissão','Registro','Servidor do Estado','Órgão de lotação','Setor de lotação','Hospitais de interesse','Plantões de interesse','Hospital escalado','Plantão escalado','Pagamento previsto','Observações','Declaração','Status','Criado em'];
       const quote=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-      const lines=rows.map(r=>[r.protocolo,r.nome,r.cpf,r.nascimento,r.telefone,r.email,r.profissao,r.registro,r.servidor_estado === true ? 'Sim' : r.servidor_estado === false ? 'Não' : 'Não informado',r.orgao_lotacao,r.setor_lotacao,(r.hospitais||[]).join(' | '),(r.plantoes||[]).join(' | '),r.observacoes,r.declaracao?'Sim':'Não',r.status,fmtDate(r.created_at)].map(quote).join(';'));
+      const lines=rows.map(r=>[r.protocolo,r.nome,r.cpf,r.nascimento,r.telefone,r.email,r.profissao,r.registro,r.servidor_estado === true ? 'Sim' : r.servidor_estado === false ? 'Não' : 'Não informado',r.orgao_lotacao,r.setor_lotacao,(r.hospitais||[]).join(' | '),(r.plantoes||[]).join(' | '),r.unidade_escalada, r.plantao_escalado, r.valor_pagamento != null ? formatMoney(r.valor_pagamento) : '',r.observacoes,r.declaracao?'Sim':'Não',r.status,fmtDate(r.created_at)].map(quote).join(';'));
       const blob=new Blob(['\ufeff'+[header.map(quote).join(';'),...lines].join('\r\n')],{type:'text/csv;charset=utf-8'});
       const url=URL.createObjectURL(blob), a=document.createElement('a'); a.href=url; a.download='inscricoes-plantao-to-saude.csv'; a.click(); URL.revokeObjectURL(url);
     }
@@ -550,14 +638,6 @@
       if (event.target.checked) autoRefreshTimer = setInterval(load, 60000);
     });
     $('refresh').addEventListener('click',load); $('export-top').addEventListener('click',exportCsv); $('search').addEventListener('input',()=>{currentPage=1;render();}); $('filter-status').addEventListener('change',()=>{currentPage=1;render();}); $('filter-hospital').addEventListener('change',()=>{currentPage=1;render();}); $('filter-shift').addEventListener('change',()=>{currentPage=1;render();}); $('export').addEventListener('click',exportCsv);
-    $('tbody').addEventListener('click',(event)=>{
-      const btn=event.target.closest('[data-save]');
-      if(!btn)return;
-      const id=btn.dataset.save;
-      const select=btn.closest('.actions')?.querySelector('select[data-id="'+CSS.escape(id)+'"]');
-      if(select)updateStatus(id,select,btn);
-    });
-
     client.auth.getSession().then(async({data})=>{
       if(data.session){$('user-email').textContent=data.session.user?.email||'';$('login-view').classList.add('hidden');$('app-view').classList.remove('hidden');await Promise.all([load(), loadSettings(), loadAdminAccess(), loadAuditLog()]);}
     });

@@ -1,184 +1,58 @@
 # Integração — Plantão TO Saúde
 
-## Arquitetura atual
+## Arquitetura
 
-O formulário público está integrado diretamente ao Supabase por meio da Edge Function `submit-plantao-inscricao`.
+O frontend estático está publicado na Vercel. O Supabase hospeda o PostgreSQL com RLS, autenticação, bucket privado de currículos e Edge Functions.
 
-Fluxo:
+**Inscrição:** `index.html` → `POST /functions/v1/submit-plantao-inscricao` → validação e rate limit → Storage privado `curriculos` → RPC `register_plantao_inscricao` → `public.inscricoes` → protocolo.
 
-`index.html`
-→ `POST /functions/v1/submit-plantao-inscricao`
-→ validação e rate limiting
-→ Storage privado `curriculos`
-→ RPC `register_plantao_inscricao`
-→ tabela `public.inscricoes`
-→ retorno do protocolo.
+**Acompanhamento:** `acompanhamento.html` → `POST /functions/v1/consultar-resultado-plantao` → limitador atômico → RPC `consultar_resultado_plantao` → status, hospital/plantão designados e pagamento quando definidos.
 
-A consulta pública usa a Edge Function `consultar-resultado-plantao`, que chama a RPC `consultar_resultado_plantao` e retorna nome, profissão, registro profissional, protocolo, status, hospitais de interesse, unidade escalada (quando definida) e data configurada do resultado pelo CPF. Não retorna o CPF, telefone, e-mail ou currículo.
+O navegador usa apenas a chave publicável. A chave `service_role` permanece no ambiente das Edge Functions e nunca deve ser publicada.
 
-O navegador usa somente a chave publicável do Supabase. A `service_role` existe exclusivamente no ambiente da Edge Function.
+## Inscrição, agenda e idade
 
-## Formulário público
+O formulário coleta nome, CPF, data de nascimento, telefone, e-mail, profissão, registro, vínculo/lotação, hospitais e plantões de interesse, observações, declaração e currículo. Currículo obrigatório: PDF, DOC ou DOCX até 5 MB; o arquivo é enviado à função, armazenado com nome aleatório no bucket privado e removido se a gravação falhar.
 
-O `index.html` envia `multipart/form-data` com:
+A escala possui dez opções: início às 07h e às 19h nos dias 31/10 e 01/11, e início às 07h em 02/11; cada início pode ter 12h ou 24h. Turnos de 24h terminam às 07h do dia seguinte. A inscrição aceita de uma a três preferências. A RPC reconhece também as antigas opções A/B/C e normaliza seus rótulos para os turnos equivalentes de 12h, preservando a disponibilidade escolhida.
 
-- nome;
-- CPF;
-- data de nascimento;
-- telefone;
-- e-mail;
-- profissão;
-- registro profissional;
-- vínculo estadual;
-- órgão de lotação, quando não servidor;
-- setor de lotação, quando servidor;
-- hospitais escolhidos;
-- plantões escolhidos;
-- observações;
-- declaração;
-- currículo;
-- campos técnicos anti-bot.
+O critério é ter 18 anos completos até 31/10/2026, data do primeiro plantão. A página limita a data de nascimento, a Edge Function valida novamente o valor e a RPC do banco rejeita cadastros fora do critério.
 
-A validação ocorre em duas camadas:
+## Valores e designação final
 
-1. navegador, para orientar o preenchimento;
-2. Edge Function/RPC, como validação de segurança.
+`plantao_configuracoes.valores_cargos` guarda valores de 12h; `valores_cargos_24h` guarda valores separados de 24h. Não há cálculo automático de 24h como dobro do valor de 12h. Administradores devem configurar o valor apropriado para cada cargo/duração antes de finalizar como “escalado”.
 
-O currículo é obrigatório e aceita:
+No painel, a gestão registra o resultado (`pendente`, `confirmado`, `escalado` ou `recusado`) e escolhe hospital/plantão entre as preferências indicadas. A RPC `set_plantao_assignment` verifica administrador ativo, preferências, configuração do valor e combina status, hospital, plantão e pagamento em uma atualização auditada. “Confirmado” pode representar aceite anterior à designação; “escalado” requer hospital, plantão e valor configurado. O valor fica congelado no cadastro quando a atribuição é gravada.
 
-- PDF;
-- DOC;
-- DOCX;
-- até 5 MB.
+## Consulta por CPF e privacidade
 
-O nome do arquivo armazenado é aleatório e não contém CPF ou nome do profissional.
+A consulta pública retorna nome, profissão, registro profissional, protocolo, status, hospitais de interesse, hospital e plantão designados, valor previsto quando configurado e data do resultado. Não retorna CPF, telefone, e-mail nem currículo.
 
-## Proteções
-
-A Edge Function aplica:
-
-- validação de método HTTP;
-- validação de campos;
-- validação de CPF;
-- lista fechada de profissões;
-- lista fechada de hospitais;
-- lista fechada de plantões;
-- prevenção de seleções duplicadas;
-- honeypot;
-- tempo mínimo de preenchimento;
-- rate limiting por identificador de origem;
-- tratamento específico de CPF duplicado;
-- limpeza do currículo quando a gravação da inscrição falha após o upload.
-- validação do dígito verificador do CPF na consulta pública;
-- limite atômico de 10 consultas por IP em cada janela de 15 minutos, com identificador HMAC em vez de IP em claro;
-- acesso direto à RPC de consulta bloqueado para `anon` e `authenticated`, permitindo somente `service_role` (Edge Function).
-
-A tabela `public.inscricoes` possui RLS e não permite INSERT público.
-
-A RPC `register_plantao_inscricao` é `SECURITY DEFINER`, usa `search_path` controlado, valida os dados novamente e possui execução liberada somente para `service_role`.
-
-## Storage
-
-O bucket `curriculos` é privado.
-
-Não existe upload público direto pelo navegador. A Edge Function grava os arquivos usando credenciais de servidor.
-
-O painel administrativo gera URLs assinadas temporárias para download, somente após a autenticação e autorização do administrador.
+A Edge Function valida o dígito verificador do CPF e aplica limite atômico de 10 consultas por IP em cada janela de 15 minutos. A chave de rate limit é HMAC do identificador de origem; IP em claro não é armazenado. A RPC `consultar_resultado_plantao` é executável somente por `service_role`, não por `anon` ou `authenticated`. O navegador nunca lê `public.inscricoes` diretamente.
 
 ## Painel administrativo
 
-O arquivo `admin.html` usa Supabase Auth.
+O painel (`/admin.html`) usa Supabase Auth e exige que o e-mail esteja ativo em `admin_users`. Oferece busca/filtros, indicadores, detalhe/impressão, exportação CSV, acesso temporário ao currículo, configuração de prazo/data de resultado, valores de 12h e 24h, atribuição de hospital/turno e histórico de auditoria.
 
-Depois do login, a autorização é reforçada pela tabela `admin_users`.
+A RPC de configuração de escala confere autorização no servidor. As inscrições e configurações atualizadas são auditadas; a tabela de auditoria é consultável apenas por administradores ativos.
 
-O painel oferece:
+## Deploy e validação
 
-- consulta das inscrições;
-- busca textual;
-- filtros por status, hospital e plantão;
-- indicadores de quantidade;
-- alteração de status;
-- visualização dos detalhes;
-- download temporário do currículo;
-- impressão;
-- exportação CSV;
-- logout.
+- Vercel: preset **Other**, `npm run build`, diretório `dist`.
+- Supabase: manter ativas as Edge Functions `submit-plantao-inscricao` e `consultar-resultado-plantao`; nenhuma `service_role` no frontend.
+- Aplicar as migrations do repositório no projeto Supabase correto antes de publicar uma versão que dependa das novas colunas/RPCs.
+- Depois de publicar, validar HTTP 200 nas páginas, build e parsing dos scripts; testes com inscrição válida só devem usar cadastro controlado e coordenação para descarte.
 
-O acesso público não consegue consultar a tabela de inscrições nem a tabela de administradores.
-
-## Estado atual verificado
-
-A infraestrutura foi revisada sem inserir registros de teste.
-
-Estado atual:
-
-- inscrições: **0**;
-- currículos: **0**;
-- RLS em `inscricoes`: ativo;
-- RLS em `admin_users`: ativo;
-- INSERT público em `inscricoes`: bloqueado;
-- SELECT público em `inscricoes`: bloqueado;
-- SELECT público em `admin_users`: bloqueado;
-- execução pública da RPC: bloqueada;
-- execução da RPC por `service_role`: permitida.
-
-## Deploy
-
-### Vercel
-
-O frontend é estático.
-
-Configuração:
-
-- Framework Preset: **Other**;
-- Build Command: `npm run build`;
-- Output Directory: `dist`;
-- Install Command: vazio.
-
-A Edge Function não é publicada pelo Vercel. Ela permanece no Supabase.
-
-### Supabase
-
-A função de inscrição implantada é:
-
-`submit-plantao-inscricao`
-
-As funções públicas implantadas são `submit-plantao-inscricao` e `consultar-resultado-plantao`. Elas devem permanecer ativas com os segredos necessários configurados no ambiente do Supabase. Nunca copie a `service_role` para o frontend.
+Não presumir que o banco de produção esteja vazio. Esta documentação não inclui nem deve incluir CPF, currículo ou outros dados pessoais de candidatos.
 
 ## Privacidade e LGPD
 
-O formulário coleta dados pessoais e profissionais, incluindo CPF e currículo.
+Antes da divulgação pública, a organização precisa definir e publicar o responsável pelo tratamento, a finalidade e base legal, retenção, canal para solicitações dos titulares, regras de acesso interno e procedimento de descarte de currículos. O aviso curto do formulário não substitui uma política de privacidade completa.
 
-Antes da divulgação pública, é necessário definir e publicar:
+## Arquivos de referência
 
-- responsável pelo tratamento;
-- finalidade do tratamento;
-- base legal aplicável;
-- prazo de retenção;
-- canal para solicitações dos titulares;
-- regras de acesso interno aos dados;
-- procedimento para descarte dos currículos.
-
-O texto exibido no formulário informa que os dados serão usados para análise, contato e organização da mobilização, mas isso não substitui uma política de privacidade completa.
-
-## Teste de produção
-
-A revisão atual foi não destrutiva.
-
-Não foi feito um POST público de inscrição porque isso criaria um registro e um currículo no banco. Como o ambiente foi solicitado sem cadastros, o teste end-to-end de uma inscrição real deve ser feito posteriormente com um registro de teste controlado e depois removido, se necessário.
-
-## Separação de projetos
-
-Este documento trata exclusivamente do **Plantão TO Saúde**.
-
-**Karine Joias é outro projeto e não faz parte desta integração.**
-
-## Configurações da seleção
-
-A tabela `plantao_configuracoes` mantém o prazo final, a data do resultado e os valores por cargo. A conta administrativa pode editar esses dados no painel. Os valores iniciais foram carregados conforme o Anexo Único da Lei estadual nº 4.627/2025, com observação de que médico varia por porte/especialidade e modalidade.
-
-## Acompanhamento, permissões e auditoria
-
-A página pública `acompanhamento.html` usa a consulta por CPF e não expõe telefone, e-mail ou currículo. A unidade escalada é preenchida pela gestão no painel e só então aparece ao candidato.
-
-A migração `20261013170000_admin_access_audit_acompanhamento.sql` cria a RPC `manage_admin_access`, a tabela protegida `admin_audit_log`, os gatilhos de auditoria e o campo `inscricoes.unidade_escalada`. Administradores ativos podem liberar/desativar e-mails, consultar o histórico e atualizar status/unidade.
+- Migration de segurança da consulta: `20261013193000_protect_public_plantao_lookups.sql`.
+- Migration de escala, idade e remuneração: `20261013195446_schedule_age_and_assignment.sql`.
+- Página pública de inscrição: `index.html`.
+- Consulta pública: `acompanhamento.html`.
+- Painel: `admin.html`.

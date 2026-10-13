@@ -8,10 +8,23 @@ const corsHeaders = {
 };
 const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 const hospitals = new Set(["Palmas — Hospital Geral de Palmas","Araguaína — Hospital Regional de Araguaína","Gurupi — Hospital Regional de Gurupi","Paraíso do Tocantins — Hospital Regional de Paraíso","Porto Nacional — Hospital Regional de Porto Nacional","Augustinópolis — Hospital Regional de Augustinópolis"]);
-const shifts = new Set(["A — Véspera, noturno — 31/10/2026, 19h às 7h de 01/11","B — Dia do concurso, diurno — 01/11/2026, 7h às 19h","C — Dia do concurso, noturno — 01/11/2026, 19h às 7h de 02/11"]);
+const shifts = new Set([
+  "31/10/2026 · 07h às 19h (12h)", "31/10/2026 · 07h às 01/11/2026 07h (24h)",
+  "31/10/2026 · 19h às 01/11/2026 07h (12h)", "31/10/2026 · 19h às 01/11/2026 19h (24h)",
+  "01/11/2026 · 07h às 19h (12h)", "01/11/2026 · 07h às 02/11/2026 07h (24h)",
+  "01/11/2026 · 19h às 02/11/2026 07h (12h)", "01/11/2026 · 19h às 02/11/2026 19h (24h)",
+  "02/11/2026 · 07h às 19h (12h)", "02/11/2026 · 07h às 03/11/2026 07h (24h)",
+  "A — Véspera, noturno — 31/10/2026, 19h às 7h de 01/11", "B — Dia do concurso, diurno — 01/11/2026, 7h às 19h", "C — Dia do concurso, noturno — 01/11/2026, 19h às 7h de 02/11"
+]);
 const professions = new Set(["Médico","Enfermeiro","Técnico em Enfermagem","Fisioterapeuta","Nutricionista","Psicólogo","Farmacêutico","Assistente Social","Técnico em Laboratório","Outro"]);
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 const digits = (value: FormDataEntryValue | null) => String(value ?? "").replace(/\D/g, "");
+const MAX_BIRTH_DATE = "2008-10-31";
+function validBirthDate(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || value < "1900-01-01" || value > MAX_BIRTH_DATE) return false;
+  const parsed = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0,10) === value;
+}
 function validCpf(value: string) {
   if (!/^\d{11}$/.test(value) || /^([0-9])\1{10}$/.test(value)) return false;
   let sum = 0; for (let i = 0; i < 9; i++) sum += Number(value[i]) * (10 - i);
@@ -58,8 +71,8 @@ Deno.serve(async (request) => {
     const observacoes = String(form.get("observacoes") ?? "").trim().slice(0,2000), declaracao = form.get("declaracao") === "true";
     let selectedHospitals: string[], selectedShifts: string[];
     try { selectedHospitals = JSON.parse(String(form.get("hospitais") ?? "[]")); selectedShifts = JSON.parse(String(form.get("plantoes") ?? "[]")); } catch { return json({ message: "Seleções inválidas." }, 400); }
-    const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Araguaina", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
-    const valid = nome.length >= 5 && nome.length <= 150 && validCpf(cpf) && /^\d{4}-\d{2}-\d{2}$/.test(nascimento) && nascimento >= "1900-01-01" && nascimento <= today && digits(telefone).length >= 10 && digits(telefone).length <= 15 && email.length >= 5 && email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && professions.has(profissao) && registro.length >= 2 && registro.length <= 100 && servidorEstado !== null && (servidorEstado === false ? orgaoLotacao.length >= 2 : setorLotacao.length >= 2) && declaracao && Array.isArray(selectedHospitals) && selectedHospitals.length >= 1 && selectedHospitals.length <= 6 && Array.isArray(selectedShifts) && selectedShifts.length >= 1 && selectedShifts.length <= 3 && selectedHospitals.every((v) => hospitals.has(v)) && selectedShifts.every((v) => shifts.has(v)) && new Set(selectedHospitals).size === selectedHospitals.length && new Set(selectedShifts).size === selectedShifts.length;
+    if (!validBirthDate(nascimento)) return json({ message: "Idade mínima não atendida." }, 400);
+    const valid = nome.length >= 5 && nome.length <= 150 && validCpf(cpf) && digits(telefone).length >= 10 && digits(telefone).length <= 15 && email.length >= 5 && email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && professions.has(profissao) && registro.length >= 2 && registro.length <= 100 && servidorEstado !== null && (servidorEstado === false ? orgaoLotacao.length >= 2 : setorLotacao.length >= 2) && declaracao && Array.isArray(selectedHospitals) && selectedHospitals.length >= 1 && selectedHospitals.length <= 6 && Array.isArray(selectedShifts) && selectedShifts.length >= 1 && selectedShifts.length <= 3 && selectedHospitals.every((v) => hospitals.has(v)) && selectedShifts.every((v) => shifts.has(v)) && new Set(selectedHospitals).size === selectedHospitals.length && new Set(selectedShifts).size === selectedShifts.length;
     if (!valid) return json({ message: "Confira os dados da inscrição e tente novamente." }, 400);
     const ip = request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
     const ipHash = await hash(ip + ":" + (Deno.env.get("RATE_LIMIT_SALT") ?? "plantao-to-saude"));

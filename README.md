@@ -1,138 +1,51 @@
 # Plantão TO Saúde
 
-Landing page institucional para inscrição de profissionais de saúde que não participarão da prova da SES-TO em 01/11/2026 e desejam atuar como reforço temporário nos hospitais estaduais do Tocantins.
+Aplicação de mobilização temporária de profissionais de saúde para hospitais estaduais do Tocantins durante o concurso da SES-TO em 01/11/2026.
 
-## Stack
+## Aplicação e arquitetura
 
-- HTML5, CSS3 e JavaScript puro;
-- formulário responsivo com validação client-side;
-- Supabase Edge Function para recebimento público das inscrições;
-- Supabase Storage privado para currículos;
-- PostgreSQL/RLS e Supabase Auth para o painel administrativo;
-- deploy estático compatível com Vercel.
+O frontend é HTML/CSS/JavaScript estático. A Vercel hospeda as páginas; Supabase fornece PostgreSQL/RLS, autenticação, Storage privado e Edge Functions.
 
-## Estrutura
+- `index.html` — agenda, inscrição multi-etapas e consulta rápida;
+- `acompanhamento.html` — acompanhamento por CPF;
+- `admin.html` — painel autenticado para revisar cadastros, definir resultado e escala, configurar remuneração e auditar alterações;
+- `supabase/functions/submit-plantao-inscricao/index.ts` — validação e gravação segura de inscrições;
+- `supabase/functions/consultar-resultado-plantao/index.ts` — consulta protegida por CPF;
+- `supabase/migrations/` — schema, RPCs, políticas, auditoria e controles de segurança;
+- `INTEGRACAO.md` — arquitetura e checklist operacional.
 
-- `index.html` — página pública e formulário;
-- `admin.html` — painel administrativo, permissões delegáveis e auditoria;
-- `acompanhamento.html` — consulta pública dedicada por CPF;
-- `logo.svg` — identidade visual do projeto;
-- `supabase/functions/submit-plantao-inscricao/index.ts` — endpoint público seguro de inscrição;
-- `supabase/functions/consultar-resultado-plantao/index.ts` — consulta pública mínima de status por CPF;
-- `supabase/migrations/` — histórico das alterações do banco;
-- `INTEGRACAO.md` — arquitetura e checklist operacional;
-- `package.json` / `vercel.json` — build estático.
+A chave publicável do Supabase pode estar no frontend. **Nunca inclua `service_role` no HTML, no repositório ou em arquivos públicos.**
 
-## Desenvolvimento local
+## Agenda e elegibilidade
 
-~~~bash
-python3 -m http.server 3000
-~~~
+Há dez opções: em 31/10 e 01/11/2026, início às 07h ou 19h, cada um em 12h ou 24h; em 02/11/2026, início às 07h, em 12h ou 24h. As opções de 24h terminam às 07h do dia seguinte ao início. O formulário aceita até três preferências de plantão.
 
-Abra `http://localhost:3000`.
+A pessoa deve ter 18 anos completos até **31/10/2026**, data do primeiro plantão. O navegador, a Edge Function e a RPC do banco verificam essa regra; a validação do frontend não é a única barreira.
 
-Para validar o pacote estático no mesmo formato usado pelo Vercel:
+## Inscrição e acompanhamento
 
-~~~bash
-npm run build
-~~~
+Fluxo de cadastro: `index.html` → Edge Function `submit-plantao-inscricao` → Storage privado `curriculos` → RPC `register_plantao_inscricao` → tabela `public.inscricoes`. A inscrição pública não faz INSERT direto na tabela nem upload direto no Storage. A RPC de cadastro só pode ser chamada por `service_role`.
 
-O comando gera `dist/` com os arquivos públicos necessários. A Edge Function do Supabase é implantada separadamente e não faz parte do build do Vercel.
+A página de acompanhamento usa `consultar-resultado-plantao`, que valida o CPF e limita a consulta a 10 tentativas por IP em cada janela de 15 minutos. O identificador de IP é armazenado como HMAC; a RPC que lê o cadastro não pode ser executada por `anon` ou `authenticated`.
 
-## Arquitetura de inscrição
+A consulta retorna nome, profissão, registro profissional, protocolo, status, hospitais de interesse, hospital e plantão designados, valor previsto quando configurado e data do resultado. Não retorna CPF, telefone, e-mail nem currículo.
 
-O fluxo público é:
+## Painel e valores
 
-`index.html` → `submit-plantao-inscricao` → bucket privado `curriculos` → RPC `register_plantao_inscricao` → `public.inscricoes`
+O painel exige login no Supabase Auth e autorização na tabela `admin_users`. Administradores ativos podem revisar inscrições, baixar currículo por link temporário, exportar CSV, imprimir detalhes, configurar o prazo/data de resultado e registrar status, hospital e plantão final.
 
-A inscrição pública **não** faz INSERT direto na tabela e **não** acessa o Storage diretamente.
+A atribuição de escala ocorre por uma RPC que confirma a autorização administrativa e os dados da inscrição. A gestão escolhe o hospital e o plantão a partir das preferências informadas pelo profissional. Para marcar como “escalado”, o valor precisa estar configurado para o cargo e a duração.
 
-A Edge Function:
+Os valores de 12h e 24h são mantidos separadamente em `plantao_configuracoes` e podem ser editados no painel. **O sistema não presume que 24h custe o dobro de 12h.** O valor final é guardado no cadastro quando a escala é registrada, permitindo que o acompanhamento mostre o mesmo valor posteriormente.
 
-1. recebe `multipart/form-data`;
-2. valida CPF, e-mail, telefone, profissão, hospitais, plantões e declaração;
-3. exige currículo PDF/DOC/DOCX de até 5 MB;
-4. aplica proteção anti-bot e rate limiting;
-5. grava o currículo com nome aleatório no bucket privado;
-6. chama a RPC com privilégios de servidor;
-7. remove o currículo se a gravação da inscrição falhar;
-8. retorna somente o protocolo da inscrição.
+## Desenvolvimento e publicação
 
-A RPC fica disponível para execução apenas pelo `service_role`, usado internamente pela Edge Function.
+Execute `npm run build` para gerar `dist/`. A Edge Function Supabase é publicada separadamente da Vercel. Configuração estática do Vercel: preset **Other**, comando `npm run build`, saída `dist`.
 
-## Supabase
+A migration `20261013195446_schedule_age_and_assignment.sql` adiciona a escala final, os valores por turno de 24h, a validação de idade, a expansão das opções de plantão e a RPC administrativa de atribuição. Preferências antigas A/B/C são convertidas para os turnos equivalentes de 12h.
 
-O projeto utiliza:
+## Antes de divulgar para inscrições reais
 
-- tabela `public.inscricoes`;
-- tabela `public.admin_users`;
-- tabelas técnicas `public.submission_rate_limits` (inscrição) e `public.plantao_consulta_rate_limits` (consulta pública);
-- bucket privado `curriculos`;
-- Supabase Auth para administradores;
-- Edge Function `submit-plantao-inscricao`;
-- RPC `register_plantao_inscricao`.
+Ainda é necessário confirmar/publicar a política de privacidade, incluindo responsável pelo tratamento, finalidade/base legal, retenção, canal para titulares e descarte de currículos. Também é necessário configurar explicitamente os valores de 24h no painel antes de finalizar escalas de 24h e realizar um teste ponta a ponta controlado. Não presumir que o banco esteja vazio e não usar CPF real em testes.
 
-A chave publicável pode permanecer no frontend. **Nunca coloque uma chave `service_role` no HTML, no repositório ou em arquivos públicos.**
-
-O banco atualmente permanece sem dados de teste: nenhuma inscrição e nenhum currículo foram inseridos.
-
-## Administração
-
-O painel está em `/admin.html`.
-
-O acesso exige autenticação no Supabase Auth e autorização adicional pela tabela `admin_users`. Usuários administrativos autorizados podem:
-
-- consultar inscrições;
-- pesquisar por diversos campos;
-- filtrar por status, hospital e plantão;
-- visualizar detalhes;
-- atualizar status;
-- gerar link temporário para currículo;
-- imprimir uma inscrição;
-- exportar CSV;
-- configurar prazo de inscrição, data do resultado e valores por cargo;
-- visualizar órgão/setor de lotação.
-
-O bucket de currículos permanece privado e os links de download são temporários.
-
-## Deploy no Vercel
-
-Configuração atual:
-
-- **Framework Preset:** Other;
-- **Build Command:** `npm run build`;
-- **Output Directory:** `dist`;
-- **Install Command:** vazio.
-
-O Vercel hospeda apenas a camada estática. O backend de inscrição permanece no Supabase.
-
-Antes de usar a aplicação com candidatos e dados reais, confirme:
-
-- domínio e HTTPS configurados;
-- Edge Function implantada e ativa;
-- variáveis/segredos da Edge Function configurados no Supabase;
-- usuário administrativo criado no Supabase Auth e autorizado em `admin_users`;
-- política de privacidade e responsável pelo tratamento dos dados definidos;
-- prazo de retenção e canal de atendimento aos titulares definidos.
-
-## Separação de projetos
-
-Este repositório é exclusivamente do **Plantão TO Saúde**.
-
-O projeto **Karine Joias** é independente e não faz parte desta aplicação. Não há código de Karine Joias neste repositório.
-
-## Limite do teste atual
-
-A infraestrutura, permissões, RLS, Storage e Edge Function foram revisados sem inserir dados reais ou fictícios. Um teste público completo de POST não foi executado porque ele criaria uma inscrição; o banco foi mantido deliberadamente com zero registros.
-
-## Atualizações da seleção
-
-A migração `20261013160000_add_lotacao_resultado_consulta.sql` adiciona órgão de lotação para colaboradores que não são servidores, setor de lotação para servidores, consulta pública por CPF e valores iniciais do Anexo Único da Lei estadual nº 4.627/2025. O painel administrativo permite ajustar o prazo, a data do resultado e os valores por cargo.
-
-A consulta por CPF retorna nome, profissão, registro profissional, protocolo, status, hospitais de interesse, unidade escalada (quando definida) e data do resultado. Não retorna CPF, telefone, e-mail ou currículo. O navegador chama a Edge Function `consultar-resultado-plantao`; a RPC que lê os dados é restrita a `service_role`, e a Edge Function aplica limite de 10 consultas por IP a cada 15 minutos, usando HMAC em vez de armazenar o IP em claro.
-
-## Acompanhamento e governança
-
-A página `acompanhamento.html` consulta o CPF pela Edge Function `consultar-resultado-plantao` e mostra somente dados essenciais do cadastro, status, data do resultado e unidade escalada quando definida.
-
-Administradores ativos podem liberar ou desativar outros e-mails diretamente no painel. O novo histórico registra quem alterou inscrições, configurações e permissões, com data, ação e detalhes.
+Este repositório trata exclusivamente do Plantão TO Saúde; outros projetos do usuário não fazem parte desta aplicação.
