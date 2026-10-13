@@ -20,7 +20,7 @@
 
 ## Pendências
 
-- [ ] Concluir commit/push e confirmar o novo deployment Vercel nas três páginas.
+- [x] Commit enviado ao branch `main`; deployment de produção Vercel em `READY` e páginas inicial, admin e acompanhamento responderam HTTP 200 com os novos campos/controles.
 - [ ] Informar/configurar no painel os valores de 24h por cargo antes de finalizar inscrições de 24h como escaladas. O sistema não cria nem infere taxas ausentes.
 - [ ] Revisar e publicar a política de privacidade completa, com responsável, finalidade/base legal, retenção, canal para solicitações de titulares e descarte de currículos.
 - [ ] Realizar teste ponta a ponta com inscrição de teste controlada e plano de descarte; nenhum cadastro de teste válido foi criado nesta atualização.
