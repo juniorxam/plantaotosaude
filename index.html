@@ -917,6 +917,12 @@
 
           <form class="form-card" id="registration-form" novalidate>
             <div class="form-notice"><span aria-hidden="true">⚠</span><span><strong>Importante:</strong> só envie esta inscrição se você não for realizar a prova do concurso da SES-TO em 01/11/2026.</span></div>
+            <section id="public-selection-config" aria-live="polite" style="margin:0 0 18px;padding:16px 18px;border:1px solid #cfe2eb;border-radius:14px;background:#f3f9fc">
+              <strong style="display:block;color:#003d66;font-size:1rem">Prazo e informações da seleção</strong>
+              <p id="public-deadline" style="margin:5px 0;color:#28495b">Consultando prazo de inscrição…</p>
+              <p id="public-result-date" style="margin:5px 0;color:#28495b"></p>
+              <div id="public-role-values" style="margin-top:10px"></div>
+            </section>
             <input type="hidden" name="website" value="" tabindex="-1" autocomplete="off" aria-hidden="true">
             <input type="hidden" name="form_started_at" id="form-started-at" value="">
             <div class="process-strip" aria-label="Como funciona a inscrição">
@@ -1139,6 +1145,47 @@
       const progressBar = document.querySelector('#form-progress-bar');
       const stepNames = ['Dados pessoais', 'Documentos', 'Hospitais', 'Plantões', 'Finalização'];
       let currentStep = 1;
+
+      async function loadPublicSelectionConfig() {
+        const panel = document.querySelector('#public-selection-config');
+        const deadlineLabel = document.querySelector('#public-deadline');
+        const resultLabel = document.querySelector('#public-result-date');
+        const valuesTarget = document.querySelector('#public-role-values');
+        const money = (value) => Number(value).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+        const datePt = (value) => value ? new Intl.DateTimeFormat('pt-BR',{timeZone:'UTC',dateStyle:'long'}).format(new Date(value+'T00:00:00Z')) : '';
+        try {
+          const response = await fetch(SUPABASE_URL + '/rest/v1/plantao_configuracoes?id=eq.true&select=prazo_inscricao,data_resultado,valores_cargos', {
+            headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: 'Bearer ' + SUPABASE_PUBLISHABLE_KEY }
+          });
+          if (!response.ok) throw new Error('Configuração indisponível');
+          const rows = await response.json();
+          const config = rows?.[0];
+          if (!config) throw new Error('Configuração vazia');
+          const deadline = config.prazo_inscricao;
+          deadlineLabel.textContent = deadline ? 'Inscrições até ' + datePt(deadline) + ', às 23h59 (horário do Tocantins).' : 'Prazo de inscrição ainda não definido.';
+          resultLabel.textContent = config.data_resultado ? 'Previsão de divulgação do resultado: ' + datePt(config.data_resultado) + '.' : 'Data do resultado: a ser divulgada pela gestão.';
+          const values = config.valores_cargos || {};
+          const entries = Object.entries(values).filter(([,amount]) => Number.isFinite(Number(amount)) && Number(amount) >= 0);
+          valuesTarget.innerHTML = entries.length
+            ? '<strong style="display:block;color:#003d66;margin-bottom:6px">Valores informados pela gestão · plantão de 12 horas</strong><ul style="margin:0;padding-left:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:4px 18px">' + entries.map(([role,amount]) => '<li>' + role.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])) + ': <strong>' + money(amount) + '</strong></li>').join('') + '</ul>' : '<p style="margin:6px 0 0;color:#526b79">Os valores por cargo serão informados pela gestão assim que forem confirmados.</p>';
+          const today = new Intl.DateTimeFormat('en-CA',{timeZone:'America/Araguaina',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+          if (deadline && today > deadline) {
+            deadlineLabel.textContent = 'Prazo encerrado em ' + datePt(deadline) + '. As inscrições não estão mais abertas.';
+            panel.style.background = '#fff5f3'; panel.style.borderColor = '#efc1ba';
+            form.querySelectorAll('input,select,textarea,button').forEach(el => { if (!el.matches('[type="hidden"]')) el.disabled = true; });
+            const submit = form.querySelector('.submit-btn');
+            if (submit) submit.textContent = 'Inscrições encerradas';
+            const notice = document.createElement('p');
+            notice.textContent = 'O período de inscrição foi encerrado. Acompanhe os canais oficiais para informações sobre o resultado.';
+            notice.style.cssText = 'margin:12px 0 0;padding:12px;border-radius:10px;background:#fff0ef;color:#9d2118;font-weight:700';
+            panel.appendChild(notice);
+          }
+        } catch (error) {
+          deadlineLabel.textContent = 'Prazo e valores: consulte os canais oficiais da seleção.';
+          valuesTarget.textContent = 'As informações de prazo e remuneração estarão disponíveis após a configuração do sistema.';
+        }
+      }
+      loadPublicSelectionConfig();
 
       const updateReview = () => {
         const text = (selector, fallback='—') => document.querySelector(selector)?.value?.trim() || fallback;
