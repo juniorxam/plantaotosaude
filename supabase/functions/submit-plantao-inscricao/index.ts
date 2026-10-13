@@ -29,6 +29,18 @@ Deno.serve(async (request) => {
   if (request.method !== "POST") return json({ message: "Método não permitido." }, 405);
   let uploadedPath = "";
   try {
+    const { data: selectionConfig, error: selectionConfigError } = await supabase
+      .from("plantao_configuracoes")
+      .select("prazo_inscricao")
+      .eq("id", true)
+      .maybeSingle();
+    if (selectionConfigError) throw selectionConfigError;
+    const tocantinsToday = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Araguaina", year: "numeric", month: "2-digit", day: "2-digit",
+    }).format(new Date());
+    if (selectionConfig?.prazo_inscricao && tocantinsToday > selectionConfig.prazo_inscricao) {
+      return json({ message: "O prazo de inscrição foi encerrado. Não é mais possível enviar novos cadastros." }, 403);
+    }
     const form = await request.formData();
     if (String(form.get("website") ?? "").trim() || Date.now() - Number(form.get("form_started_at") ?? 0) < 2500) return json({ message: "Não foi possível processar a inscrição." }, 400);
     const file = form.get("curriculo");
