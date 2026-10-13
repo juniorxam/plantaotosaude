@@ -66,7 +66,7 @@ O projeto utiliza:
 
 - tabela `public.inscricoes`;
 - tabela `public.admin_users`;
-- tabela técnica `public.submission_rate_limits`;
+- tabelas técnicas `public.submission_rate_limits` (inscrição) e `public.plantao_consulta_rate_limits` (consulta pública);
 - bucket privado `curriculos`;
 - Supabase Auth para administradores;
 - Edge Function `submit-plantao-inscricao`;
@@ -106,7 +106,7 @@ Configuração atual:
 
 O Vercel hospeda apenas a camada estática. O backend de inscrição permanece no Supabase.
 
-Antes de publicar, confirme:
+Antes de usar a aplicação com candidatos e dados reais, confirme:
 
 - domínio e HTTPS configurados;
 - Edge Function implantada e ativa;
@@ -129,7 +129,7 @@ A infraestrutura, permissões, RLS, Storage e Edge Function foram revisados sem 
 
 A migração `20261013160000_add_lotacao_resultado_consulta.sql` adiciona órgão de lotação para colaboradores que não são servidores, setor de lotação para servidores, consulta pública por CPF e valores iniciais do Anexo Único da Lei estadual nº 4.627/2025. O painel administrativo permite ajustar o prazo, a data do resultado e os valores por cargo.
 
-A consulta pública retorna somente status, protocolo e data configurada do resultado; não expõe nome, CPF, telefone, e-mail ou currículo.
+A consulta por CPF retorna nome, profissão, registro profissional, protocolo, status, hospitais de interesse, unidade escalada (quando definida) e data do resultado. Não retorna CPF, telefone, e-mail ou currículo. O navegador chama a Edge Function `consultar-resultado-plantao`; a RPC que lê os dados é restrita a `service_role`, e a Edge Function aplica limite de 10 consultas por IP a cada 15 minutos, usando HMAC em vez de armazenar o IP em claro.
 
 ## Acompanhamento e governança
 

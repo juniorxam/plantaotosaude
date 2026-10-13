@@ -14,7 +14,7 @@ Fluxo:
 → tabela `public.inscricoes`
 → retorno do protocolo.
 
-A consulta pública usa a Edge Function `consultar-resultado-plantao`, que chama a RPC `consultar_resultado_plantao` e retorna apenas o status, protocolo e data configurada do resultado pelo CPF.
+A consulta pública usa a Edge Function `consultar-resultado-plantao`, que chama a RPC `consultar_resultado_plantao` e retorna nome, profissão, registro profissional, protocolo, status, hospitais de interesse, unidade escalada (quando definida) e data configurada do resultado pelo CPF. Não retorna o CPF, telefone, e-mail ou currículo.
 
 O navegador usa somente a chave publicável do Supabase. A `service_role` existe exclusivamente no ambiente da Edge Function.
 
@@ -68,7 +68,10 @@ A Edge Function aplica:
 - tempo mínimo de preenchimento;
 - rate limiting por identificador de origem;
 - tratamento específico de CPF duplicado;
-- limpeza do currículo quando a inscrição falha após o upload.
+- limpeza do currículo quando a gravação da inscrição falha após o upload.
+- validação do dígito verificador do CPF na consulta pública;
+- limite atômico de 10 consultas por IP em cada janela de 15 minutos, com identificador HMAC em vez de IP em claro;
+- acesso direto à RPC de consulta bloqueado para `anon` e `authenticated`, permitindo somente `service_role` (Edge Function).
 
 A tabela `public.inscricoes` possui RLS e não permite INSERT público.
 
@@ -136,11 +139,11 @@ A Edge Function não é publicada pelo Vercel. Ela permanece no Supabase.
 
 ### Supabase
 
-A função implantada é:
+A função de inscrição implantada é:
 
 `submit-plantao-inscricao`
 
-Ela deve permanecer ativa com os segredos necessários configurados no ambiente do Supabase. Nunca copie a `service_role` para o frontend.
+As funções públicas implantadas são `submit-plantao-inscricao` e `consultar-resultado-plantao`. Elas devem permanecer ativas com os segredos necessários configurados no ambiente do Supabase. Nunca copie a `service_role` para o frontend.
 
 ## Privacidade e LGPD
 
