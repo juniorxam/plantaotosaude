@@ -16,7 +16,8 @@ Landing page institucional para inscrição de profissionais de saúde que não 
 - `index.html` — página pública e formulário;
 - `admin.html` — painel administrativo;
 - `logo.svg` — identidade visual do projeto;
-- `supabase/functions/submit-plantao-inscricao/index.ts` — endpoint público seguro;
+- `supabase/functions/submit-plantao-inscricao/index.ts` — endpoint público seguro de inscrição;
+- `supabase/functions/consultar-resultado-plantao/index.ts` — consulta pública mínima de status por CPF;
 - `supabase/migrations/` — histórico das alterações do banco;
 - `INTEGRACAO.md` — arquitetura e checklist operacional;
 - `package.json` / `vercel.json` — build estático.
@@ -87,7 +88,9 @@ O acesso exige autenticação no Supabase Auth e autorização adicional pela ta
 - atualizar status;
 - gerar link temporário para currículo;
 - imprimir uma inscrição;
-- exportar CSV.
+- exportar CSV;
+- configurar prazo de inscrição, data do resultado e valores por cargo;
+- visualizar órgão/setor de lotação.
 
 O bucket de currículos permanece privado e os links de download são temporários.
 
@@ -120,3 +123,9 @@ O projeto **Karine Joias** é independente e não faz parte desta aplicação. N
 ## Limite do teste atual
 
 A infraestrutura, permissões, RLS, Storage e Edge Function foram revisados sem inserir dados reais ou fictícios. Um teste público completo de POST não foi executado porque ele criaria uma inscrição; o banco foi mantido deliberadamente com zero registros.
+
+## Atualizações da seleção
+
+A migração `20261013160000_add_lotacao_resultado_consulta.sql` adiciona órgão de lotação para colaboradores que não são servidores, setor de lotação para servidores, consulta pública por CPF e valores iniciais do Anexo Único da Lei estadual nº 4.627/2025. O painel administrativo permite ajustar o prazo, a data do resultado e os valores por cargo.
+
+A consulta pública retorna somente status, protocolo e data configurada do resultado; não expõe nome, CPF, telefone, e-mail ou currículo.

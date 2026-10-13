@@ -14,6 +14,8 @@ Fluxo:
 → tabela `public.inscricoes`
 → retorno do protocolo.
 
+A consulta pública usa a Edge Function `consultar-resultado-plantao`, que chama a RPC `consultar_resultado_plantao` e retorna apenas o status, protocolo e data configurada do resultado pelo CPF.
+
 O navegador usa somente a chave publicável do Supabase. A `service_role` existe exclusivamente no ambiente da Edge Function.
 
 ## Formulário público
@@ -27,6 +29,9 @@ O `index.html` envia `multipart/form-data` com:
 - e-mail;
 - profissão;
 - registro profissional;
+- vínculo estadual;
+- órgão de lotação, quando não servidor;
+- setor de lotação, quando servidor;
 - hospitais escolhidos;
 - plantões escolhidos;
 - observações;
@@ -164,3 +169,7 @@ Não foi feito um POST público de inscrição porque isso criaria um registro e
 Este documento trata exclusivamente do **Plantão TO Saúde**.
 
 **Karine Joias é outro projeto e não faz parte desta integração.**
+
+## Configurações da seleção
+
+A tabela `plantao_configuracoes` mantém o prazo final, a data do resultado e os valores por cargo. A conta administrativa pode editar esses dados no painel. Os valores iniciais foram carregados conforme o Anexo Único da Lei estadual nº 4.627/2025, com observação de que médico varia por porte/especialidade e modalidade.

@@ -399,6 +399,7 @@
     .aside-points li { display: flex; gap: .65rem; align-items: flex-start; color: #ecffff; font-size: .94rem; }
     .aside-points li::before { content: "✓"; display: grid; flex: 0 0 1.45rem; width: 1.45rem; height: 1.45rem; place-items: center; color: var(--blue-dark); border-radius: 50%; background: var(--yellow); font-weight: 900; }
     .form-card { padding: clamp(1.25rem, 3vw, 2.25rem); background: var(--surface); box-shadow: var(--shadow-md); }
+    .result-lookup{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin:0 0 18px;padding:15px 17px;border:1px solid #cfe2eb;border-radius:14px;background:#f7fbfd}.result-lookup strong{color:var(--blue-dark)}.result-lookup p{margin:3px 0 0;color:var(--muted);font-size:.84rem}.lookup-controls{display:flex;gap:8px;align-items:center}.lookup-controls input{width:145px}.lookup-controls .btn{background:var(--teal);color:#fff;white-space:nowrap}.lookup-feedback{grid-column:1/-1;font-weight:700;color:var(--blue-dark)}
     .form-notice {
       display: flex;
       gap: .75rem;
@@ -917,6 +918,11 @@
 
           <form class="form-card" id="registration-form" novalidate>
             <div class="form-notice"><span aria-hidden="true">⚠</span><span><strong>Importante:</strong> só envie esta inscrição se você não for realizar a prova do concurso da SES-TO em 01/11/2026.</span></div>
+            <section class="result-lookup" aria-labelledby="lookup-title">
+              <div><strong id="lookup-title">Já fez sua inscrição?</strong><p>Consulte a situação pelo CPF. A consulta mostra apenas o status e o protocolo.</p></div>
+              <div class="lookup-controls"><input id="lookup-cpf" type="text" inputmode="numeric" maxlength="14" placeholder="CPF" aria-label="CPF para consulta"><button id="lookup-submit" class="btn" type="button">Consultar resultado</button></div>
+              <p id="lookup-feedback" class="lookup-feedback" role="status" aria-live="polite"></p>
+            </section>
             <section id="public-selection-config" aria-live="polite" style="margin:0 0 18px;padding:16px 18px;border:1px solid #cfe2eb;border-radius:14px;background:#f3f9fc">
               <strong style="display:block;color:#003d66;font-size:1rem">Prazo e informações da seleção</strong>
               <p id="public-deadline" style="margin:5px 0;color:#28495b">Consultando prazo de inscrição…</p>
@@ -985,6 +991,16 @@
                     <option value="">Selecione uma opção</option><option value="true">Sim</option><option value="false">Não</option>
                   </select>
                   <p class="helper">Informe se já possui vínculo como servidor estadual.</p>
+                </div>
+                <div class="field conditional-lotacao" id="orgao-lotacao-field" hidden>
+                  <label for="orgao-lotacao">Órgão de lotação *</label>
+                  <input id="orgao-lotacao" name="orgao_lotacao" type="text" maxlength="150" placeholder="Ex.: Prefeitura de Palmas" disabled />
+                  <p class="helper">Informe o órgão onde você trabalha atualmente.</p>
+                </div>
+                <div class="field conditional-lotacao" id="setor-lotacao-field" hidden>
+                  <label for="setor-lotacao">Setor de lotação *</label>
+                  <input id="setor-lotacao" name="setor_lotacao" type="text" maxlength="150" placeholder="Ex.: Pronto-socorro adulto" disabled />
+                  <p class="helper">Informe o setor/unidade em que está lotado no Estado.</p>
                 </div>
               </div>
               <div class="form-step-actions"><span></span><button class="step-next" type="button" data-next="2">Continuar →</button></div>
@@ -1167,7 +1183,7 @@
           const values = config.valores_cargos || {};
           const entries = Object.entries(values).filter(([,amount]) => Number.isFinite(Number(amount)) && Number(amount) >= 0);
           valuesTarget.innerHTML = entries.length
-            ? '<strong style="display:block;color:#003d66;margin-bottom:6px">Valores informados pela gestão · plantão de 12 horas</strong><ul style="margin:0;padding-left:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:4px 18px">' + entries.map(([role,amount]) => '<li>' + role.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])) + ': <strong>' + money(amount) + '</strong></li>').join('') + '</ul>' : '<p style="margin:6px 0 0;color:#526b79">Os valores por cargo serão informados pela gestão assim que forem confirmados.</p>';
+            ? '<strong style="display:block;color:#003d66;margin-bottom:6px">Valores informados pela gestão · plantão de 12 horas</strong><small style="display:block;margin-bottom:6px;color:#526b79">Referência: Anexo Único da Lei estadual nº 4.627/2025. O valor pode variar conforme porte, modalidade e especialidade previstos na lei.</small><ul style="margin:0;padding-left:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:4px 18px">' + entries.map(([role,amount]) => '<li>' + role.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])) + ': <strong>' + money(amount) + '</strong></li>').join('') + '</ul>' : '<p style="margin:6px 0 0;color:#526b79">Os valores por cargo serão informados pela gestão assim que forem confirmados.</p>';
           const today = new Intl.DateTimeFormat('en-CA',{timeZone:'America/Araguaina',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
           if (deadline && today > deadline) {
             deadlineLabel.textContent = 'Prazo encerrado em ' + datePt(deadline) + '. As inscrições não estão mais abertas.';
@@ -1325,6 +1341,21 @@
       let submittedProtocol = '';
       const declarationError = document.querySelector('#declaration-error');
       const declaration = document.querySelector('#declaracao');
+      const servidorEstadoInput = document.querySelector('#servidor-estado');
+      const orgaoLotacaoField = document.querySelector('#orgao-lotacao-field');
+      const setorLotacaoField = document.querySelector('#setor-lotacao-field');
+      const orgaoLotacaoInput = document.querySelector('#orgao-lotacao');
+      const setorLotacaoInput = document.querySelector('#setor-lotacao');
+      const updateLotacaoFields = () => {
+        const isServidor = servidorEstadoInput?.value === 'true';
+        const isNaoServidor = servidorEstadoInput?.value === 'false';
+        orgaoLotacaoField.hidden = !isNaoServidor; orgaoLotacaoInput.disabled = !isNaoServidor; orgaoLotacaoInput.required = isNaoServidor;
+        setorLotacaoField.hidden = !isServidor; setorLotacaoInput.disabled = !isServidor; setorLotacaoInput.required = isServidor;
+        if (!isNaoServidor) orgaoLotacaoInput.value = '';
+        if (!isServidor) setorLotacaoInput.value = '';
+      };
+      servidorEstadoInput?.addEventListener('change', updateLotacaoFields);
+      updateLotacaoFields();
       const birthInput = document.querySelector('#nascimento');
       const onlyDigits = (value) => value.replace(/\D/g, '');
       const formatNameInput = (value) => value.replace(/\s+/g, ' ').replace(/^\s+/, '');
@@ -1458,6 +1489,7 @@
           return;
         }
 
+        updateLotacaoFields();
         const data = Object.fromEntries(new FormData(form).entries());
         data.hospitais = hospitalCheckboxes.filter((input) => input.checked).map((input) => input.value);
         data.plantoes = shiftCheckboxes.filter((input) => input.checked).map((input) => input.value);
@@ -1503,6 +1535,7 @@
           }
           const protocol = result?.protocolo || (Array.isArray(result) ? result[0]?.protocolo : null);
           form.reset();
+          updateLotacaoFields();
           showStep(1, {keepScroll:true});
           if (curriculoStatus) curriculoStatus.textContent = '';
           if (fileLabel) fileLabel.textContent = 'Currículo profissional *';
@@ -1546,6 +1579,24 @@
         }
       });
 
+      const lookupCpf = document.querySelector('#lookup-cpf');
+      const lookupSubmit = document.querySelector('#lookup-submit');
+      const lookupFeedback = document.querySelector('#lookup-feedback');
+      lookupCpf?.addEventListener('input', event => { event.target.value = maskCpf(event.target.value); });
+      lookupSubmit?.addEventListener('click', async () => {
+        const cpf = onlyDigits(lookupCpf.value);
+        lookupFeedback.textContent = '';
+        if (!isValidCpf(cpf)) { lookupFeedback.textContent = 'Informe um CPF válido para consultar.'; return; }
+        lookupSubmit.disabled = true; lookupSubmit.textContent = 'Consultando…';
+        try {
+          const response = await fetch(SUPABASE_URL + '/functions/v1/consultar-resultado-plantao', { method: 'POST', headers: { apikey: SUPABASE_PUBLISHABLE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ cpf }) });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result?.message || 'Falha na consulta');
+          const labels = { pendente: 'Inscrição recebida e em análise', confirmado: 'Inscrição confirmada', escalado: 'Selecionado para a escala', recusado: 'Não selecionado nesta etapa' };
+          lookupFeedback.textContent = result.encontrada ? `${labels[result.status] || 'Status: ' + result.status}. Protocolo: ${result.protocolo || 'não informado'}.` : 'Não encontramos uma inscrição para este CPF.';
+        } catch (_) { lookupFeedback.textContent = 'Não foi possível consultar agora. Tente novamente em instantes.'; }
+        finally { lookupSubmit.disabled = false; lookupSubmit.textContent = 'Consultar resultado'; }
+      });
       navToggle.addEventListener('click', () => {
         const isOpen = navLinks.classList.toggle('is-open');
         navToggle.setAttribute('aria-expanded', String(isOpen));
