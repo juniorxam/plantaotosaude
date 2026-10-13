@@ -65,6 +65,8 @@
 .quick-status{display:flex;gap:7px;flex-wrap:wrap;margin:-4px 0 10px}.quick-status button{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:7px 11px;font-size:.76rem;font-weight:800;cursor:pointer}.quick-status button.active{background:var(--blue);color:#fff;border-color:var(--blue)}
     .filter-summary{font-size:.78rem;color:var(--muted);font-weight:700;margin:-2px 0 10px}
     .toolbar{position:sticky;top:0;z-index:5}
+    .admin-tools{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}.admin-tool{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px}.admin-tool h3{margin:0;color:var(--deep)}.admin-tool p{margin:5px 0 14px;color:var(--muted);font-size:.82rem}.admin-access-form{display:flex;gap:8px}.admin-access-form input{flex:1}.admin-access-form button{white-space:nowrap}.admin-list,.audit-list{display:grid;gap:7px;margin-top:12px}.admin-row,.audit-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 10px;border:1px solid #edf2f4;border-radius:10px;background:#fbfdfe;font-size:.82rem}.admin-row small,.audit-row small{color:var(--muted)}.admin-row button{padding:6px 9px;font-size:.76rem}.audit-row{display:block}.audit-row strong{color:var(--deep)}.audit-row pre{margin:4px 0 0;white-space:pre-wrap;word-break:break-word;color:var(--muted);font:inherit;font-size:.76rem}.unit-select{width:145px;padding:7px 8px;font-size:.82rem}
+    @media(max-width:850px){.admin-tools{grid-template-columns:1fr}}
 
     .pagination button:disabled{opacity:.45;cursor:not-allowed}
     @media(max-width:600px){.detail-grid{grid-template-columns:1fr}.detail.full{grid-column:auto}}
@@ -130,6 +132,19 @@
         </div>
         <p id="settings-feedback" class="muted" aria-live="polite" style="margin:12px 0 0"></p>
       </section>
+      <section class="admin-tools" aria-label="Acessos e auditoria administrativa">
+        <article class="admin-tool">
+          <h3>Acessos administrativos</h3>
+          <p>Libere um e-mail para que a pessoa entre com senha ou link mágico e tenha acesso ao painel. Você pode desativar o acesso quando necessário.</p>
+          <div class="admin-access-form"><input id="admin-access-email" type="email" placeholder="novo.admin@email.com" aria-label="E-mail do novo administrador"><button id="admin-access-save" class="btn save" type="button">Liberar acesso</button></div>
+          <p id="admin-access-feedback" class="muted" role="status" aria-live="polite"></p><div id="admin-access-list" class="admin-list"><span class="loading">Carregando acessos…</span></div>
+        </article>
+        <article class="admin-tool">
+          <h3>Histórico de alterações</h3>
+          <p>Registro de quem alterou status, unidade escalada, configurações e permissões administrativas.</p>
+          <button id="audit-refresh" class="btn ghost" type="button">Atualizar histórico</button><div id="audit-list" class="audit-list"><span class="loading">Carregando histórico…</span></div>
+        </article>
+      </section>
       <div class="insights">
         <div class="insight-card"><div class="insight-head"><strong>Hospitais mais escolhidos</strong><span>geral</span></div><div id="hospital-summary" class="summary-list"></div></div>
         <div class="insight-card"><div class="insight-head"><strong>Plantões selecionados</strong><span>geral</span></div><div id="shift-summary" class="summary-list"></div></div>
@@ -191,6 +206,7 @@
     const fmtDate = (value) => value ? new Intl.DateTimeFormat('pt-BR',{dateStyle:'short',timeStyle:'short'}).format(new Date(value)) : '—';
     const fmtArray = (value) => Array.isArray(value) ? value.map(esc).join('<br>') : esc(value);
     const statusLabel = {pendente:'Pendente',confirmado:'Confirmado',escalado:'Escalado',recusado:'Recusado'};
+    const unitOptions = [['','Ainda não definida'],['Palmas — Hospital Geral de Palmas','Palmas — HGP'],['Araguaína — Hospital Regional de Araguaína','Araguaína'],['Gurupi — Hospital Regional de Gurupi','Gurupi'],['Paraíso do Tocantins — Hospital Regional de Paraíso','Paraíso'],['Porto Nacional — Hospital Regional de Porto Nacional','Porto Nacional'],['Augustinópolis — Hospital Regional de Augustinópolis','Augustinópolis']];
 
     function showNotice(message, isError=false) {
       const el=$('notice'); el.textContent=message; el.className='notice'+(isError?' error':''); el.classList.remove('hidden');
@@ -269,7 +285,7 @@
           <td><span class="status ${esc(r.status)}">${esc(statusLabel[r.status]||r.status)}</span></td>
           <td><div class="actions"><button class="btn details-btn" data-details="${esc(r.id)}">Detalhes</button><select data-id="${esc(r.id)}" aria-label="Novo status">
             ${Object.entries(statusLabel).map(([value,label])=>`<option value="${value}" ${r.status===value?'selected':''}>${label}</option>`).join('')}
-          </select><button class="btn save" data-save="${esc(r.id)}">Salvar</button></div></td>
+          </select><select class="unit-select" data-unit-id="${esc(r.id)}" aria-label="Unidade escalada">${unitOptions.map(([value,label])=>`<option value="${esc(value)}" ${r.unidade_escalada===value?'selected':''}>${esc(label)}</option>`).join('')}</select><button class="btn save" data-save="${esc(r.id)}">Salvar</button></div></td>
         </tr>`).join('');
       $('loading').classList.add('hidden'); $('table').classList.toggle('hidden', rows.length===0); $('empty').classList.toggle('hidden', rows.length!==0);
       $('pagination').classList.toggle('hidden', rows.length <= PAGE_SIZE);
@@ -309,7 +325,7 @@
         ['Servidor do Estado', r.servidor_estado === true ? 'Sim' : r.servidor_estado === false ? 'Não' : 'Não informado'],
         ['Órgão de lotação', r.orgao_lotacao || '—'], ['Setor de lotação', r.setor_lotacao || '—'],
         ['Registro profissional', r.registro], ['Protocolo', r.protocolo],
-        ['Status', statusLabel[r.status] || r.status], ['Cadastro', fmtDate(r.created_at)],
+        ['Status', statusLabel[r.status] || r.status], ['Unidade escalada', r.unidade_escalada || 'Ainda não definida'], ['Cadastro', fmtDate(r.created_at)],
         ['Atualização', fmtDate(r.updated_at)], ['Hospitais de interesse', (r.hospitais || []).join('\n') || '—'],
         ['Plantões selecionados', (r.plantoes || []).join('\n') || '—'],
         ['Observações', r.observacoes || 'Nenhuma observação informada.']
@@ -376,6 +392,27 @@
       feedback.style.color='var(--success)';
       showNotice('Configurações da seleção salvas.');
     }
+    async function loadAdminAccess() {
+      const list = $('admin-access-list');
+      const {data,error} = await client.from('admin_users').select('email,ativo,created_at').order('email').limit(100);
+      if (error) { list.innerHTML = '<span class="muted">Não foi possível carregar os acessos.</span>'; return; }
+      list.innerHTML = (data || []).map(row => `<div class="admin-row"><span><strong>${esc(row.email)}</strong><br><small>${row.ativo ? 'Ativo' : 'Desativado'} · ${fmtDate(row.created_at)}</small></span><button class="btn ghost" type="button" data-admin-email="${esc(row.email)}" data-admin-active="${row.ativo}">${row.ativo ? 'Desativar' : 'Reativar'}</button></div>`).join('') || '<span class="muted">Nenhum acesso cadastrado.</span>';
+    }
+    async function saveAdminAccess(email, active) {
+      const feedback = $('admin-access-feedback');
+      feedback.textContent = 'Salvando…';
+      const {error} = await client.rpc('manage_admin_access', {p_email: email, p_ativo: active});
+      if (error) { feedback.textContent = error.message?.includes('remover o próprio') ? 'Você não pode remover o próprio acesso.' : 'Não foi possível atualizar este acesso.'; feedback.style.color='var(--danger)'; return; }
+      feedback.textContent = active ? 'Acesso liberado. A pessoa já pode entrar por link mágico ou senha.' : 'Acesso desativado.'; feedback.style.color='var(--success)';
+      $('admin-access-email').value = ''; await Promise.all([loadAdminAccess(), loadAuditLog()]);
+    }
+    async function loadAuditLog() {
+      const list = $('audit-list');
+      const {data,error} = await client.from('admin_audit_log').select('created_at,actor_email,action,entity,entity_id,details').order('created_at',{ascending:false}).limit(100);
+      if (error) { list.innerHTML = '<span class="muted">Não foi possível carregar o histórico.</span>'; return; }
+      const actionLabels = {UPDATE:'Alteração',GRANT:'Acesso liberado',REVOKE:'Acesso desativado'};
+      list.innerHTML = (data || []).map(row => `<div class="audit-row"><strong>${esc(actionLabels[row.action] || row.action)} · ${esc(row.entity)}</strong><br><small>${esc(row.actor_email)} · ${fmtDate(row.created_at)}${row.entity_id ? ' · ' + esc(row.entity_id) : ''}</small><pre>${esc(JSON.stringify(row.details || {}, null, 2))}</pre></div>`).join('') || '<span class="muted">Nenhuma alteração registrada ainda.</span>';
+    }
     async function load() {
       $('loading').classList.remove('hidden'); $('table').classList.add('hidden'); $('empty').classList.add('hidden');
       const {data,error}=await client.from('inscricoes').select('*').order('created_at',{ascending:false});
@@ -434,7 +471,7 @@
         $('user-email').textContent=data.user?.email||'';
         $('login-view').classList.add('hidden');
         $('app-view').classList.remove('hidden');
-        await Promise.all([load(), loadSettings()]);
+        await Promise.all([load(), loadSettings(), loadAdminAccess(), loadAuditLog()]);
       }
       $('login-button').disabled=false; $('login-button').textContent='Entrar com e-mail';
     }
@@ -477,29 +514,17 @@
       const item = registrations.find(r => r.id === id);
       if (!item) return;
       const status = select.value;
-      if (status === item.status) {
-        showNotice('O status selecionado já é o status atual.', true);
-        return;
-      }
+      const unitSelect = document.querySelector('[data-unit-id="'+CSS.escape(id)+'"]');
+      const unidade_escalada = unitSelect?.value || null;
+      if (status === item.status && unidade_escalada === (item.unidade_escalada || null)) { showNotice('Nenhuma alteração foi feita.', true); return; }
       const labels = {pendente:'Pendente', confirmado:'Confirmado', escalado:'Escalado', recusado:'Recusado'};
-      const confirmed = window.confirm(`Alterar o status de "${item.nome}" de "${labels[item.status] || item.status}" para "${labels[status] || status}"?`);
-      if (!confirmed) {
-        select.value = item.status;
-        return;
-      }
-      button.disabled = true;
-      button.textContent = 'Salvando…';
-      select.disabled = true;
-      const {error}=await client.from('inscricoes').update({status,updated_at:new Date().toISOString()}).eq('id',id);
-      button.disabled = false;
-      button.textContent = 'Salvar';
-      select.disabled = false;
-      if(error){showNotice('Não foi possível atualizar o status. Verifique sua autorização e tente novamente.',true);select.value=item.status;return;}
-      item.status=status;
-      render();
-      showNotice(`Status de ${item.nome} atualizado para ${labels[status] || status}.`);
+      if (!window.confirm(`Salvar status "${labels[status] || status}" e unidade "${unidade_escalada || 'não definida'}" para "${item.nome}"?`)) { select.value = item.status; if (unitSelect) unitSelect.value = item.unidade_escalada || ''; return; }
+      button.disabled = true; button.textContent = 'Salvando…'; select.disabled = true; if (unitSelect) unitSelect.disabled = true;
+      const {error}=await client.from('inscricoes').update({status, unidade_escalada, updated_at:new Date().toISOString()}).eq('id',id);
+      button.disabled = false; button.textContent = 'Salvar'; select.disabled = false; if (unitSelect) unitSelect.disabled = false;
+      if(error){showNotice('Não foi possível salvar a alteração. Verifique sua autorização.',true);select.value=item.status;if(unitSelect)unitSelect.value=item.unidade_escalada||'';return;}
+      item.status=status; item.unidade_escalada=unidade_escalada; render(); await loadAuditLog(); showNotice(`Dados de ${item.nome} atualizados.`);
     }
-
     function exportCsv() {
       const rows=filtered(); if(!rows.length){showNotice('Não há inscrições para exportar.',true);return;}
       const header=['Protocolo','Nome','CPF','Nascimento','Telefone','E-mail','Profissão','Registro','Servidor do Estado','Órgão de lotação','Setor de lotação','Hospitais','Plantões','Observações','Declaração','Status','Criado em'];
@@ -514,6 +539,9 @@
     $('login-form').addEventListener('submit',login);
     $('settings-save').addEventListener('click',saveSettings);
     $('settings-reload').addEventListener('click',loadSettings);
+    $('admin-access-save').addEventListener('click',()=>{const email=$('admin-access-email').value.trim();if(!email){$('admin-access-feedback').textContent='Informe um e-mail.';return}saveAdminAccess(email,true);});
+    $('admin-access-list').addEventListener('click',event=>{const button=event.target.closest('[data-admin-email]');if(button)saveAdminAccess(button.dataset.adminEmail,button.dataset.adminActive!=='true');});
+    $('audit-refresh').addEventListener('click',loadAuditLog);
     $('magic-link').addEventListener('click', sendMagicLink);
     $('logout').addEventListener('click',async()=>{await client.auth.signOut({scope:'local'});location.reload();});
     let autoRefreshTimer = null;
@@ -531,7 +559,7 @@
     });
 
     client.auth.getSession().then(async({data})=>{
-      if(data.session){$('user-email').textContent=data.session.user?.email||'';$('login-view').classList.add('hidden');$('app-view').classList.remove('hidden');await Promise.all([load(), loadSettings()]);}
+      if(data.session){$('user-email').textContent=data.session.user?.email||'';$('login-view').classList.add('hidden');$('app-view').classList.remove('hidden');await Promise.all([load(), loadSettings(), loadAdminAccess(), loadAuditLog()]);}
     });
   </script>
 </body>

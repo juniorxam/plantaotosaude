@@ -1,1 +1,1 @@
-{"routes":[{"path":"/","title":"Plantão TO Saúde"}]}
+{"routes":[{"path":"/","title":"Plantão TO Saúde"},{"path":"/acompanhamento.html","title":"Acompanhamento da inscrição"},{"path":"/admin.html","title":"Gestão das inscrições"}]}

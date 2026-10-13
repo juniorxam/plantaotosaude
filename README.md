@@ -14,7 +14,8 @@ Landing page institucional para inscrição de profissionais de saúde que não 
 ## Estrutura
 
 - `index.html` — página pública e formulário;
-- `admin.html` — painel administrativo;
+- `admin.html` — painel administrativo, permissões delegáveis e auditoria;
+- `acompanhamento.html` — consulta pública dedicada por CPF;
 - `logo.svg` — identidade visual do projeto;
 - `supabase/functions/submit-plantao-inscricao/index.ts` — endpoint público seguro de inscrição;
 - `supabase/functions/consultar-resultado-plantao/index.ts` — consulta pública mínima de status por CPF;
@@ -129,3 +130,9 @@ A infraestrutura, permissões, RLS, Storage e Edge Function foram revisados sem 
 A migração `20261013160000_add_lotacao_resultado_consulta.sql` adiciona órgão de lotação para colaboradores que não são servidores, setor de lotação para servidores, consulta pública por CPF e valores iniciais do Anexo Único da Lei estadual nº 4.627/2025. O painel administrativo permite ajustar o prazo, a data do resultado e os valores por cargo.
 
 A consulta pública retorna somente status, protocolo e data configurada do resultado; não expõe nome, CPF, telefone, e-mail ou currículo.
+
+## Acompanhamento e governança
+
+A página `acompanhamento.html` consulta o CPF pela Edge Function `consultar-resultado-plantao` e mostra somente dados essenciais do cadastro, status, data do resultado e unidade escalada quando definida.
+
+Administradores ativos podem liberar ou desativar outros e-mails diretamente no painel. O novo histórico registra quem alterou inscrições, configurações e permissões, com data, ação e detalhes.

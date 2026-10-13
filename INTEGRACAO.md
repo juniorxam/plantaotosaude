@@ -173,3 +173,9 @@ Este documento trata exclusivamente do **Plantão TO Saúde**.
 ## Configurações da seleção
 
 A tabela `plantao_configuracoes` mantém o prazo final, a data do resultado e os valores por cargo. A conta administrativa pode editar esses dados no painel. Os valores iniciais foram carregados conforme o Anexo Único da Lei estadual nº 4.627/2025, com observação de que médico varia por porte/especialidade e modalidade.
+
+## Acompanhamento, permissões e auditoria
+
+A página pública `acompanhamento.html` usa a consulta por CPF e não expõe telefone, e-mail ou currículo. A unidade escalada é preenchida pela gestão no painel e só então aparece ao candidato.
+
+A migração `20261013170000_admin_access_audit_acompanhamento.sql` cria a RPC `manage_admin_access`, a tabela protegida `admin_audit_log`, os gatilhos de auditoria e o campo `inscricoes.unidade_escalada`. Administradores ativos podem liberar/desativar e-mails, consultar o histórico e atualizar status/unidade.

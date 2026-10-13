@@ -21,7 +21,7 @@ Deno.serve(async (request) => {
     if (error) throw error;
     const result = Array.isArray(data) ? data[0] : data;
     if (!result) return json({ encontrada: false });
-    return json({ encontrada: true, status: result.status, protocolo: result.protocolo, data_resultado: result.data_resultado });
+    return json({ encontrada: true, nome: result.nome, profissao: result.profissao, registro: result.registro, protocolo: result.protocolo, status: result.status, hospitais: result.hospitais, unidade_escalada: result.unidade_escalada, data_resultado: result.data_resultado });
   } catch (error) {
     console.error("consultar-resultado-plantao", error);
     return json({ message: "Não foi possível consultar o resultado agora." }, 500);

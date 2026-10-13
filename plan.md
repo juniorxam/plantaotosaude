@@ -22,3 +22,9 @@
 - `INTEGRACAO.md`: instruções para Google Forms/Planilha, Formspree e backend próprio.
 
 A aplicação é estática, portanto não requer servidor ou banco nesta primeira versão. O formulário fica em modo demonstração até que um endpoint de recebimento seja configurado.
+
+## Extensão de governança e acompanhamento
+- `acompanhamento.html`: tela pública dedicada, limpa e responsiva, com consulta por CPF e dados mínimos do próprio cadastro: nome, profissão, registro, protocolo, hospitais indicados, status e unidade escalada.
+- `admin.html`: área protegida para liberar/desativar e-mails administrativos, escolher unidade escalada e consultar auditoria por autor, data, ação e entidade.
+- `supabase/migrations/20261013170000_admin_access_audit_acompanhamento.sql`: adiciona unidade escalada, RPC de gestão de acesso, tabela de auditoria, triggers e RPC de consulta ampliada.
+- A consulta pública não exibe telefone, e-mail nem currículo. A unidade escalada só é divulgada quando registrada pela gestão.
