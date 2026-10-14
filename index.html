@@ -840,7 +840,7 @@
           </div>
           <div>
             <p class="about-copy">A participação desses profissionais no certame exige a organização das escalas e a adequação temporária das equipes. As inscrições foram abertas para identificar profissionais disponíveis, permitindo que os hospitais estaduais mantenham a continuidade e a qualidade do atendimento à população.</p>
-            <p class="about-copy">Escolha os hospitais onde gostaria de atuar e um ou mais plantões de 12 horas. As informações serão analisadas pela gestão responsável, que entrará em contato para informar os próximos passos da mobilização.</p>
+            <p class="about-copy">Escolha os hospitais onde gostaria de atuar e um ou mais dos três plantões de 12 horas disponíveis. As informações serão analisadas pela gestão responsável, que entrará em contato para informar os próximos passos da mobilização.</p>
             <div class="shift-overview" aria-label="Plantões disponíveis">
               <div class="shift-row">
                 <span class="shift-code">A</span>
@@ -1152,17 +1152,11 @@
     const SUPABASE_URL = 'https://jyrzbfnaitdmilxxcbyv.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_WDE_s2HYfWUCI3iuodaG4w_RFGGwm9m';
     const MAX_BIRTH_DATE = '2008-10-31';
+    // Opções públicas alinhadas aos três plantões de 12 horas divulgados na página.
     const SHIFT_OPTIONS = [
-      {value:'31/10/2026 · 07h às 19h (12h)',title:'31/10 · início 07h · 12h',detail:'31/10/2026, das 07h às 19h'},
-      {value:'31/10/2026 · 07h às 01/11/2026 07h (24h)',title:'31/10 · início 07h · 24h',detail:'31/10/2026 às 07h até 01/11/2026 às 07h'},
-      {value:'31/10/2026 · 19h às 01/11/2026 07h (12h)',title:'31/10 · início 19h · 12h',detail:'31/10/2026 às 19h até 01/11/2026 às 07h'},
-      {value:'31/10/2026 · 19h às 01/11/2026 19h (24h)',title:'31/10 · início 19h · 24h',detail:'31/10/2026 às 19h até 01/11/2026 às 19h'},
-      {value:'01/11/2026 · 07h às 19h (12h)',title:'01/11 · início 07h · 12h',detail:'01/11/2026, das 07h às 19h'},
-      {value:'01/11/2026 · 07h às 02/11/2026 07h (24h)',title:'01/11 · início 07h · 24h',detail:'01/11/2026 às 07h até 02/11/2026 às 07h'},
-      {value:'01/11/2026 · 19h às 02/11/2026 07h (12h)',title:'01/11 · início 19h · 12h',detail:'01/11/2026 às 19h até 02/11/2026 às 07h'},
-      {value:'01/11/2026 · 19h às 02/11/2026 19h (24h)',title:'01/11 · início 19h · 24h',detail:'01/11/2026 às 19h até 02/11/2026 às 19h'},
-      {value:'02/11/2026 · 07h às 19h (12h)',title:'02/11 · início 07h · 12h',detail:'02/11/2026, das 07h às 19h'},
-      {value:'02/11/2026 · 07h às 03/11/2026 07h (24h)',title:'02/11 · início 07h · 24h',detail:'02/11/2026 às 07h até 03/11/2026 às 07h'}
+      {value:'31/10/2026 · 19h às 01/11/2026 07h (12h)',title:'A · Véspera — noturno',detail:'31/10/2026, das 19h às 7h de 01/11/2026'},
+      {value:'01/11/2026 · 07h às 19h (12h)',title:'B · Dia do concurso — diurno',detail:'01/11/2026, das 7h às 19h'},
+      {value:'01/11/2026 · 19h às 02/11/2026 07h (12h)',title:'C · Dia do concurso — noturno',detail:'01/11/2026, das 19h às 7h de 02/11/2026'}
     ];
     document.querySelector('#shift-options').innerHTML = SHIFT_OPTIONS.map(option => `<label class="choice"><input class="shift-checkbox" type="checkbox" name="plantoes" value="${option.value}"><span class="choice-content"><strong>${option.title}</strong><small>${option.detail}</small></span></label>`).join('');
 
