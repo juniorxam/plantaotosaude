@@ -494,7 +494,7 @@
       try {
         values12 = readValues('setting-values-grid', settingsValues.valores_cargos);
         values24 = readValues('setting-values-24h-grid', settingsValues.valores_cargos_24h);
-        hospitalList = $('setting-hospitalList').value.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
+        hospitalList = $('setting-hospitals').value.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
           const parts = line.split('|').map(part => part.trim());
           if (parts.length < 2 || !parts[0] || !parts.slice(1).join(' | ')) throw new Error('Use Cidade | Nome do hospital em cada linha.');
           const cidade = parts[0], nome = parts.slice(1).join(' | ');
@@ -532,7 +532,7 @@
             data_resultado: resultDate,
             valores_cargos: values12,
             valores_cargos_24h: values24,
-            hospitais,
+            hospitais: hospitalList,
             updated_at: new Date().toISOString(),
             updated_by: userData.user.email || null
           }).eq('id', true).select('id,updated_at').abortSignal(controller.signal);
