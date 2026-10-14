@@ -662,7 +662,7 @@
       if (!window.XLSX) { showNotice('A biblioteca de Excel não carregou. Atualize a página e tente novamente.', true); return; }
       const data = publicReportRows(rows, acceptedOnly);
       const ws = XLSX.utils.json_to_sheet(data);
-      ws['!cols'] = Object.keys(data[0]).map(key => ({wch: Math.min(42, Math.max(key.length + 2, ...data.map(row => String(row[key] ?? '').length + 2))}));
+      ws['!cols'] = Object.keys(data[0]).map(key => ({wch: Math.min(42, Math.max(key.length + 2, ...data.map(row => String(row[key] ?? '').length + 2)))}));
       ws['!autofilter'] = {ref: XLSX.utils.encode_range({s:{r:0,c:0},e:{r:data.length,c:Object.keys(data[0]).length-1}})};
       ws['!freeze'] = {xSplit:0,ySplit:1};
       const wb = XLSX.utils.book_new();
