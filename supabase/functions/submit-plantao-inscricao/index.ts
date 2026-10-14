@@ -7,14 +7,13 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-const hospitals = new Set(["Palmas — Hospital Geral de Palmas","Araguaína — Hospital Regional de Araguaína","Gurupi — Hospital Regional de Gurupi","Paraíso do Tocantins — Hospital Regional de Paraíso","Porto Nacional — Hospital Regional de Porto Nacional","Augustinópolis — Hospital Regional de Augustinópolis"]);
 // Aceita somente os três plantões de 12 horas divulgados no formulário público.
 const shifts = new Set([
   "31/10/2026 · 19h às 01/11/2026 07h (12h)",
   "01/11/2026 · 07h às 19h (12h)",
   "01/11/2026 · 19h às 02/11/2026 07h (12h)"
 ]);
-const professions = new Set(["Médico","Enfermeiro","Técnico em Enfermagem","Fisioterapeuta","Nutricionista","Psicólogo","Farmacêutico","Assistente Social","Técnico em Laboratório","Cirurgião-Dentista","Auxiliar de Enfermagem","Assistente de Serviços de Saúde","Outro"]);
+const professions = new Set(["Médico","Enfermeiro","Técnico em Enfermagem","Fisioterapeuta","Nutricionista","Psicólogo","Farmacêutico","Assistente Social","Técnico em Laboratório","Cirurgião-Dentista","Auxiliar de Enfermagem","Auxiliar de Serviços de Saúde","Assistente de Serviços de Saúde","Instrumentador Cirúrgico","Técnico em Imobilização Ortopédica","Biólogo em Saúde","Biomédico","Farmacêutico-Bioquímico","Fonoaudiólogo","Terapeuta Ocupacional","Enfermeiro Obstetra","Perfusionista","Outro"]);
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 const digits = (value: FormDataEntryValue | null) => String(value ?? "").replace(/\D/g, "");
 const MAX_BIRTH_DATE = "2008-10-31";
@@ -42,10 +41,12 @@ Deno.serve(async (request) => {
   try {
     const { data: selectionConfig, error: selectionConfigError } = await supabase
       .from("plantao_configuracoes")
-      .select("prazo_inscricao")
+      .select("prazo_inscricao,hospitais")
       .eq("id", true)
       .maybeSingle();
     if (selectionConfigError) throw selectionConfigError;
+    const hospitals = new Set((Array.isArray(selectionConfig?.hospitais) ? selectionConfig.hospitais : []).map((h: {valor?: string; cidade?: string; nome?: string}) => String(h.valor || (String(h.cidade || "").trim() + " — " + String(h.nome || "").trim())).trim()).filter(Boolean));
+    if (!hospitals.size) throw new Error("Nenhum hospital está configurado para inscrição.");
     const tocantinsToday = new Intl.DateTimeFormat("en-CA", {
       timeZone: "America/Araguaina", year: "numeric", month: "2-digit", day: "2-digit",
     }).format(new Date());
