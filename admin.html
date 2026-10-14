@@ -490,19 +490,19 @@
         }
         return values;
       };
-      let values12, values24, hospitals;
+      let values12, values24, hospitalList;
       try {
         values12 = readValues('setting-values-grid', settingsValues.valores_cargos);
         values24 = readValues('setting-values-24h-grid', settingsValues.valores_cargos_24h);
-        hospitals = $('setting-hospitals').value.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
+        hospitalList = $('setting-hospitalList').value.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
           const parts = line.split('|').map(part => part.trim());
           if (parts.length < 2 || !parts[0] || !parts.slice(1).join(' | ')) throw new Error('Use Cidade | Nome do hospital em cada linha.');
           const cidade = parts[0], nome = parts.slice(1).join(' | ');
           return {cidade, nome, valor: cidade + ' — ' + nome};
         });
-        if (!hospitals.length) throw new Error('Cadastre pelo menos um hospital.');
-        if (hospitals.length > 50) throw new Error('Cadastre no máximo 50 hospitais.');
-        if (new Set(hospitals.map(h => h.valor.toLowerCase())).size !== hospitals.length) throw new Error('Há hospitais duplicados na lista.');
+        if (!hospitalList.length) throw new Error('Cadastre pelo menos um hospital.');
+        if (hospitalList.length > 50) throw new Error('Cadastre no máximo 50 hospitais.');
+        if (new Set(hospitalList.map(h => h.valor.toLowerCase())).size !== hospitalList.length) throw new Error('Há hospitais duplicados na lista.');
       } catch (error) {
         feedback.textContent = error.message || 'Revise os dados informados.';
         feedback.style.color = 'var(--danger)';
@@ -543,7 +543,7 @@
         await Promise.race([operation, timeoutPromise]);
         settingsValues.valores_cargos = values12;
         settingsValues.valores_cargos_24h = values24;
-        settingsValues.hospitais = hospitals;
+        settingsValues.hospitais = hospitalList;
         feedback.textContent = 'Configurações salvas e confirmadas no banco de dados.';
         feedback.style.color = 'var(--success)';
         showNotice('Configurações da seleção salvas.');
