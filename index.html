@@ -923,11 +923,11 @@
               <div><strong id="lookup-title">Já fez sua inscrição?</strong><p>Acompanhe o status, a escala e o pagamento previsto usando seu CPF e protocolo.</p></div>
               <div class="lookup-controls"><a class="btn" href="/acompanhamento.html" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none">Acompanhar inscrição →</a></div>
             </section>
-            <section id="public-selection-config" aria-live="polite" style="margin:0 0 18px;padding:16px 18px;border:1px solid #cfe2eb;border-radius:14px;background:#f3f9fc">
-              <strong style="display:block;color:#003d66;font-size:1rem">Prazo e informações da seleção</strong>
-              <p id="public-deadline" style="margin:5px 0;color:#28495b">Consultando prazo de inscrição…</p>
-              <p id="public-result-date" style="margin:5px 0;color:#28495b"></p>
-              <div id="public-role-values" style="margin-top:10px"></div>
+            <section id="public-selection-config" aria-live="polite" hidden style="margin:0 0 18px;padding:16px 18px;border:1px solid #cfe2eb;border-radius:14px;background:#f3f9fc">
+              <strong style="display:block;color:#003d66;font-size:1rem">Informações da seleção</strong>
+              <p id="public-deadline" hidden style="margin:5px 0;color:#28495b"></p>
+              <p id="public-result-date" hidden style="margin:5px 0;color:#28495b"></p>
+              <div id="public-role-values" hidden style="margin-top:10px"></div>
             </section>
             <input type="hidden" name="website" value="" tabindex="-1" autocomplete="off" aria-hidden="true">
             <input type="hidden" name="form_started_at" id="form-started-at" value="">
@@ -1190,8 +1190,11 @@
           const config = rows?.[0];
           if (!config) throw new Error('Configuração vazia');
           const deadline = config.prazo_inscricao;
-          deadlineLabel.textContent = deadline ? 'Inscrições até ' + datePt(deadline) + ', às 23h59 (horário do Tocantins).' : 'Prazo de inscrição ainda não definido.';
-          resultLabel.textContent = config.data_resultado ? 'Previsão de divulgação do resultado: ' + datePt(config.data_resultado) + '.' : 'Data do resultado: a ser divulgada pela gestão.';
+          const resultDate = config.data_resultado;
+          deadlineLabel.hidden = !deadline;
+          deadlineLabel.textContent = deadline ? 'Inscrições até ' + datePt(deadline) + ', às 23h59 (horário do Tocantins).' : '';
+          resultLabel.hidden = !resultDate;
+          resultLabel.textContent = resultDate ? 'Previsão de divulgação do resultado: ' + datePt(resultDate) + '.' : '';
           const rates12 = config.valores_cargos || {};
           const rates24 = config.valores_cargos_24h || {};
           const escapePublic = value => String(value).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -1212,9 +1215,11 @@
           const privacyHtml = privacyFields
             ? '<div style="margin-top:14px;padding-top:12px;border-top:1px solid #cfe2eb"><strong style="display:block;color:#003d66">Responsável e informações sobre os dados</strong>' + privacyFields + '</div>'
             : '';
-          valuesTarget.innerHTML = (ratesHtml ? '<small style="display:block;color:#526b79">Valores por cargo e duração, definidos pela gestão. Valores de 12h e 24h são informados separadamente.</small>' + ratesHtml : '') + privacyHtml;
-          if (!valuesTarget.innerHTML.trim()) valuesTarget.style.display = 'none';
-          else valuesTarget.style.display = 'block';
+          const publicDetails = (ratesHtml ? '<small style="display:block;color:#526b79">Valores por cargo e duração, definidos pela gestão. Valores de 12h e 24h são informados separadamente.</small>' + ratesHtml : '') + privacyHtml;
+          valuesTarget.innerHTML = publicDetails;
+          valuesTarget.hidden = !publicDetails;
+          const hasPublicInfo = Boolean(deadline || resultDate || publicDetails);
+          panel.hidden = !hasPublicInfo;
           const today = new Intl.DateTimeFormat('en-CA',{timeZone:'America/Araguaina',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
           if (deadline && today > deadline) {
             deadlineLabel.textContent = 'Prazo encerrado em ' + datePt(deadline) + '. As inscrições não estão mais abertas.';
@@ -1228,8 +1233,8 @@
             panel.appendChild(notice);
           }
         } catch (error) {
-          deadlineLabel.textContent = 'Prazo e valores: consulte os canais oficiais da seleção.';
-          valuesTarget.textContent = 'As informações de prazo e remuneração estarão disponíveis após a configuração do sistema.';
+          // Não exibe informações incompletas ou mensagens de configuração como se fossem dados oficiais.
+          panel.hidden = true;
         }
       }
       loadPublicSelectionConfig();
