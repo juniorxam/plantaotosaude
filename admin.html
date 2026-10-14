@@ -489,11 +489,49 @@
     }
     async function saveAdminAccess(email, active) {
       const feedback = $('admin-access-feedback');
-      feedback.textContent = 'Salvando…';
-      const {error} = await client.rpc('manage_admin_access', {p_email: email, p_ativo: active});
-      if (error) { feedback.textContent = error.message?.includes('remover o próprio') ? 'Você não pode remover o próprio acesso.' : 'Não foi possível atualizar este acesso.'; feedback.style.color='var(--danger)'; return; }
-      feedback.textContent = active ? 'Acesso liberado. A pessoa já pode entrar por link mágico ou senha.' : 'Acesso desativado.'; feedback.style.color='var(--success)';
-      $('admin-access-email').value = ''; await Promise.all([loadAdminAccess(), loadAuditLog()]);
+      const normalizedEmail = String(email || '').trim().toLowerCase();
+      if (!normalizedEmail || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(normalizedEmail)) {
+        feedback.textContent = 'Informe um endereço de e-mail válido.';
+        feedback.style.color = 'var(--danger)';
+        return;
+      }
+      const button = $('admin-access-save');
+      if (button) { button.disabled = true; button.textContent = 'Salvando…'; }
+      feedback.textContent = 'Verificando permissão e salvando acesso…';
+      feedback.style.color = 'var(--muted)';
+      try {
+        const { data, error } = await client.rpc('manage_admin_access', { p_email: normalizedEmail, p_ativo: active });
+        if (error) {
+          console.error('manage_admin_access:', error);
+          const message = String(error.message || '');
+          if (message.toLowerCase().includes('remover o próprio')) {
+            feedback.textContent = 'Você não pode desativar seu próprio acesso.';
+          } else if (error.code === '42501' || message.toLowerCase().includes('apenas administradores')) {
+            feedback.textContent = 'Sua conta não está autorizada como administradora ativa. Entre com o e-mail administrador cadastrado.';
+          } else if (error.code === 'PGRST202' || error.code === '42883' || message.toLowerCase().includes('could not find the function')) {
+            feedback.textContent = 'A função de autorização não está disponível corretamente no banco. Atualize o esquema do Supabase e tente novamente.';
+          } else {
+            feedback.textContent = 'Não foi possível ' + (active ? 'liberar' : 'atualizar') + ' o acesso. Detalhe: ' + (message || 'erro não identificado') + (error.code ? ' (' + error.code + ')' : '');
+          }
+          feedback.style.color = 'var(--danger)';
+          return;
+        }
+        if (!data) {
+          feedback.textContent = 'O banco não confirmou a alteração. Atualize a lista e tente novamente.';
+          feedback.style.color = 'var(--danger)';
+          return;
+        }
+        feedback.textContent = active ? 'Acesso liberado para ' + normalizedEmail + '. A pessoa já pode entrar por link mágico ou senha.' : 'Acesso de ' + normalizedEmail + ' desativado.';
+        feedback.style.color = 'var(--success)';
+        if (active) $('admin-access-email').value = '';
+        await Promise.all([loadAdminAccess(), loadAuditLog()]);
+      } catch (error) {
+        console.error('Erro ao gerenciar acesso administrativo:', error);
+        feedback.textContent = 'Falha de comunicação com o banco. Confira a conexão e tente novamente.';
+        feedback.style.color = 'var(--danger)';
+      } finally {
+        if (button) { button.disabled = false; button.textContent = 'Liberar acesso'; }
+      }
     }
     async function loadAuditLog() {
       const list = $('audit-list');
