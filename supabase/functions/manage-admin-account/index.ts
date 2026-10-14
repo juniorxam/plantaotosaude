@@ -49,12 +49,18 @@ Deno.serve(async (req: Request) => {
       return reply({ error: "Crie uma senha com pelo menos 10 caracteres, diferente da senha temporária." }, 400);
     }
     const { data: ownAuth, error: ownAuthError } = await admin.auth.admin.getUserById(caller.id);
-    if (ownAuthError || ownAuth?.user?.app_metadata?.must_change_password !== true) {
-      return reply({ error: "Esta conta não está aguardando a troca inicial de senha." }, 403);
+    if (
+      ownAuthError ||
+      ownAuth?.user?.app_metadata?.must_change_password !== true ||
+      ownAuth?.user?.app_metadata?.admin_access_revoked === true
+    ) {
+      return reply({ error: "Esta conta não está aguardando a troca inicial de senha ou teve o acesso revogado." }, 403);
     }
     const { data: ownAccess, error: accessError } = await admin
       .from("admin_users").select("email,ativo").eq("email", callerEmail).maybeSingle();
-    if (accessError || !ownAccess) return reply({ error: "Acesso administrativo não foi preparado." }, 403);
+    if (accessError || !ownAccess || ownAccess.ativo !== false) {
+      return reply({ error: "Acesso administrativo não está pendente de ativação." }, 403);
+    }
 
     // Save the new password first while the forced-change flag still blocks the panel.
     // Then activate the database access; clear the flag only after activation succeeds.
@@ -106,14 +112,14 @@ Deno.serve(async (req: Request) => {
       const { error } = await admin.auth.admin.updateUserById(targetUser.id, {
         password: "123456",
         email_confirm: true,
-        app_metadata: { ...(targetUser.app_metadata || {}), must_change_password: true },
+        app_metadata: { ...(targetUser.app_metadata || {}), must_change_password: true, admin_access_revoked: false },
         ban_duration: "none",
       });
       if (error) return reply({ error: "Não foi possível preparar a conta de autenticação." }, 500);
     } else {
       const { error } = await admin.auth.admin.createUser({
         email: targetEmail, password: "123456", email_confirm: true,
-        app_metadata: { must_change_password: true },
+        app_metadata: { must_change_password: true, admin_access_revoked: false },
       });
       if (error) return reply({ error: "Não foi possível criar a conta. Verifique se o e-mail já existe." }, 400);
     }
@@ -144,7 +150,14 @@ Deno.serve(async (req: Request) => {
       if (data.users.length < 1000) break;
     }
     if (targetUser) {
-      const { error } = await admin.auth.admin.updateUserById(targetUser.id, { ban_duration: "876000h" });
+      const { error } = await admin.auth.admin.updateUserById(targetUser.id, {
+        ban_duration: "876000h",
+        app_metadata: {
+          ...(targetUser.app_metadata || {}),
+          must_change_password: false,
+          admin_access_revoked: true,
+        },
+      });
       if (error) return reply({ error: "Acesso desativado, mas não foi possível bloquear a autenticação." }, 500);
     }
     await admin.from("admin_audit_log").insert({
