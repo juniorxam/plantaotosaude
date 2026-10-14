@@ -438,7 +438,7 @@
       settingsValues.valores_cargos = data.valores_cargos || {};
       settingsValues.valores_cargos_24h = data.valores_cargos_24h || {};
       settingsValues.hospitais = Array.isArray(data.hospitais) ? data.hospitais : [];
-      $('setting-hospitals').value = settingsValues.hospitais.map(h => (h.cidade || '') + ' | ' + (h.nome || '')).join('\\n');
+      $('setting-hospitals').value = settingsValues.hospitais.map(h => (h.cidade || '') + ' | ' + (h.nome || '')).join('\n');
       renderSettingInputs('setting-values-grid', settingsValues.valores_cargos);
       renderSettingInputs('setting-values-24h-grid', settingsValues.valores_cargos_24h);
       feedback.textContent = data.updated_at ? 'Última atualização: ' + fmtDate(data.updated_at) : 'Configurações carregadas.';
@@ -465,7 +465,7 @@
       try {
         values12 = readValues('setting-values-grid', settingsValues.valores_cargos);
         values24 = readValues('setting-values-24h-grid', settingsValues.valores_cargos_24h);
-        hospitals = $('setting-hospitals').value.split(/\\r?\\n/).map(line => line.trim()).filter(Boolean).map(line => { const parts=line.split('|').map(part=>part.trim()); if(parts.length<2 || !parts[0] || !parts.slice(1).join(' | ')) throw new Error('Use Cidade | Nome do hospital em cada linha.'); const cidade=parts[0], nome=parts.slice(1).join(' | '); return {cidade,nome,valor:cidade+' — '+nome}; });
+        hospitals = $('setting-hospitals').value.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => { const parts=line.split('|').map(part=>part.trim()); if(parts.length<2 || !parts[0] || !parts.slice(1).join(' | ')) throw new Error('Use Cidade | Nome do hospital em cada linha.'); const cidade=parts[0], nome=parts.slice(1).join(' | '); return {cidade,nome,valor:cidade+' — '+nome}; });
         if (!hospitals.length) throw new Error('Cadastre pelo menos um hospital.');
         if (hospitals.length > 50) throw new Error('Cadastre no máximo 50 hospitais.');
         if (new Set(hospitals.map(h=>h.valor.toLowerCase())).size !== hospitals.length) throw new Error('Há hospitais duplicados na lista.');
