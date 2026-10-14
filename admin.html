@@ -130,6 +130,14 @@
         <h4 style="margin:22px 0 4px;color:var(--deep)">Valores por cargo · plantão de 24 horas</h4>
         <p class="muted">Informe o valor específico de 24h. Ele não é calculado automaticamente a partir do valor de 12h.</p>
         <div id="setting-values-24h-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px"></div>
+        <h4 style="margin:24px 0 4px;color:var(--deep)">Informações públicas e privacidade</h4>
+        <p class="muted">Preencha somente as informações já validadas pela coordenação. Campos vazios não serão exibidos na página de inscrição.</p>
+        <div class="detail-grid" style="padding:0;grid-template-columns:repeat(2,minmax(0,1fr))">
+          <div><label for="setting-data-controller">Responsável pelo tratamento de dados</label><input id="setting-data-controller" type="text" maxlength="180" placeholder="Órgão ou responsável formal"></div>
+          <div><label for="setting-privacy-contact">Canal de contato sobre privacidade/LGPD</label><input id="setting-privacy-contact" type="text" maxlength="240" placeholder="E-mail, telefone ou canal oficial"></div>
+          <div><label for="setting-legal-basis">Base legal do tratamento</label><textarea id="setting-legal-basis" rows="3" maxlength="1000" placeholder="Base legal validada pela área responsável"></textarea></div>
+          <div><label for="setting-data-retention">Prazo de retenção dos dados</label><textarea id="setting-data-retention" rows="3" maxlength="500" placeholder="Prazo e critério de descarte definidos pela coordenação"></textarea></div>
+        </div>
         <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:18px">
           <button id="settings-reload" class="btn ghost" type="button">Descartar alterações</button>
           <button id="settings-save" class="btn primary" style="width:auto;margin:0" type="button">Salvar configurações</button>
@@ -382,7 +390,7 @@
     async function loadSettings() {
       const feedback = $('settings-feedback');
       feedback.textContent = 'Carregando configurações…';
-      const {data,error} = await client.from('plantao_configuracoes').select('prazo_inscricao,data_resultado,valores_cargos,valores_cargos_24h,updated_at').eq('id',true).maybeSingle();
+      const {data,error} = await client.from('plantao_configuracoes').select('prazo_inscricao,data_resultado,valores_cargos,valores_cargos_24h,responsavel_dados,contato_privacidade,base_legal_dados,prazo_retencao_dados,updated_at').eq('id',true).maybeSingle();
       if (error || !data) {
         feedback.textContent = 'Não foi possível carregar as configurações. Confirme se a migração de configurações já foi aplicada ao Supabase do Plantão TO Saúde.';
         feedback.style.color = 'var(--danger)';
@@ -390,6 +398,10 @@
       }
       $('setting-deadline').value = data.prazo_inscricao || '';
       $('setting-result-date').value = data.data_resultado || '';
+      $('setting-data-controller').value = data.responsavel_dados || '';
+      $('setting-privacy-contact').value = data.contato_privacidade || '';
+      $('setting-legal-basis').value = data.base_legal_dados || '';
+      $('setting-data-retention').value = data.prazo_retencao_dados || '';
       settingsValues.valores_cargos = data.valores_cargos || {};
       settingsValues.valores_cargos_24h = data.valores_cargos_24h || {};
       renderSettingInputs('setting-values-grid', settingsValues.valores_cargos);
@@ -426,6 +438,10 @@
         data_resultado: resultDate,
         valores_cargos: values12,
         valores_cargos_24h: values24,
+        responsavel_dados: $('setting-data-controller').value.trim() || null,
+        contato_privacidade: $('setting-privacy-contact').value.trim() || null,
+        base_legal_dados: $('setting-legal-basis').value.trim() || null,
+        prazo_retencao_dados: $('setting-data-retention').value.trim() || null,
         updated_at: new Date().toISOString(),
         updated_by: userData.user?.email || null
       }).eq('id',true);
