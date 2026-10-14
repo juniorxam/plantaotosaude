@@ -66,7 +66,7 @@
 .quick-status{display:flex;gap:7px;flex-wrap:wrap;margin:-4px 0 10px}.quick-status button{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:7px 11px;font-size:.76rem;font-weight:800;cursor:pointer}.quick-status button.active{background:var(--blue);color:#fff;border-color:var(--blue)}
     .filter-summary{font-size:.78rem;color:var(--muted);font-weight:700;margin:-2px 0 10px}
     .toolbar{position:sticky;top:0;z-index:5}
-    .admin-tools{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}.admin-tool{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px}.admin-tool h3{margin:0;color:var(--deep)}.admin-tool p{margin:5px 0 14px;color:var(--muted);font-size:.82rem}.admin-access-form{display:flex;gap:8px}.admin-access-form input{flex:1}.admin-access-form button{white-space:nowrap}.admin-list,.audit-list{display:grid;gap:7px;margin-top:12px}.admin-row,.audit-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 10px;border:1px solid #edf2f4;border-radius:10px;background:#fbfdfe;font-size:.82rem}.admin-row small,.audit-row small{color:var(--muted)}.admin-row button{padding:6px 9px;font-size:.76rem}.audit-row{display:block}.audit-row strong{color:var(--deep)}.audit-row pre{margin:4px 0 0;white-space:pre-wrap;word-break:break-word;color:var(--muted);font:inherit;font-size:.76rem}.unit-select{width:145px;padding:7px 8px;font-size:.82rem}
+    .admin-tools{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}.admin-tool{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px}.admin-tool h3{margin:0;color:var(--deep)}.admin-tool p{margin:5px 0 14px;color:var(--muted);font-size:.82rem}.admin-access-form{display:flex;gap:8px}.admin-access-form input{flex:1}.admin-access-form button{white-space:nowrap}.admin-list{display:grid;gap:7px;margin-top:12px}.admin-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 10px;border:1px solid #edf2f4;border-radius:10px;background:#fbfdfe;font-size:.82rem}.admin-row small{color:var(--muted)}.admin-row button{padding:6px 9px;font-size:.76rem}.unit-select{width:145px;padding:7px 8px;font-size:.82rem}
     @media(max-width:850px){.admin-tools{grid-template-columns:1fr}}
 
 
@@ -158,19 +158,29 @@
       </section>
       </div></details>
       <details class="fold-section" id="admin-panel"><summary><span>🔐 Acessos e auditoria</span><small>Administradores e histórico de alterações</small></summary><div class="fold-content">
-      <section class="admin-tools" aria-label="Acessos e auditoria administrativa">
+      <section class="admin-tools" aria-label="Acessos administrativos">
         <article class="admin-tool">
           <h3>Acessos administrativos</h3>
           <p>Libere um e-mail para que a pessoa entre com senha ou link mágico e tenha acesso ao painel. Você pode desativar o acesso quando necessário.</p>
           <div class="admin-access-form"><input id="admin-access-email" type="email" placeholder="novo.admin@email.com" aria-label="E-mail do novo administrador"><button id="admin-access-save" class="btn save" type="button">Liberar acesso</button></div>
           <p id="admin-access-feedback" class="muted" role="status" aria-live="polite"></p><div id="admin-access-list" class="admin-list"><span class="loading">Carregando acessos…</span></div>
         </article>
-        <article class="admin-tool">
-          <h3>Histórico de alterações</h3>
-          <p>Registro de quem alterou status, hospital/plantão designados, valores, configurações e permissões.</p>
-          <button id="audit-refresh" class="btn ghost" type="button">Atualizar histórico</button><div id="audit-list" class="audit-list"><span class="loading">Carregando histórico…</span></div>
-        </article>
       </section>
+      </div></details>
+      <details class="fold-section" id="audit-panel"><summary><span>🧾 Auditoria de alterações</span><small>Histórico detalhado em tabela</small></summary><div class="fold-content">
+        <section class="admin-tool" aria-label="Auditoria de alterações" style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+            <div><h3>Histórico de alterações</h3><p>Consulte quem fez cada alteração, quando ocorreu e quais dados foram modificados.</p></div>
+            <button id="audit-refresh" class="btn ghost" type="button">Atualizar histórico</button>
+          </div>
+          <div class="table-wrap">
+            <table class="table" style="min-width:900px">
+              <thead><tr><th>Data e hora</th><th>Responsável</th><th>Ação</th><th>Área</th><th>Identificador</th><th>Detalhes</th></tr></thead>
+              <tbody id="audit-list"><tr><td colspan="6" class="loading">Carregando histórico…</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+      </div></details>
       </div></details>
       <details class="fold-section" id="analytics-panel"><summary><span>📊 Indicadores e monitoramento</span><small>Distribuição por hospital, plantões e alertas</small></summary><div class="fold-content">
       <div class="insights">
@@ -546,9 +556,27 @@
     async function loadAuditLog() {
       const list = $('audit-list');
       const {data,error} = await client.from('admin_audit_log').select('created_at,actor_email,action,entity,entity_id,details').order('created_at',{ascending:false}).limit(100);
-      if (error) { list.innerHTML = '<span class="muted">Não foi possível carregar o histórico.</span>'; return; }
+      if (error) { list.innerHTML = '<tr><td colspan="6" class="muted">Não foi possível carregar o histórico.</td></tr>'; return; }
       const actionLabels = {UPDATE:'Alteração',GRANT:'Acesso liberado',REVOKE:'Acesso desativado'};
-      list.innerHTML = (data || []).map(row => `<div class="audit-row"><strong>${esc(actionLabels[row.action] || row.action)} · ${esc(row.entity)}</strong><br><small>${esc(row.actor_email)} · ${fmtDate(row.created_at)}${row.entity_id ? ' · ' + esc(row.entity_id) : ''}</small><pre>${esc(JSON.stringify(row.details || {}, null, 2))}</pre></div>`).join('') || '<span class="muted">Nenhuma alteração registrada ainda.</span>';
+      const entityLabels = {inscricoes:'Inscrições',plantao_configuracoes:'Configurações da seleção',admin_access:'Acessos administrativos',admin_users:'Administradores'};
+      const prettyDetails = details => {
+        if (!details || typeof details !== 'object') return String(details ?? '—');
+        const entries = Object.entries(details);
+        if (!entries.length) return '—';
+        return entries.map(([key,value]) => {
+          const label = key.replace(/_/g,' ').replace(/\b\w/g,letter=>letter.toUpperCase());
+          const val = value && typeof value === 'object' ? JSON.stringify(value) : String(value ?? '—');
+          return label + ': ' + val;
+        }).join(' · ');
+      };
+      list.innerHTML = (data || []).map(row => `<tr>
+        <td>${esc(fmtDate(row.created_at))}</td>
+        <td>${esc(row.actor_email || 'Sistema')}</td>
+        <td><span class="status ${row.action === 'REVOKE' ? 'recusado' : row.action === 'GRANT' ? 'confirmado' : 'escalado'}">${esc(actionLabels[row.action] || row.action || '—')}</span></td>
+        <td>${esc(entityLabels[row.entity] || row.entity || '—')}</td>
+        <td>${esc(row.entity_id || '—')}</td>
+        <td style="white-space:normal;min-width:260px;max-width:480px;overflow-wrap:anywhere">${esc(prettyDetails(row.details))}</td>
+      </tr>`).join('') || '<tr><td colspan="6" class="muted">Nenhuma alteração registrada ainda.</td></tr>';
     }
     async function load() {
       $('loading').classList.remove('hidden'); $('table').classList.add('hidden'); $('empty').classList.add('hidden');
