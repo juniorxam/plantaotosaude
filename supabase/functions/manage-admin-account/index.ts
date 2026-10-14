@@ -56,19 +56,24 @@ Deno.serve(async (req: Request) => {
       .from("admin_users").select("email,ativo").eq("email", callerEmail).maybeSingle();
     if (accessError || !ownAccess) return reply({ error: "Acesso administrativo não foi preparado." }, 403);
 
-    const { error: activateError } = await admin.from("admin_users")
-      .update({ ativo: true }).eq("email", callerEmail);
-    if (activateError) return reply({ error: "Não foi possível concluir a ativação. Tente novamente." }, 500);
-
-    const metadata = { ...(ownAuth.user.app_metadata || {}), must_change_password: false };
-    const { error: updateError } = await admin.auth.admin.updateUserById(caller.id, {
+    // Save the new password first while the forced-change flag still blocks the panel.
+    // Then activate the database access; clear the flag only after activation succeeds.
+    const { error: passwordError } = await admin.auth.admin.updateUserById(caller.id, {
       password,
-      app_metadata: metadata,
+      app_metadata: { ...(ownAuth.user.app_metadata || {}), must_change_password: true },
       ban_duration: "none",
     });
-    if (updateError) {
-      await admin.from("admin_users").update({ ativo: false }).eq("email", callerEmail);
-      return reply({ error: "Não foi possível salvar a nova senha. Tente novamente." }, 500);
+    if (passwordError) return reply({ error: "Não foi possível salvar a nova senha. Tente novamente." }, 500);
+
+    const { error: activateError } = await admin.from("admin_users")
+      .update({ ativo: true }).eq("email", callerEmail);
+    if (activateError) return reply({ error: "A senha foi salva, mas não foi possível ativar o acesso. Tente novamente." }, 500);
+
+    const { error: clearFlagError } = await admin.auth.admin.updateUserById(caller.id, {
+      app_metadata: { ...(ownAuth.user.app_metadata || {}), must_change_password: false },
+    });
+    if (clearFlagError) {
+      return reply({ error: "Senha salva e acesso preparado, mas falta concluir a ativação. Envie novamente o formulário para finalizar." }, 500);
     }
     await admin.from("admin_audit_log").insert({
       actor_email: callerEmail, action: "FIRST_PASSWORD_SET", entity: "admin_users",
