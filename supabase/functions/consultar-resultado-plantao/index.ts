@@ -71,9 +71,13 @@ Deno.serve(async (request) => {
       ? await request.json()
       : await request.formData();
     const cpf = digits(body instanceof FormData ? body.get("cpf") : body?.cpf);
+    const protocolo = String(body instanceof FormData ? body.get("protocolo") ?? "" : body?.protocolo ?? "").trim().toUpperCase();
     if (!validCpf(cpf)) return json({ message: "Informe um CPF válido." }, 400);
+    if (protocolo.length < 6 || protocolo.length > 64 || !/^[A-Z0-9-]+$/.test(protocolo)) {
+      return json({ message: "Informe o protocolo recebido após a inscrição." }, 400);
+    }
 
-    const { data, error } = await supabase.rpc("consultar_resultado_plantao", { p_cpf: cpf });
+    const { data, error } = await supabase.rpc("consultar_resultado_plantao", { p_cpf: cpf, p_protocolo: protocolo });
     if (error) throw error;
     const result = Array.isArray(data) ? data[0] : data;
     if (!result) return json({ encontrada: false });
