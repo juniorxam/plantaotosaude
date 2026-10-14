@@ -75,6 +75,7 @@
     @media(max-width:850px){.stats{grid-template-columns:repeat(2,1fr)}.insights,.monitoring{grid-template-columns:1fr}.page-title{align-items:start;flex-direction:column}.user-email{display:none}}
     @media(max-width:560px){main{padding:20px 12px}.stats{grid-template-columns:1fr 1fr}.stat strong{font-size:1.6rem}.login-card{padding:25px}}
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
   <section id="login-view" class="login-wrap">
@@ -169,8 +170,23 @@
         </select>
         <select id="filter-shift" aria-label="Filtrar por plantão"><option value="">Todos os plantões</option>
         </select>
-        <button id="export" class="btn ghost">Exportar CSV</button>
+        <button id="export" class="btn ghost" type="button">Exportar CSV</button>
       </div>
+      <section class="monitor-card" aria-labelledby="reports-title" style="margin:14px 0 20px">
+        <h3 id="reports-title">Relatórios e listas para publicação</h3>
+        <p>Gere listas em ordem alfabética, com filtros independentes dos filtros da tabela. As listas para publicação não incluem CPF, telefone, e-mail, protocolo ou observações pessoais.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin:12px 0">
+          <div><label for="report-hospital">Hospital do relatório</label><select id="report-hospital"><option value="">Todos os hospitais</option><option value="Palmas — Hospital Geral de Palmas">Palmas — HGP</option><option value="Araguaína — Hospital Regional de Araguaína">Araguaína</option><option value="Gurupi — Hospital Regional de Gurupi">Gurupi</option><option value="Paraíso do Tocantins — Hospital Regional de Paraíso">Paraíso do Tocantins</option><option value="Porto Nacional — Hospital Regional de Porto Nacional">Porto Nacional</option><option value="Augustinópolis — Hospital Regional de Augustinópolis">Augustinópolis</option></select></div>
+          <div><label for="report-shift">Plantão do relatório</label><select id="report-shift"><option value="">Todos os plantões</option></select></div>
+        </div>
+        <div class="header-actions" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px">
+          <button id="report-all-xlsx" class="btn primary" type="button">Excel · Inscritos</button>
+          <button id="report-all-pdf" class="btn ghost" type="button">PDF · Inscritos</button>
+          <button id="report-accepted-xlsx" class="btn primary" type="button">Excel · Aceitos e escalados</button>
+          <button id="report-accepted-pdf" class="btn ghost" type="button">PDF · Aceitos e escalados</button>
+        </div>
+        <p class="muted" style="margin-top:10px">A lista de aceitos considera os status “Confirmado” e “Escalado”. Hospital e plantão mostram a designação final quando definida.</p>
+      </section>
       <div class="table-wrap">
         <div id="loading" class="loading">Carregando inscrições…</div>
         <table id="table" class="table hidden">
@@ -237,7 +253,9 @@
     const settingsValues = {valores_cargos:{}, valores_cargos_24h:{}};
     const formatMoney = value => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(value));
     const shiftTitle = value => SHIFT_OPTIONS.find(option => option.value === value)?.title || value || 'Ainda não definido';
-    $('filter-shift').insertAdjacentHTML('beforeend', SHIFT_OPTIONS.map(option => `<option value="${esc(option.value)}">${esc(option.title)}</option>`).join(''));
+    const shiftOptionsHtml = SHIFT_OPTIONS.map(option => `<option value="${esc(option.value)}">${esc(option.title)}</option>`).join('');
+    $('filter-shift').insertAdjacentHTML('beforeend', shiftOptionsHtml);
+    $('report-shift').insertAdjacentHTML('beforeend', shiftOptionsHtml);
 
     function showNotice(message, isError=false) {
       const el=$('notice'); el.textContent=message; el.className='notice'+(isError?' error':''); el.classList.remove('hidden');
@@ -613,6 +631,75 @@
       $('detail-modal').classList.add('hidden');
       render(); await loadAuditLog(); showNotice(`Resultado e escala de ${item.nome} atualizados.`);
     }
+
+    const alphabetic = rows => [...rows].sort((a,b) => String(a.nome || '').localeCompare(String(b.nome || ''),'pt-BR',{sensitivity:'base'}));
+    function reportRows(acceptedOnly) {
+      const hospital = $('report-hospital').value;
+      const shift = $('report-shift').value;
+      return alphabetic(registrations.filter(r => {
+        if (acceptedOnly && !['confirmado','escalado'].includes(r.status)) return false;
+        const hospitalMatches = !hospital || (acceptedOnly
+          ? r.unidade_escalada === hospital
+          : (r.hospitais || []).includes(hospital) || r.unidade_escalada === hospital);
+        const shiftMatches = !shift || (acceptedOnly
+          ? r.plantao_escalado === shift
+          : (r.plantoes || []).includes(shift) || r.plantao_escalado === shift);
+        return hospitalMatches && shiftMatches;
+      }));
+    }
+    const publicReportRows = (rows, acceptedOnly) => alphabetic(rows).map((r,index) => ({
+      'Nº': index + 1,
+      'Nome': r.nome || '',
+      'Profissão': r.profissao || '',
+      'Resultado': statusLabel[r.status] || r.status || '',
+      'Hospital designado': r.unidade_escalada || (acceptedOnly ? 'A definir' : ''),
+      'Plantão designado': r.plantao_escalado || (acceptedOnly ? 'A definir' : ''),
+      ...(!acceptedOnly ? {'Hospitais de interesse': (r.hospitais || []).join(' | '), 'Plantões de interesse': (r.plantoes || []).join(' | ')} : {})
+    }));
+    function exportReportExcel(acceptedOnly) {
+      const rows = reportRows(acceptedOnly);
+      if (!rows.length) { showNotice(acceptedOnly ? 'Não há inscrições aceitas ou escaladas para exportar com esses filtros.' : 'Não há inscrições para exportar com esses filtros.', true); return; }
+      if (!window.XLSX) { showNotice('A biblioteca de Excel não carregou. Atualize a página e tente novamente.', true); return; }
+      const data = publicReportRows(rows, acceptedOnly);
+      const ws = XLSX.utils.json_to_sheet(data);
+      ws['!cols'] = Object.keys(data[0]).map(key => ({wch: Math.min(42, Math.max(key.length + 2, ...data.map(row => String(row[key] ?? '').length + 2))}));
+      ws['!autofilter'] = {ref: XLSX.utils.encode_range({s:{r:0,c:0},e:{r:data.length,c:Object.keys(data[0]).length-1}})};
+      ws['!freeze'] = {xSplit:0,ySplit:1};
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, acceptedOnly ? 'Lista de aceitos' : 'Lista de inscritos');
+      const summary = XLSX.utils.aoa_to_sheet([
+        ['PLANTÃO TO SAÚDE'],
+        [acceptedOnly ? 'LISTA DE PROFISSIONAIS ACEITOS / ESCALADOS' : 'LISTA DE PROFISSIONAIS INSCRITOS'],
+        ['Gerado em', new Date().toLocaleString('pt-BR')],
+        ['Total de registros', data.length],
+        ['Ordenação', 'Ordem alfabética pelo nome'],
+        ['Hospital filtrado', $('report-hospital').value || 'Todos os hospitais'],
+        ['Plantão filtrado', $('report-shift').value ? shiftTitle($('report-shift').value) : 'Todos os plantões'],
+        ['Privacidade', 'Relatório sem CPF, telefone, e-mail, protocolo ou observações pessoais.']
+      ]);
+      summary['!cols'] = [{wch:28},{wch:76}];
+      XLSX.utils.book_append_sheet(wb, summary, 'Informações');
+      const suffix = [$('report-hospital').value ? $('report-hospital').value.split(' — ')[0].toLowerCase().replace(/[^a-z0-9]+/g,'-') : '', $('report-shift').value ? 'plantao-' + $('report-shift').selectedOptions[0].textContent.replace(/[^a-z0-9]+/gi,'-').toLowerCase() : ''].filter(Boolean).join('-');
+      XLSX.writeFile(wb, (acceptedOnly ? 'plantao-to-saude-lista-aceitos' : 'plantao-to-saude-lista-inscritos') + (suffix ? '-' + suffix : '') + '.xlsx');
+      showNotice('Relatório Excel gerado em ordem alfabética com os filtros selecionados.');
+    }
+    function exportReportPdf(acceptedOnly) {
+      const rows = reportRows(acceptedOnly);
+      if (!rows.length) { showNotice(acceptedOnly ? 'Não há inscrições aceitas ou escaladas para publicar com esses filtros.' : 'Não há inscrições para publicar com esses filtros.', true); return; }
+      const w = window.open('', '_blank');
+      if (!w) { showNotice('Permita pop-ups para gerar o relatório em PDF.', true); return; }
+      const data = publicReportRows(rows, acceptedOnly);
+      const columns = Object.keys(data[0]);
+      const baseTitle = acceptedOnly ? 'Lista de profissionais aceitos e escalados' : 'Lista de profissionais inscritos';
+      const selectedHospital = $('report-hospital').value;
+      const selectedShift = $('report-shift').value;
+      const reportScope = [selectedHospital, selectedShift ? shiftTitle(selectedShift) : ''].filter(Boolean).join(' · ');
+      const title = reportScope ? baseTitle + ' — ' + reportScope : baseTitle;
+      const htmlEscape = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+      w.document.write('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>'+htmlEscape(title)+'</title><style>@page{size:A4 landscape;margin:12mm}body{font:11px Arial,sans-serif;color:#183246}header{border-bottom:3px solid #087e8b;padding-bottom:10px;margin-bottom:16px}h1{font-size:20px;margin:0 0 5px;color:#003d66}p{margin:4px 0;color:#526b79}.meta{font-size:10px}table{width:100%;border-collapse:collapse;table-layout:auto}thead{display:table-header-group}tr{break-inside:avoid}th{background:#eaf3f7;color:#003d66;text-align:left}th,td{border:1px solid #cbd8df;padding:6px;vertical-align:top;overflow-wrap:anywhere}tbody tr:nth-child(even){background:#f7fafb}footer{margin-top:12px;font-size:9px;color:#526b79}@media print{button{display:none}}</style></head><body><header><h1>Plantão TO Saúde</h1><strong>'+htmlEscape(title)+'</strong><p class="meta">Total: '+data.length+' · Ordem alfabética pelo nome · Gerado em '+htmlEscape(new Date().toLocaleString('pt-BR'))+'</p></header><table><thead><tr>'+columns.map(k=>'<th>'+htmlEscape(k)+'</th>').join('')+'</tr></thead><tbody>'+data.map(row=>'<tr>'+columns.map(k=>'<td>'+htmlEscape(row[k])+'</td>').join('')+'</tr>').join('')+'</tbody></table><footer>Documento para conferência/publicação institucional. Não contém CPF, telefone, e-mail, protocolo ou observações pessoais.</footer><script>window.onload=function(){window.print()}<\/script></body></html>');
+      w.document.close();
+    }
+
     function exportCsv() {
       const rows=filtered(); if(!rows.length){showNotice('Não há inscrições para exportar.',true);return;}
       const header=['Protocolo','Nome','CPF','Nascimento','Telefone','E-mail','Profissão','Registro','Servidor do Estado','Órgão de lotação','Setor de lotação','Hospitais de interesse','Plantões de interesse','Hospital escalado','Plantão escalado','Pagamento previsto','Observações','Declaração','Status','Criado em'];
@@ -638,6 +725,12 @@
       if (event.target.checked) autoRefreshTimer = setInterval(load, 60000);
     });
     $('refresh').addEventListener('click',load); $('export-top').addEventListener('click',exportCsv); $('search').addEventListener('input',()=>{currentPage=1;render();}); $('filter-status').addEventListener('change',()=>{currentPage=1;render();}); $('filter-hospital').addEventListener('change',()=>{currentPage=1;render();}); $('filter-shift').addEventListener('change',()=>{currentPage=1;render();}); $('export').addEventListener('click',exportCsv);
+    $('report-hospital').addEventListener('change', () => showNotice('Filtro de hospital do relatório atualizado.'));
+    $('report-shift').addEventListener('change', () => showNotice('Filtro de plantão do relatório atualizado.'));
+    $('report-all-xlsx').addEventListener('click',()=>exportReportExcel(false));
+    $('report-all-pdf').addEventListener('click',()=>exportReportPdf(false));
+    $('report-accepted-xlsx').addEventListener('click',()=>exportReportExcel(true));
+    $('report-accepted-pdf').addEventListener('click',()=>exportReportPdf(true));
     client.auth.getSession().then(async({data})=>{
       if(data.session){$('user-email').textContent=data.session.user?.email||'';$('login-view').classList.add('hidden');$('app-view').classList.remove('hidden');await Promise.all([load(), loadSettings(), loadAdminAccess(), loadAuditLog()]);}
     });
