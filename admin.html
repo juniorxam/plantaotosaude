@@ -490,7 +490,7 @@
     async function saveAdminAccess(email, active) {
       const feedback = $('admin-access-feedback');
       const normalizedEmail = String(email || '').trim().toLowerCase();
-      if (!normalizedEmail || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(normalizedEmail)) {
+      if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
         feedback.textContent = 'Informe um endereço de e-mail válido.';
         feedback.style.color = 'var(--danger)';
         return;
