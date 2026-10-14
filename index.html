@@ -868,11 +868,10 @@
         <div class="section-heading">
           <p class="section-kicker">Rede hospitalar</p>
           <h2>Unidades participantes</h2>
-          <p>Seis unidades integram a mobilização. Você pode indicar mais de uma cidade de interesse.</p>
+          <p>As unidades participantes são atualizadas pela gestão. Você pode indicar mais de uma cidade de interesse.</p>
         </div>
         <div class="network-head"><span class="network-label">Rede estadual · Plantão TO Saúde</span><p class="network-note">Atuação temporária · jornadas de 12 horas</p></div>
-        <div class="hospital-grid">
-          <article class="hospital-card"><div class="hospital-top"><span class="hospital-city">Palmas</span><span class="hospital-tag">Capital</span></div><h3>Hospital Geral de Palmas</h3><p>Unidade hospitalar de referência na capital.</p></article>
+        <div class="hospital-grid" id="public-hospital-cards"><p>Carregando unidades participantes…</p></div><h3>Hospital Geral de Palmas</h3><p>Unidade hospitalar de referência na capital.</p></article>
           <article class="hospital-card"><div class="hospital-top"><span class="hospital-city">Araguaína</span><span class="hospital-tag">Norte</span></div><h3>Hospital Regional de Araguaína</h3><p>Unidade participante da mobilização na região norte.</p></article>
           <article class="hospital-card"><div class="hospital-top"><span class="hospital-city">Gurupi</span><span class="hospital-tag">Sul</span></div><h3>Hospital Regional de Gurupi</h3><p>Unidade participante da mobilização na região sul.</p></article>
           <article class="hospital-card"><div class="hospital-top"><span class="hospital-city">Paraíso do Tocantins</span><span class="hospital-tag">Centro</span></div><h3>Hospital Regional de Paraíso</h3><p>Unidade participante da mobilização na região central.</p></article>
@@ -1181,6 +1180,14 @@
           const hospitalOptions = document.querySelector('#hospital-options');
           const hospitalFieldset = document.querySelector('#hospital-fieldset');
           const escapeHtml = value => String(value ?? '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+          const publicHospitalCards = document.querySelector('#public-hospital-cards');
+          const hospitalIntro = document.querySelector('#hospitais .section-heading p:not(.section-kicker)');
+          if (hospitalIntro && configuredHospitals.length) hospitalIntro.textContent = configuredHospitals.length + (configuredHospitals.length === 1 ? ' unidade participa' : ' unidades participam') + ' da mobilização. Você pode indicar mais de uma cidade de interesse.';
+          if (publicHospitalCards && configuredHospitals.length) {
+            publicHospitalCards.innerHTML = configuredHospitals.map(h => '<article class="hospital-card"><div class="hospital-top"><span class="hospital-city">' + escapeHtml(h.cidade || '') + '</span><span class="hospital-tag">Participante</span></div><h3>' + escapeHtml(h.nome || '') + '</h3><p>Unidade participante da mobilização Plantão TO Saúde.</p></article>').join('');
+          } else if (publicHospitalCards) {
+            publicHospitalCards.innerHTML = '<p>As unidades participantes não estão disponíveis no momento.</p>';
+          }
           if (hospitalOptions && configuredHospitals.length) {
             hospitalOptions.innerHTML = configuredHospitals.map(h => {
               const city = String(h.cidade || '').trim(), name = String(h.nome || '').trim();
