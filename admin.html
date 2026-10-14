@@ -195,6 +195,17 @@
         </select>
         <button id="export" class="btn ghost">Exportar CSV</button>
       </div>
+      <section class="monitor-card" aria-labelledby="reports-title" style="margin:14px 0 20px">
+        <h3 id="reports-title">Relatórios e listas para publicação</h3>
+        <p>Os relatórios são organizados em ordem alfabética pelo nome. As listas para publicação não incluem CPF, telefone, e-mail, protocolo ou observações pessoais.</p>
+        <div class="header-actions" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px">
+          <button id="report-all-xlsx" class="btn primary" type="button">Excel · Inscritos</button>
+          <button id="report-all-pdf" class="btn ghost" type="button">PDF · Inscritos</button>
+          <button id="report-accepted-xlsx" class="btn primary" type="button">Excel · Aceitos e escalados</button>
+          <button id="report-accepted-pdf" class="btn ghost" type="button">PDF · Aceitos e escalados</button>
+        </div>
+        <p class="muted" style="margin-top:10px">A lista de aceitos considera os status “Confirmado” e “Escalado”. Hospital e plantão aparecem quando já foram definidos pela gestão.</p>
+      </section>
       <div class="table-wrap">
         <div id="loading" class="loading">Carregando inscrições…</div>
         <table id="table" class="table hidden">
@@ -230,6 +241,7 @@
     </div>
   </section>
 
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL = 'https://jyrzbfnaitdmilxxcbyv.supabase.co';
@@ -712,6 +724,55 @@
       const url=URL.createObjectURL(blob), a=document.createElement('a'); a.href=url; a.download='inscricoes-plantao-to-saude.csv'; a.click(); URL.revokeObjectURL(url);
     }
 
+    const alphabetic = rows => [...rows].sort((a,b) => String(a.nome || '').localeCompare(String(b.nome || ''),'pt-BR',{sensitivity:'base'}));
+    const acceptedRows = () => alphabetic(registrations.filter(r => ['confirmado','escalado'].includes(r.status)));
+    const publicReportRows = (rows, acceptedOnly) => alphabetic(rows).map((r,index) => ({
+      'Nº': index + 1,
+      'Nome': r.nome || '',
+      'Profissão': r.profissao || '',
+      'Resultado': statusLabel[r.status] || r.status || '',
+      'Hospital designado': r.unidade_escalada || (acceptedOnly ? 'A definir' : ''),
+      'Plantão designado': r.plantao_escalado || (acceptedOnly ? 'A definir' : ''),
+      ...(!acceptedOnly ? {'Hospitais de interesse': (r.hospitais || []).join(' | '), 'Plantões de interesse': (r.plantoes || []).join(' | ')} : {})
+    }));
+    function exportReportExcel(acceptedOnly) {
+      const rows = acceptedOnly ? acceptedRows() : alphabetic(registrations);
+      if (!rows.length) { showNotice(acceptedOnly ? 'Não há inscrições aceitas ou escaladas para exportar.' : 'Não há inscrições para exportar.', true); return; }
+      if (!window.XLSX) { showNotice('A biblioteca de Excel não carregou. Atualize a página e tente novamente.', true); return; }
+      const data = publicReportRows(rows, acceptedOnly);
+      const ws = XLSX.utils.json_to_sheet(data);
+      ws['!cols'] = Object.keys(data[0]).map(key => ({wch: Math.min(42, Math.max(key.length + 2, ...data.map(row => String(row[key] ?? '').length + 2)))}));
+      ws['!autofilter'] = {ref: XLSX.utils.encode_range({s:{r:0,c:0},e:{r:data.length,c:Object.keys(data[0]).length-1}})};
+      ws['!freeze'] = {xSplit:0,ySplit:1};
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, acceptedOnly ? 'Lista de aceitos' : 'Lista de inscritos');
+      const summary = XLSX.utils.aoa_to_sheet([
+        ['PLANTÃO TO SAÚDE'],
+        [acceptedOnly ? 'LISTA DE PROFISSIONAIS ACEITOS / ESCALADOS' : 'LISTA DE PROFISSIONAIS INSCRITOS'],
+        ['Gerado em', new Date().toLocaleString('pt-BR')],
+        ['Total de registros', data.length],
+        ['Ordenação', 'Ordem alfabética pelo nome'],
+        ['Privacidade', 'Relatório sem CPF, telefone, e-mail, protocolo ou observações pessoais.']
+      ]);
+      summary['!cols'] = [{wch:28},{wch:76}];
+      XLSX.utils.book_append_sheet(wb, summary, 'Informações');
+      XLSX.writeFile(wb, acceptedOnly ? 'plantao-to-saude-lista-aceitos.xlsx' : 'plantao-to-saude-lista-inscritos.xlsx');
+      showNotice('Relatório Excel gerado em ordem alfabética.');
+    }
+    function exportReportPdf(acceptedOnly) {
+      const rows = acceptedOnly ? acceptedRows() : alphabetic(registrations);
+      if (!rows.length) { showNotice(acceptedOnly ? 'Não há inscrições aceitas ou escaladas para publicar.' : 'Não há inscrições para publicar.', true); return; }
+      const w = window.open('', '_blank');
+      if (!w) { showNotice('Permita pop-ups para gerar o relatório em PDF.', true); return; }
+      const data = publicReportRows(rows, acceptedOnly);
+      const columns = Object.keys(data[0]);
+      const title = acceptedOnly ? 'Lista de profissionais aceitos e escalados' : 'Lista de profissionais inscritos';
+      const htmlEscape = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+      w.document.write('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>'+htmlEscape(title)+'</title><style>'+
+        '@page{size:A4 landscape;margin:12mm}body{font:11px Arial,sans-serif;color:#183246}header{border-bottom:3px solid #087e8b;padding-bottom:10px;margin-bottom:16px}h1{font-size:20px;margin:0 0 5px;color:#003d66}p{margin:4px 0;color:#526b79}.meta{font-size:10px}table{width:100%;border-collapse:collapse;table-layout:auto}thead{display:table-header-group}tr{break-inside:avoid}th{background:#eaf3f7;color:#003d66;text-align:left}th,td{border:1px solid #cbd8df;padding:6px;vertical-align:top;overflow-wrap:anywhere}tbody tr:nth-child(even){background:#f7fafb}footer{margin-top:12px;font-size:9px;color:#526b79}@media print{button{display:none}}</style></head><body><header><h1>Plantão TO Saúde</h1><strong>'+htmlEscape(title)+'</strong><p class="meta">Total: '+data.length+' · Ordem alfabética pelo nome · Gerado em '+htmlEscape(new Date().toLocaleString('pt-BR'))+'</p></header><table><thead><tr>'+columns.map(k=>'<th>'+htmlEscape(k)+'</th>').join('')+'</tr></thead><tbody>'+data.map(row=>'<tr>'+columns.map(k=>'<td>'+htmlEscape(row[k])+'</td>').join('')+'</tr>').join('')+'</tbody></table><footer>Documento para conferência/publicação institucional. Não contém CPF, telefone, e-mail, protocolo ou observações pessoais.</footer><script>window.onload=function(){window.print()}<\/script></body></html>');
+      w.document.close();
+    }
+
     $('page-prev').addEventListener('click', () => { if (currentPage > 1) { currentPage -= 1; render(); window.scrollTo({top:0,behavior:'smooth'}); } });
     $('page-next').addEventListener('click', () => { const totalPages = Math.max(1, Math.ceil(filtered().length / PAGE_SIZE)); if (currentPage < totalPages) { currentPage += 1; render(); window.scrollTo({top:0,behavior:'smooth'}); } });
     $('login-form').addEventListener('submit',login);
@@ -728,6 +789,10 @@
       if (event.target.checked) autoRefreshTimer = setInterval(load, 60000);
     });
     $('refresh').addEventListener('click',load); $('export-top').addEventListener('click',exportCsv); $('search').addEventListener('input',()=>{currentPage=1;render();}); $('filter-status').addEventListener('change',()=>{currentPage=1;render();}); $('filter-hospital').addEventListener('change',()=>{currentPage=1;render();}); $('filter-shift').addEventListener('change',()=>{currentPage=1;render();}); $('export').addEventListener('click',exportCsv);
+    $('report-all-xlsx').addEventListener('click',()=>exportReportExcel(false));
+    $('report-all-pdf').addEventListener('click',()=>exportReportPdf(false));
+    $('report-accepted-xlsx').addEventListener('click',()=>exportReportExcel(true));
+    $('report-accepted-pdf').addEventListener('click',()=>exportReportPdf(true));
     client.auth.getSession().then(async({data})=>{
       if(data.session) await routeAuthenticatedUser(data.session.user);
     });
