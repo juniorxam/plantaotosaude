@@ -32,8 +32,9 @@
     $('cpf').addEventListener('input',e=>e.target.value=maskCpf(e.target.value));
     $('protocol-input').addEventListener('input',e=>e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g,'').slice(0,64));
     $('lookup-form').addEventListener('submit',async e=>{
-      e.preventDefault();const cpf=onlyDigits($('cpf').value);$('feedback').textContent='';$('result').classList.add('hidden');
+      e.preventDefault();const cpf=onlyDigits($('cpf').value);const protocolo=$('protocol-input').value.trim().toUpperCase();$('feedback').textContent='';$('result').classList.add('hidden');
       if(!validCpf(cpf)){$('feedback').textContent='Informe um CPF válido.';return}
+      if(protocolo.length<6||protocolo.length>64||!/^[A-Z0-9-]+$/.test(protocolo)){$('feedback').textContent='Informe o protocolo recebido após a inscrição.';return}
       const button=$('submit');button.disabled=true;button.textContent='Consultando…';
       try{
         const response=await fetch(SUPABASE_URL+'/functions/v1/consultar-resultado-plantao',{method:'POST',headers:{apikey:SUPABASE_PUBLISHABLE_KEY,'Content-Type':'application/json'},body:JSON.stringify({cpf})});
