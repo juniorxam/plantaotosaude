@@ -920,9 +920,8 @@
           <form class="form-card" id="registration-form" novalidate>
             <div class="form-notice"><span aria-hidden="true">⚠</span><span><strong>Importante:</strong> só envie esta inscrição se você não for realizar a prova do concurso da SES-TO em 01/11/2026.</span></div>
             <section class="result-lookup" aria-labelledby="lookup-title">
-              <div><strong id="lookup-title">Já fez sua inscrição?</strong><p>Consulte pelo CPF o status e, quando definidos, o hospital, o plantão e o valor previsto.</p></div>
-              <div class="lookup-controls"><input id="lookup-cpf" type="text" inputmode="numeric" maxlength="14" placeholder="CPF" aria-label="CPF para consulta"><button id="lookup-submit" class="btn" type="button">Consultar resultado</button></div>
-              <p id="lookup-feedback" class="lookup-feedback" role="status" aria-live="polite"></p>
+              <div><strong id="lookup-title">Já fez sua inscrição?</strong><p>Acompanhe o status, a escala e o pagamento previsto usando seu CPF e protocolo.</p></div>
+              <div class="lookup-controls"><a class="btn" href="/acompanhamento.html" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none">Acompanhar inscrição →</a></div>
             </section>
             <section id="public-selection-config" aria-live="polite" style="margin:0 0 18px;padding:16px 18px;border:1px solid #cfe2eb;border-radius:14px;background:#f3f9fc">
               <strong style="display:block;color:#003d66;font-size:1rem">Prazo e informações da seleção</strong>
@@ -1621,25 +1620,6 @@
         }
       });
 
-      const lookupCpf = document.querySelector('#lookup-cpf');
-      const lookupSubmit = document.querySelector('#lookup-submit');
-      const lookupFeedback = document.querySelector('#lookup-feedback');
-      lookupCpf?.addEventListener('input', event => { event.target.value = maskCpf(event.target.value); });
-      lookupSubmit?.addEventListener('click', async () => {
-        const cpf = onlyDigits(lookupCpf.value);
-        lookupFeedback.textContent = '';
-        if (!isValidCpf(cpf)) { lookupFeedback.textContent = 'Informe um CPF válido para consultar.'; return; }
-        lookupSubmit.disabled = true; lookupSubmit.textContent = 'Consultando…';
-        try {
-          const response = await fetch(SUPABASE_URL + '/functions/v1/consultar-resultado-plantao', { method: 'POST', headers: { apikey: SUPABASE_PUBLISHABLE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ cpf }) });
-          const result = await response.json();
-          if (!response.ok) throw new Error(result?.message || 'Falha na consulta');
-          const labels = { pendente: 'Inscrição recebida e em análise', confirmado: 'Inscrição aceita', escalado: 'Inscrição aceita e escalada', recusado: 'Não selecionado nesta etapa' };
-          const details = result.encontrada ? [result.unidade_escalada && `Hospital: ${result.unidade_escalada}`, result.plantao_escalado && `Plantão: ${result.plantao_escalado}`, result.valor_pagamento != null && `Pagamento previsto: ${new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(result.valor_pagamento))}`].filter(Boolean) : [];
-          lookupFeedback.textContent = result.encontrada ? `${labels[result.status] || 'Status: ' + result.status}. Protocolo: ${result.protocolo || 'não informado'}.${details.length ? ' ' + details.join(' · ') : ''}` : 'Não encontramos uma inscrição para este CPF.';
-        } catch (_) { lookupFeedback.textContent = 'Não foi possível consultar agora. Tente novamente em instantes.'; }
-        finally { lookupSubmit.disabled = false; lookupSubmit.textContent = 'Consultar resultado'; }
-      });
       navToggle.addEventListener('click', () => {
         const isOpen = navLinks.classList.toggle('is-open');
         navToggle.setAttribute('aria-expanded', String(isOpen));
