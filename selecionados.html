@@ -45,7 +45,7 @@ async function verifyAdmin(){
  const {data:{user},error:userError}=await client.auth.getUser();
  if(userError||!user){await client.auth.signOut();$('login-view').classList.remove('hidden');return false}
  if(user.app_metadata?.must_change_password){location.href='/admin.html';return false}
- const {data:admin,error}=await client.from('admin_users').select('email,ativo').eq('email',user.email).maybeSingle();
+ const {data:admin,error}=await client.from('admin_users').select('email,ativo').ilike('email',user.email).maybeSingle();
  if(error||!admin||admin.ativo!==true||user.app_metadata?.admin_access_revoked){await client.auth.signOut();$('login-view').classList.remove('hidden');$('login-error').textContent='Acesso não autorizado ou desativado. Entre pela gestão geral ou contate um administrador.';$('login-error').classList.remove('hidden');return false}
  currentUser=user;$('login-view').classList.add('hidden');$('app-view').classList.remove('hidden');return true;
 }
