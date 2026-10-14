@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
 <title>Plantão TO Saúde | Portal de documentos</title>
 <style>
 :root{--blue:#005a9c;--deep:#003d66;--teal:#00897b;--ink:#122b3b;--muted:#607583;--line:#dce7eb;--bg:#f4f7fa;--red:#b42318}
@@ -35,7 +35,7 @@ const SUPABASE_URL='https://jyrzbfnaitdmilxxcbyv.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_WDE_s2HYfWUCI3iuodaG4w_RFGGwm9m';
 const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 const endpoint=SUPABASE_URL+'/functions/v1/candidate-documents-portal';
-const token=new URLSearchParams(location.search).get('token')||'';
+const incomingToken=new URLSearchParams(location.search).get('token')||'';if(incomingToken){sessionStorage.setItem('candidatePortalToken',incomingToken);history.replaceState(null,'',location.pathname)}const token=incomingToken||sessionStorage.getItem('candidatePortalToken')||'';
 const $=id=>document.getElementById(id);
 const types=[{key:'rg',label:'RG / documento de identidade'},{key:'cpf',label:'CPF'},{key:'comprovante_bancario',label:'Comprovante bancário da conta'}];
 let candidate=null,documents=[],bank=null,expiresAt='';
