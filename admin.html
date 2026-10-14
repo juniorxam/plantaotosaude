@@ -494,31 +494,67 @@
       try {
         values12 = readValues('setting-values-grid', settingsValues.valores_cargos);
         values24 = readValues('setting-values-24h-grid', settingsValues.valores_cargos_24h);
-        hospitals = $('setting-hospitals').value.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => { const parts=line.split('|').map(part=>part.trim()); if(parts.length<2 || !parts[0] || !parts.slice(1).join(' | ')) throw new Error('Use Cidade | Nome do hospital em cada linha.'); const cidade=parts[0], nome=parts.slice(1).join(' | '); return {cidade,nome,valor:cidade+' — '+nome}; });
+        hospitals = $('setting-hospitals').value.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
+          const parts = line.split('|').map(part => part.trim());
+          if (parts.length < 2 || !parts[0] || !parts.slice(1).join(' | ')) throw new Error('Use Cidade | Nome do hospital em cada linha.');
+          const cidade = parts[0], nome = parts.slice(1).join(' | ');
+          return {cidade, nome, valor: cidade + ' — ' + nome};
+        });
         if (!hospitals.length) throw new Error('Cadastre pelo menos um hospital.');
         if (hospitals.length > 50) throw new Error('Cadastre no máximo 50 hospitais.');
-        if (new Set(hospitals.map(h=>h.valor.toLowerCase())).size !== hospitals.length) throw new Error('Há hospitais duplicados na lista.');
-      } catch (error) { feedback.textContent = error.message; feedback.style.color='var(--danger)'; return; }
-      button.disabled = true; button.textContent = 'Salvando…'; feedback.textContent = 'Salvando configurações…';
-      const {data:userData} = await client.auth.getUser();
-      const {error} = await client.from('plantao_configuracoes').update({
-        prazo_inscricao: deadline,
-        data_resultado: resultDate,
-        valores_cargos: values12,
-        valores_cargos_24h: values24,
-        hospitais,
-        updated_at: new Date().toISOString(),
-        updated_by: userData.user?.email || null
-      }).eq('id',true);
-      button.disabled = false; button.textContent = 'Salvar configurações';
-      if (error) {
-        feedback.textContent = 'Não foi possível salvar. Verifique se a migration já foi aplicada e se sua conta está autorizada como administradora.';
-        feedback.style.color='var(--danger)'; return;
+        if (new Set(hospitals.map(h => h.valor.toLowerCase())).size !== hospitals.length) throw new Error('Há hospitais duplicados na lista.');
+      } catch (error) {
+        feedback.textContent = error.message || 'Revise os dados informados.';
+        feedback.style.color = 'var(--danger)';
+        return;
       }
-      settingsValues.valores_cargos = values12; settingsValues.valores_cargos_24h = values24; settingsValues.hospitais = hospitals;
-      feedback.textContent = 'Configurações salvas. A página pública poderá exibir os valores após atualizar.';
-      feedback.style.color='var(--success)';
-      showNotice('Configurações da seleção salvas.');
+
+      button.disabled = true;
+      button.textContent = 'Salvando…';
+      feedback.textContent = 'Salvando configurações…';
+      feedback.style.color = 'var(--muted)';
+      const controller = new AbortController();
+      let timedOut = false;
+      const timeoutId = setTimeout(() => { timedOut = true; controller.abort(); }, 20000);
+      try {
+        const operation = (async () => {
+          const {data: userData, error: userError} = await client.auth.getUser();
+          if (userError) throw userError;
+          if (!userData?.user) throw new Error('Sua sessão expirou. Entre novamente no painel.');
+          const {data, error} = await client.from('plantao_configuracoes').update({
+            prazo_inscricao: deadline,
+            data_resultado: resultDate,
+            valores_cargos: values12,
+            valores_cargos_24h: values24,
+            hospitais,
+            updated_at: new Date().toISOString(),
+            updated_by: userData.user.email || null
+          }).eq('id', true).select('id,updated_at').abortSignal(controller.signal);
+          if (error) throw error;
+          if (!data || data.length === 0) throw new Error('Nenhuma configuração foi alterada. Confirme se sua conta está autorizada como administradora.');
+          return data[0];
+        })();
+        const saved = await Promise.race([
+          operation,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('A operação demorou mais de 20 segundos.')), 20000))
+        ]);
+        settingsValues.valores_cargos = values12;
+        settingsValues.valores_cargos_24h = values24;
+        settingsValues.hospitais = hospitals;
+        feedback.textContent = 'Configurações salvas e confirmadas no banco de dados.';
+        feedback.style.color = 'var(--success)';
+        showNotice('Configurações da seleção salvas.');
+      } catch (error) {
+        const message = timedOut || error?.name === 'AbortError'
+          ? 'A gravação demorou demais e foi interrompida. Atualize as configurações antes de tentar novamente para conferir se os hospitais foram salvos.'
+          : (error?.message || 'Erro inesperado ao salvar as configurações.');
+        feedback.textContent = message;
+        feedback.style.color = 'var(--danger)';
+      } finally {
+        clearTimeout(timeoutId);
+        button.disabled = false;
+        button.textContent = 'Salvar configurações';
+      }
     }
     async function loadAdminAccess() {
       const list = $('admin-access-list');
