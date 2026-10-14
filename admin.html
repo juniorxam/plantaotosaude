@@ -661,11 +661,14 @@
     }
     async function authorizeAndRoute(user) {
       const email = String(user?.email || '').trim().toLowerCase();
-      const { data: access, error } = await client.from('admin_users')
-        .select('email,ativo').eq('email', email).maybeSingle();
-      const forcedChange = user?.app_metadata?.must_change_password === true;
-      const revoked = user?.app_metadata?.admin_access_revoked === true;
-      if (error || !access || revoked || (!forcedChange && access.ativo !== true)) {
+      // A autorização é verificada no servidor com service_role; o navegador não depende
+      // de uma política SELECT de admin_users que pode bloquear usuários autenticados.
+      const { data: accessCheck, error } = await client.functions.invoke('manage-admin-account', {
+        body: { action: 'check-access' }
+      });
+      const forcedChange = accessCheck?.must_change_password === true;
+      const revoked = accessCheck?.revoked === true;
+      if (error || accessCheck?.error || !accessCheck?.exists || revoked || (!forcedChange && accessCheck?.active !== true)) {
         await client.auth.signOut({ scope: 'local' });
         $('login-form').classList.remove('hidden');
         $('first-access-form').classList.add('hidden');
