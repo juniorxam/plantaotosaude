@@ -97,17 +97,14 @@
     <div class="login-card">
       <div class="brand"><span class="mark">✚</span><span>Plantão TO Saúde</span></div>
       <h1>Acesso administrativo</h1>
-      <p class="lead">Entre com sua conta autorizada para consultar e atualizar as inscrições.</p>
+      <p class="lead">Entre com e-mail e senha de uma conta previamente autorizada por um administrador.</p>
       <form id="login-form">
         <label for="email">E-mail</label>
         <input id="email" type="email" autocomplete="username" required placeholder="seu@email.com">
         <label for="password">Senha</label>
         <input id="password" type="password" autocomplete="current-password" required placeholder="••••••••">
-        <button id="login-button" class="btn primary" type="submit">Entrar com e-mail</button>
-        <div class="login-divider"><span>ou</span></div>
-        <button id="github-login" class="btn github-btn" type="button" disabled title="Ative o provedor GitHub no Supabase para usar esta opção">GitHub indisponível — ativação pendente</button>
-        <button id="magic-link" class="btn primary" type="button" style="width:100%;margin-top:11px">Receber link por e-mail</button>
-        <p class="login-help">O GitHub só funcionará depois que o provedor GitHub for ativado no Supabase. Para acesso rápido, informe seu e-mail e receba um link.</p>
+        <button id="login-button" class="btn primary" type="submit">Entrar com senha</button>
+        <p class="login-help">A entrada é somente com e-mail e senha. Não há cadastro público nem envio de link de acesso por e-mail. O acesso ao painel depende de liberação prévia por um administrador.</p>
         <div id="login-error" class="error hidden" role="alert"></div>
       </form>
     </div>
@@ -161,7 +158,7 @@
       <section class="admin-tools" aria-label="Acessos administrativos">
         <article class="admin-tool">
           <h3>Acessos administrativos</h3>
-          <p>Libere um e-mail para que a pessoa entre com senha ou link mágico e tenha acesso ao painel. Você pode desativar o acesso quando necessário.</p>
+          <p>Libere ou desative o acesso de administradores. A liberação autoriza o painel, mas a pessoa também precisa ter uma conta de autenticação e senha cadastrada.</p>
           <div class="admin-access-form"><input id="admin-access-email" type="email" placeholder="novo.admin@email.com" aria-label="E-mail do novo administrador"><button id="admin-access-save" class="btn save" type="button">Liberar acesso</button></div>
           <p id="admin-access-feedback" class="muted" role="status" aria-live="polite"></p><div id="admin-access-list" class="admin-list"><span class="loading">Carregando acessos…</span></div>
         </article>
@@ -553,7 +550,7 @@
           feedback.style.color = 'var(--danger)';
           return;
         }
-        feedback.textContent = active ? 'Acesso liberado para ' + normalizedEmail + '. A pessoa já pode entrar por link mágico ou senha.' : 'Acesso de ' + normalizedEmail + ' desativado.';
+        feedback.textContent = active ? 'Acesso liberado para ' + normalizedEmail + '. A pessoa poderá entrar com senha se já tiver uma conta de autenticação cadastrada.' : 'Acesso de ' + normalizedEmail + ' desativado.';
         feedback.style.color = 'var(--success)';
         if (active) $('admin-access-email').value = '';
         await Promise.all([loadAdminAccess(), loadAuditLog()]);
@@ -654,41 +651,6 @@
       }
       $('login-button').disabled=false; $('login-button').textContent='Entrar com e-mail';
     }
-    async function loginWithGithub() {
-      $('login-error').classList.add('hidden');
-      const button = $('github-login'); button.disabled = true; button.textContent = 'Verificando GitHub…';
-      const { error } = await client.auth.signInWithOAuth({
-        provider: 'github',
-        options: { redirectTo: window.location.origin + window.location.pathname }
-      });
-      if (error) {
-        $('login-error').textContent = 'O login GitHub ainda não está habilitado no Supabase. Use o link por e-mail abaixo ou ative o provedor GitHub nas configurações do projeto.';
-        $('login-error').classList.remove('hidden');
-        button.disabled = false; button.textContent = 'Entrar com GitHub';
-      }
-    }
-    async function sendMagicLink() {
-      $('login-error').classList.add('hidden');
-      const email = $('email').value.trim();
-      if (!email || !email.includes('@')) {
-        $('login-error').textContent = 'Informe primeiro o e-mail autorizado no painel.';
-        $('login-error').classList.remove('hidden'); $('email').focus(); return;
-      }
-      const button = $('magic-link'); button.disabled = true; button.textContent = 'Enviando link…';
-      const { error } = await client.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: window.location.origin + window.location.pathname }
-      });
-      if (error) {
-        $('login-error').textContent = 'Não foi possível enviar o link. Verifique se o e-mail está autorizado e se o envio de e-mails do Supabase está configurado.';
-        $('login-error').classList.remove('hidden');
-      } else {
-        $('login-error').textContent = 'Link enviado. Verifique sua caixa de entrada e abra o link neste dispositivo.';
-        $('login-error').className = 'notice';
-      }
-      button.disabled = false; button.textContent = 'Receber link por e-mail';
-    }
-
     function updateAssignmentControls() {
       const status = $('assign-status')?.value;
       const allowed = status === 'confirmado' || status === 'escalado';
@@ -829,7 +791,6 @@
     $('admin-access-save').addEventListener('click',()=>{const email=$('admin-access-email').value.trim();if(!email){$('admin-access-feedback').textContent='Informe um e-mail.';return}saveAdminAccess(email,true);});
     $('admin-access-list').addEventListener('click',event=>{const button=event.target.closest('[data-admin-email]');if(button)saveAdminAccess(button.dataset.adminEmail,button.dataset.adminActive!=='true');});
     $('audit-refresh').addEventListener('click',loadAuditLog);
-    $('magic-link').addEventListener('click', sendMagicLink);
     $('logout').addEventListener('click',async()=>{await client.auth.signOut({scope:'local'});location.reload();});
     let autoRefreshTimer = null;
     $('auto-refresh').addEventListener('change', (event) => {
