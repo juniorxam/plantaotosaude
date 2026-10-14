@@ -97,6 +97,22 @@
     </div>
   </section>
 
+  <section id="first-access-view" class="login-wrap hidden">
+    <div class="login-card">
+      <div class="brand"><span class="mark">✚</span><span>Plantão TO Saúde</span></div>
+      <h1>Defina sua senha</h1>
+      <p class="lead">Por segurança, troque a senha temporária antes de acessar o painel.</p>
+      <form id="first-access-form">
+        <label for="new-password">Nova senha</label>
+        <input id="new-password" type="password" autocomplete="new-password" minlength="10" required placeholder="Mínimo de 10 caracteres">
+        <label for="confirm-password">Confirme a nova senha</label>
+        <input id="confirm-password" type="password" autocomplete="new-password" minlength="10" required placeholder="Repita a nova senha">
+        <button id="first-access-submit" class="btn primary" type="submit">Salvar nova senha</button>
+        <div id="first-access-error" class="error hidden" role="alert"></div>
+      </form>
+    </div>
+  </section>
+
   <section id="app-view" class="hidden">
     <header class="app-header">
       <div class="header-inner">
@@ -130,6 +146,14 @@
         <h4 style="margin:22px 0 4px;color:var(--deep)">Valores por cargo · plantão de 24 horas</h4>
         <p class="muted">Informe o valor específico de 24h. Ele não é calculado automaticamente a partir do valor de 12h.</p>
         <div id="setting-values-24h-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px"></div>
+        <h4 style="margin:24px 0 4px;color:var(--deep)">Informações públicas e privacidade</h4>
+        <p class="muted">Preencha somente as informações já validadas pela coordenação. Campos vazios não serão exibidos na página de inscrição.</p>
+        <div class="detail-grid" style="padding:0;grid-template-columns:repeat(2,minmax(0,1fr))">
+          <div><label for="setting-data-controller">Responsável pelo tratamento de dados</label><input id="setting-data-controller" type="text" maxlength="180" placeholder="Órgão ou responsável formal"></div>
+          <div><label for="setting-privacy-contact">Canal de contato sobre privacidade/LGPD</label><input id="setting-privacy-contact" type="text" maxlength="240" placeholder="E-mail, telefone ou canal oficial"></div>
+          <div><label for="setting-legal-basis">Base legal do tratamento</label><textarea id="setting-legal-basis" rows="3" maxlength="1000" placeholder="Base legal validada pela área responsável"></textarea></div>
+          <div><label for="setting-data-retention">Prazo de retenção dos dados</label><textarea id="setting-data-retention" rows="3" maxlength="500" placeholder="Prazo e critério de descarte definidos pela coordenação"></textarea></div>
+        </div>
         <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:18px">
           <button id="settings-reload" class="btn ghost" type="button">Descartar alterações</button>
           <button id="settings-save" class="btn primary" style="width:auto;margin:0" type="button">Salvar configurações</button>
@@ -171,6 +195,21 @@
         </select>
         <button id="export" class="btn ghost">Exportar CSV</button>
       </div>
+      <section class="monitor-card" aria-labelledby="reports-title" style="margin:14px 0 20px">
+        <h3 id="reports-title">Relatórios e listas para publicação</h3>
+        <p>Os relatórios são organizados em ordem alfabética pelo nome. As listas para publicação não incluem CPF, telefone, e-mail, protocolo ou observações pessoais.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin:12px 0">
+          <div><label for="report-hospital">Hospital do relatório</label><select id="report-hospital"><option value="">Todos os hospitais</option><option value="Palmas — Hospital Geral de Palmas">Palmas — HGP</option><option value="Araguaína — Hospital Regional de Araguaína">Araguaína</option><option value="Gurupi — Hospital Regional de Gurupi">Gurupi</option><option value="Paraíso do Tocantins — Hospital Regional de Paraíso">Paraíso do Tocantins</option><option value="Porto Nacional — Hospital Regional de Porto Nacional">Porto Nacional</option><option value="Augustinópolis — Hospital Regional de Augustinópolis">Augustinópolis</option></select></div>
+          <div><label for="report-shift">Plantão do relatório</label><select id="report-shift"><option value="">Todos os plantões</option></select></div>
+        </div>
+        <div class="header-actions" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px">
+          <button id="report-all-xlsx" class="btn primary" type="button">Excel · Inscritos</button>
+          <button id="report-all-pdf" class="btn ghost" type="button">PDF · Inscritos</button>
+          <button id="report-accepted-xlsx" class="btn primary" type="button">Excel · Aceitos e escalados</button>
+          <button id="report-accepted-pdf" class="btn ghost" type="button">PDF · Aceitos e escalados</button>
+        </div>
+        <p class="muted" style="margin-top:10px">A lista de aceitos considera os status “Confirmado” e “Escalado”. Hospital e plantão aparecem quando já foram definidos pela gestão.</p>
+      </section>
       <div class="table-wrap">
         <div id="loading" class="loading">Carregando inscrições…</div>
         <table id="table" class="table hidden">
@@ -206,6 +245,7 @@
     </div>
   </section>
 
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL = 'https://jyrzbfnaitdmilxxcbyv.supabase.co';
@@ -237,7 +277,9 @@
     const settingsValues = {valores_cargos:{}, valores_cargos_24h:{}};
     const formatMoney = value => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(value));
     const shiftTitle = value => SHIFT_OPTIONS.find(option => option.value === value)?.title || value || 'Ainda não definido';
-    $('filter-shift').insertAdjacentHTML('beforeend', SHIFT_OPTIONS.map(option => `<option value="${esc(option.value)}">${esc(option.title)}</option>`).join(''));
+    const shiftOptionsHtml = SHIFT_OPTIONS.map(option => `<option value="${esc(option.value)}">${esc(option.title)}</option>`).join('');
+    $('filter-shift').insertAdjacentHTML('beforeend', shiftOptionsHtml);
+    $('report-shift').insertAdjacentHTML('beforeend', shiftOptionsHtml);
 
     function showNotice(message, isError=false) {
       const el=$('notice'); el.textContent=message; el.className='notice'+(isError?' error':''); el.classList.remove('hidden');
@@ -382,7 +424,7 @@
     async function loadSettings() {
       const feedback = $('settings-feedback');
       feedback.textContent = 'Carregando configurações…';
-      const {data,error} = await client.from('plantao_configuracoes').select('prazo_inscricao,data_resultado,valores_cargos,valores_cargos_24h,updated_at').eq('id',true).maybeSingle();
+      const {data,error} = await client.from('plantao_configuracoes').select('prazo_inscricao,data_resultado,valores_cargos,valores_cargos_24h,responsavel_dados,contato_privacidade,base_legal_dados,prazo_retencao_dados,updated_at').eq('id',true).maybeSingle();
       if (error || !data) {
         feedback.textContent = 'Não foi possível carregar as configurações. Confirme se a migração de configurações já foi aplicada ao Supabase do Plantão TO Saúde.';
         feedback.style.color = 'var(--danger)';
@@ -390,6 +432,10 @@
       }
       $('setting-deadline').value = data.prazo_inscricao || '';
       $('setting-result-date').value = data.data_resultado || '';
+      $('setting-data-controller').value = data.responsavel_dados || '';
+      $('setting-privacy-contact').value = data.contato_privacidade || '';
+      $('setting-legal-basis').value = data.base_legal_dados || '';
+      $('setting-data-retention').value = data.prazo_retencao_dados || '';
       settingsValues.valores_cargos = data.valores_cargos || {};
       settingsValues.valores_cargos_24h = data.valores_cargos_24h || {};
       renderSettingInputs('setting-values-grid', settingsValues.valores_cargos);
@@ -426,6 +472,10 @@
         data_resultado: resultDate,
         valores_cargos: values12,
         valores_cargos_24h: values24,
+        responsavel_dados: $('setting-data-controller').value.trim() || null,
+        contato_privacidade: $('setting-privacy-contact').value.trim() || null,
+        base_legal_dados: $('setting-legal-basis').value.trim() || null,
+        prazo_retencao_dados: $('setting-data-retention').value.trim() || null,
         updated_at: new Date().toISOString(),
         updated_by: userData.user?.email || null
       }).eq('id',true);
@@ -448,10 +498,20 @@
     async function saveAdminAccess(email, active) {
       const feedback = $('admin-access-feedback');
       feedback.textContent = 'Salvando…';
-      const {error} = await client.rpc('manage_admin_access', {p_email: email, p_ativo: active});
-      if (error) { feedback.textContent = error.message?.includes('remover o próprio') ? 'Você não pode remover o próprio acesso.' : 'Não foi possível atualizar este acesso.'; feedback.style.color='var(--danger)'; return; }
-      feedback.textContent = active ? 'Acesso liberado. A pessoa já pode entrar por link mágico ou senha.' : 'Acesso desativado.'; feedback.style.color='var(--success)';
-      $('admin-access-email').value = ''; await Promise.all([loadAdminAccess(), loadAuditLog()]);
+      const {data, error} = await client.functions.invoke('manage-admin-account', {
+        body: { action: active ? 'grant' : 'revoke', email: email }
+      });
+      if (error || data?.error) {
+        const message = data?.error || error?.message || '';
+        feedback.textContent = message.includes('remover o próprio') ? 'Você não pode remover o próprio acesso.' : (message || 'Não foi possível atualizar este acesso.');
+        feedback.style.color='var(--danger)'; return;
+      }
+      feedback.textContent = active
+        ? 'Conta preparada com senha temporária 123456. O acesso só será ativado após a troca de senha.'
+        : 'Acesso desativado.';
+      feedback.style.color='var(--success)';
+      $('admin-access-email').value = '';
+      await Promise.all([loadAdminAccess(), loadAuditLog()]);
     }
     async function loadAuditLog() {
       const list = $('audit-list');
@@ -512,18 +572,66 @@
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') $('detail-modal').classList.add('hidden');
     });
+    async function routeAuthenticatedUser(user) {
+      $('login-view').classList.add('hidden');
+      $('app-view').classList.add('hidden');
+      $('first-access-view').classList.add('hidden');
+      if (user?.app_metadata?.must_change_password === true) {
+        $('first-access-view').classList.remove('hidden');
+        return;
+      }
+      const email = (user?.email || '').trim().toLowerCase();
+      const {data: access, error} = await client.from('admin_users').select('ativo').eq('email', email).maybeSingle();
+      if (error || access?.ativo !== true) {
+        await client.auth.signOut({scope:'local'});
+        $('login-view').classList.remove('hidden');
+        $('login-error').textContent = 'Este e-mail não possui acesso administrativo ativo.';
+        $('login-error').classList.remove('hidden');
+        return;
+      }
+      $('user-email').textContent = email;
+      $('app-view').classList.remove('hidden');
+      await Promise.all([load(), loadSettings(), loadAdminAccess(), loadAuditLog()]);
+    }
     async function login(event) {
       event.preventDefault(); $('login-error').classList.add('hidden'); $('login-button').disabled=true; $('login-button').textContent='Entrando…';
       const {data,error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});
       if(error){$('login-error').textContent='E-mail ou senha inválidos, ou acesso não autorizado.';$('login-error').classList.remove('hidden');}
-      else {
-        $('user-email').textContent=data.user?.email||'';
-        $('login-view').classList.add('hidden');
-        $('app-view').classList.remove('hidden');
-        await Promise.all([load(), loadSettings(), loadAdminAccess(), loadAuditLog()]);
-      }
+      else await routeAuthenticatedUser(data.user);
       $('login-button').disabled=false; $('login-button').textContent='Entrar com e-mail';
     }
+    $('first-access-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const feedback = $('first-access-error');
+      const password = $('new-password').value;
+      const confirm = $('confirm-password').value;
+      feedback.classList.add('hidden');
+      if (password.length < 10 || password === '123456') {
+        feedback.textContent = 'Use uma senha com pelo menos 10 caracteres, diferente da senha temporária.';
+        feedback.classList.remove('hidden'); return;
+      }
+      if (password !== confirm) {
+        feedback.textContent = 'As senhas não coincidem.';
+        feedback.classList.remove('hidden'); return;
+      }
+      const button = $('first-access-submit');
+      button.disabled = true; button.textContent = 'Salvando…';
+      const {data, error} = await client.functions.invoke('manage-admin-account', {
+        body: { action: 'complete-first-access', password }
+      });
+      if (error || data?.error) {
+        feedback.textContent = data?.error || error?.message || 'Não foi possível trocar a senha.';
+        feedback.classList.remove('hidden');
+        button.disabled = false; button.textContent = 'Salvar nova senha'; return;
+      }
+      const {data: refreshed, error: refreshError} = await client.auth.refreshSession();
+      if (refreshError || !refreshed?.user) {
+        await client.auth.signOut({scope:'local'});
+        location.reload(); return;
+      }
+      $('new-password').value = ''; $('confirm-password').value = '';
+      await routeAuthenticatedUser(refreshed.user);
+    });
     async function loginWithGithub() {
       $('login-error').classList.add('hidden');
       const button = $('github-login'); button.disabled = true; button.textContent = 'Verificando GitHub…';
@@ -622,6 +730,75 @@
       const url=URL.createObjectURL(blob), a=document.createElement('a'); a.href=url; a.download='inscricoes-plantao-to-saude.csv'; a.click(); URL.revokeObjectURL(url);
     }
 
+    const alphabetic = rows => [...rows].sort((a,b) => String(a.nome || '').localeCompare(String(b.nome || ''),'pt-BR',{sensitivity:'base'}));
+    function reportRows(acceptedOnly) {
+      const hospital = $('report-hospital').value;
+      const shift = $('report-shift').value;
+      return alphabetic(registrations.filter(r => {
+        if (acceptedOnly && !['confirmado','escalado'].includes(r.status)) return false;
+        const hospitalMatches = !hospital || (acceptedOnly
+          ? r.unidade_escalada === hospital
+          : (r.hospitais || []).includes(hospital) || r.unidade_escalada === hospital);
+        const shiftMatches = !shift || (acceptedOnly
+          ? r.plantao_escalado === shift
+          : (r.plantoes || []).includes(shift) || r.plantao_escalado === shift);
+        return hospitalMatches && shiftMatches;
+      }));
+    }
+    const publicReportRows = (rows, acceptedOnly) => alphabetic(rows).map((r,index) => ({
+      'Nº': index + 1,
+      'Nome': r.nome || '',
+      'Profissão': r.profissao || '',
+      'Resultado': statusLabel[r.status] || r.status || '',
+      'Hospital designado': r.unidade_escalada || (acceptedOnly ? 'A definir' : ''),
+      'Plantão designado': r.plantao_escalado || (acceptedOnly ? 'A definir' : ''),
+      ...(!acceptedOnly ? {'Hospitais de interesse': (r.hospitais || []).join(' | '), 'Plantões de interesse': (r.plantoes || []).join(' | ')} : {})
+    }));
+    function exportReportExcel(acceptedOnly) {
+      const rows = reportRows(acceptedOnly);
+      if (!rows.length) { showNotice(acceptedOnly ? 'Não há inscrições aceitas ou escaladas para exportar.' : 'Não há inscrições para exportar.', true); return; }
+      if (!window.XLSX) { showNotice('A biblioteca de Excel não carregou. Atualize a página e tente novamente.', true); return; }
+      const data = publicReportRows(rows, acceptedOnly);
+      const ws = XLSX.utils.json_to_sheet(data);
+      ws['!cols'] = Object.keys(data[0]).map(key => ({wch: Math.min(42, Math.max(key.length + 2, ...data.map(row => String(row[key] ?? '').length + 2)))}));
+      ws['!autofilter'] = {ref: XLSX.utils.encode_range({s:{r:0,c:0},e:{r:data.length,c:Object.keys(data[0]).length-1}})};
+      ws['!freeze'] = {xSplit:0,ySplit:1};
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, acceptedOnly ? 'Lista de aceitos' : 'Lista de inscritos');
+      const summary = XLSX.utils.aoa_to_sheet([
+        ['PLANTÃO TO SAÚDE'],
+        [acceptedOnly ? 'LISTA DE PROFISSIONAIS ACEITOS / ESCALADOS' : 'LISTA DE PROFISSIONAIS INSCRITOS'],
+        ['Gerado em', new Date().toLocaleString('pt-BR')],
+        ['Total de registros', data.length],
+        ['Ordenação', 'Ordem alfabética pelo nome'],
+        ['Hospital filtrado', $('report-hospital').value || 'Todos os hospitais'],
+        ['Plantão filtrado', $('report-shift').value ? shiftTitle($('report-shift').value) : 'Todos os plantões'],
+        ['Privacidade', 'Relatório sem CPF, telefone, e-mail, protocolo ou observações pessoais.']
+      ]);
+      summary['!cols'] = [{wch:28},{wch:76}];
+      XLSX.utils.book_append_sheet(wb, summary, 'Informações');
+      const suffix = [$('report-hospital').value ? $('report-hospital').value.split(' — ')[0].toLowerCase().replace(/[^a-z0-9]+/g,'-') : '', $('report-shift').value ? 'plantao-' + $('report-shift').selectedOptions[0].textContent.replace(/[^a-z0-9]+/gi,'-').toLowerCase() : ''].filter(Boolean).join('-');
+      XLSX.writeFile(wb, (acceptedOnly ? 'plantao-to-saude-lista-aceitos' : 'plantao-to-saude-lista-inscritos') + (suffix ? '-' + suffix : '') + '.xlsx');
+      showNotice('Relatório Excel gerado em ordem alfabética com os filtros selecionados.');
+    }
+    function exportReportPdf(acceptedOnly) {
+      const rows = reportRows(acceptedOnly);
+      if (!rows.length) { showNotice(acceptedOnly ? 'Não há inscrições aceitas ou escaladas para publicar.' : 'Não há inscrições para publicar.', true); return; }
+      const w = window.open('', '_blank');
+      if (!w) { showNotice('Permita pop-ups para gerar o relatório em PDF.', true); return; }
+      const data = publicReportRows(rows, acceptedOnly);
+      const columns = Object.keys(data[0]);
+      const baseTitle = acceptedOnly ? 'Lista de profissionais aceitos e escalados' : 'Lista de profissionais inscritos';
+      const selectedHospital = $('report-hospital').value;
+      const selectedShift = $('report-shift').value;
+      const reportScope = [selectedHospital, selectedShift ? shiftTitle(selectedShift) : ''].filter(Boolean).join(' · ');
+      const title = reportScope ? baseTitle + ' — ' + reportScope : baseTitle;
+      const htmlEscape = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+      w.document.write('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>'+htmlEscape(title)+'</title><style>'+
+        '@page{size:A4 landscape;margin:12mm}body{font:11px Arial,sans-serif;color:#183246}header{border-bottom:3px solid #087e8b;padding-bottom:10px;margin-bottom:16px}h1{font-size:20px;margin:0 0 5px;color:#003d66}p{margin:4px 0;color:#526b79}.meta{font-size:10px}table{width:100%;border-collapse:collapse;table-layout:auto}thead{display:table-header-group}tr{break-inside:avoid}th{background:#eaf3f7;color:#003d66;text-align:left}th,td{border:1px solid #cbd8df;padding:6px;vertical-align:top;overflow-wrap:anywhere}tbody tr:nth-child(even){background:#f7fafb}footer{margin-top:12px;font-size:9px;color:#526b79}@media print{button{display:none}}</style></head><body><header><h1>Plantão TO Saúde</h1><strong>'+htmlEscape(title)+'</strong><p class="meta">Total: '+data.length+' · Ordem alfabética pelo nome · Gerado em '+htmlEscape(new Date().toLocaleString('pt-BR'))+'</p></header><table><thead><tr>'+columns.map(k=>'<th>'+htmlEscape(k)+'</th>').join('')+'</tr></thead><tbody>'+data.map(row=>'<tr>'+columns.map(k=>'<td>'+htmlEscape(row[k])+'</td>').join('')+'</tr>').join('')+'</tbody></table><footer>Documento para conferência/publicação institucional. Não contém CPF, telefone, e-mail, protocolo ou observações pessoais.</footer><script>window.onload=function(){window.print()}<\/script></body></html>');
+      w.document.close();
+    }
+
     $('page-prev').addEventListener('click', () => { if (currentPage > 1) { currentPage -= 1; render(); window.scrollTo({top:0,behavior:'smooth'}); } });
     $('page-next').addEventListener('click', () => { const totalPages = Math.max(1, Math.ceil(filtered().length / PAGE_SIZE)); if (currentPage < totalPages) { currentPage += 1; render(); window.scrollTo({top:0,behavior:'smooth'}); } });
     $('login-form').addEventListener('submit',login);
@@ -638,8 +815,14 @@
       if (event.target.checked) autoRefreshTimer = setInterval(load, 60000);
     });
     $('refresh').addEventListener('click',load); $('export-top').addEventListener('click',exportCsv); $('search').addEventListener('input',()=>{currentPage=1;render();}); $('filter-status').addEventListener('change',()=>{currentPage=1;render();}); $('filter-hospital').addEventListener('change',()=>{currentPage=1;render();}); $('filter-shift').addEventListener('change',()=>{currentPage=1;render();}); $('export').addEventListener('click',exportCsv);
+    $('report-hospital').addEventListener('change', () => showNotice('Filtro de hospital do relatório atualizado.'));
+    $('report-shift').addEventListener('change', () => showNotice('Filtro de plantão do relatório atualizado.'));
+    $('report-all-xlsx').addEventListener('click',()=>exportReportExcel(false));
+    $('report-all-pdf').addEventListener('click',()=>exportReportPdf(false));
+    $('report-accepted-xlsx').addEventListener('click',()=>exportReportExcel(true));
+    $('report-accepted-pdf').addEventListener('click',()=>exportReportPdf(true));
     client.auth.getSession().then(async({data})=>{
-      if(data.session){$('user-email').textContent=data.session.user?.email||'';$('login-view').classList.add('hidden');$('app-view').classList.remove('hidden');await Promise.all([load(), loadSettings(), loadAdminAccess(), loadAuditLog()]);}
+      if(data.session) await routeAuthenticatedUser(data.session.user);
     });
   </script>
 </body>

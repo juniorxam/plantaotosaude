@@ -920,15 +920,14 @@
           <form class="form-card" id="registration-form" novalidate>
             <div class="form-notice"><span aria-hidden="true">⚠</span><span><strong>Importante:</strong> só envie esta inscrição se você não for realizar a prova do concurso da SES-TO em 01/11/2026.</span></div>
             <section class="result-lookup" aria-labelledby="lookup-title">
-              <div><strong id="lookup-title">Já fez sua inscrição?</strong><p>Consulte pelo CPF o status e, quando definidos, o hospital, o plantão e o valor previsto.</p></div>
-              <div class="lookup-controls"><input id="lookup-cpf" type="text" inputmode="numeric" maxlength="14" placeholder="CPF" aria-label="CPF para consulta"><button id="lookup-submit" class="btn" type="button">Consultar resultado</button></div>
-              <p id="lookup-feedback" class="lookup-feedback" role="status" aria-live="polite"></p>
+              <div><strong id="lookup-title">Já fez sua inscrição?</strong><p>Acompanhe o status, a escala e o pagamento previsto usando seu CPF e protocolo.</p></div>
+              <div class="lookup-controls"><a class="btn" href="/acompanhamento.html" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none">Acompanhar inscrição →</a></div>
             </section>
-            <section id="public-selection-config" aria-live="polite" style="margin:0 0 18px;padding:16px 18px;border:1px solid #cfe2eb;border-radius:14px;background:#f3f9fc">
-              <strong style="display:block;color:#003d66;font-size:1rem">Prazo e informações da seleção</strong>
-              <p id="public-deadline" style="margin:5px 0;color:#28495b">Consultando prazo de inscrição…</p>
-              <p id="public-result-date" style="margin:5px 0;color:#28495b"></p>
-              <div id="public-role-values" style="margin-top:10px"></div>
+            <section id="public-selection-config" aria-live="polite" hidden style="margin:0 0 18px;padding:16px 18px;border:1px solid #cfe2eb;border-radius:14px;background:#f3f9fc">
+              <strong style="display:block;color:#003d66;font-size:1rem">Informações da seleção</strong>
+              <p id="public-deadline" hidden style="margin:5px 0;color:#28495b"></p>
+              <p id="public-result-date" hidden style="margin:5px 0;color:#28495b"></p>
+              <div id="public-role-values" hidden style="margin-top:10px"></div>
             </section>
             <input type="hidden" name="website" value="" tabindex="-1" autocomplete="off" aria-hidden="true">
             <input type="hidden" name="form_started_at" id="form-started-at" value="">
@@ -1142,7 +1141,7 @@
         <div class="footer-brand"><img src="logo.svg" class="footer-logo" alt="" aria-hidden="true" /><span><strong>PLANTÃO TO</strong><small>SAÚDE</small></span></div>
         <p>Reforço profissional para os hospitais estaduais do Tocantins durante o concurso da SES-TO de 01/11/2026.</p>
       </div>
-      <div class="footer-contact">Mobilização temporária<br /><span>Plantão TO Saúde · Tocantins</span><small class="footer-disclaimer">Página de mobilização. Não substitui os canais oficiais da Secretaria da Saúde do Estado do Tocantins.</small></div>
+      <div class="footer-contact">Mobilização temporária<br /><span>Plantão TO Saúde · Tocantins</span><small class="footer-disclaimer">Página de mobilização. Não substitui os canais oficiais da Secretaria da Saúde do Estado do Tocantins.</small><br /><a href="/privacidade.html">Política de privacidade</a></div>
     </div>
   </footer>
 
@@ -1183,7 +1182,7 @@
         const money = (value) => Number(value).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
         const datePt = (value) => value ? new Intl.DateTimeFormat('pt-BR',{timeZone:'UTC',dateStyle:'long'}).format(new Date(value+'T00:00:00Z')) : '';
         try {
-          const response = await fetch(SUPABASE_URL + '/rest/v1/plantao_configuracoes?id=eq.true&select=prazo_inscricao,data_resultado,valores_cargos,valores_cargos_24h', {
+          const response = await fetch(SUPABASE_URL + '/rest/v1/plantao_configuracoes?id=eq.true&select=prazo_inscricao,data_resultado,valores_cargos,valores_cargos_24h,responsavel_dados,contato_privacidade,base_legal_dados,prazo_retencao_dados', {
             headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: 'Bearer ' + SUPABASE_PUBLISHABLE_KEY }
           });
           if (!response.ok) throw new Error('Configuração indisponível');
@@ -1191,17 +1190,36 @@
           const config = rows?.[0];
           if (!config) throw new Error('Configuração vazia');
           const deadline = config.prazo_inscricao;
-          deadlineLabel.textContent = deadline ? 'Inscrições até ' + datePt(deadline) + ', às 23h59 (horário do Tocantins).' : 'Prazo de inscrição ainda não definido.';
-          resultLabel.textContent = config.data_resultado ? 'Previsão de divulgação do resultado: ' + datePt(config.data_resultado) + '.' : 'Data do resultado: a ser divulgada pela gestão.';
+          const resultDate = config.data_resultado;
+          deadlineLabel.hidden = !deadline;
+          deadlineLabel.textContent = deadline ? 'Inscrições até ' + datePt(deadline) + ', às 23h59 (horário do Tocantins).' : '';
+          resultLabel.hidden = !resultDate;
+          resultLabel.textContent = resultDate ? 'Previsão de divulgação do resultado: ' + datePt(resultDate) + '.' : '';
           const rates12 = config.valores_cargos || {};
           const rates24 = config.valores_cargos_24h || {};
+          const escapePublic = value => String(value).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
           const renderRates = (values, duration) => {
-            const entries = Object.entries(values).filter(([,amount]) => amount !== null && amount !== '' && Number.isFinite(Number(amount)) && Number(amount) >= 0);
+            const entries = Object.entries(values || {}).filter(([,amount]) => amount !== null && amount !== '' && Number.isFinite(Number(amount)) && Number(amount) > 0);
             return entries.length
-              ? '<strong style="display:block;color:#003d66;margin:8px 0 4px">Plantões de ' + duration + ' horas</strong><ul style="margin:0;padding-left:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:4px 18px">' + entries.map(([role,amount]) => '<li>' + role.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])) + ': <strong>' + money(amount) + '</strong></li>').join('') + '</ul>'
-              : '<p style="margin:6px 0;color:#526b79">Valores de ' + duration + 'h ainda não informados pela gestão.</p>';
+              ? '<strong style="display:block;color:#003d66;margin:8px 0 4px">Plantões de ' + duration + ' horas</strong><ul style="margin:0;padding-left:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:4px 18px">' + entries.map(([role,amount]) => '<li>' + escapePublic(role) + ': <strong>' + money(amount) + '</strong></li>').join('') + '</ul>'
+              : '';
           };
-          valuesTarget.innerHTML = '<small style="display:block;color:#526b79">Valores por cargo e duração, definidos pela gestão. A referência de 12h pode variar conforme porte, modalidade e especialidade previstos na Lei estadual nº 4.627/2025; valores de 24h são informados separadamente.</small>' + renderRates(rates12,12) + renderRates(rates24,24);
+          const ratesHtml = renderRates(rates12,12) + renderRates(rates24,24);
+          const privacyFields = [
+            ['Responsável pelo tratamento de dados', config.responsavel_dados],
+            ['Canal de contato sobre privacidade/LGPD', config.contato_privacidade],
+            ['Base legal do tratamento', config.base_legal_dados],
+            ['Prazo de retenção dos dados', config.prazo_retencao_dados]
+          ].filter(([,value]) => typeof value === 'string' && value.trim())
+           .map(([label,value]) => '<p style="margin:6px 0;color:#28495b"><strong>' + label + ':</strong> ' + escapePublic(value.trim()) + '</p>').join('');
+          const privacyHtml = privacyFields
+            ? '<div style="margin-top:14px;padding-top:12px;border-top:1px solid #cfe2eb"><strong style="display:block;color:#003d66">Responsável e informações sobre os dados</strong>' + privacyFields + '</div>'
+            : '';
+          const publicDetails = (ratesHtml ? '<small style="display:block;color:#526b79">Valores por cargo e duração, definidos pela gestão. Valores de 12h e 24h são informados separadamente.</small>' + ratesHtml : '') + privacyHtml;
+          valuesTarget.innerHTML = publicDetails;
+          valuesTarget.hidden = !publicDetails;
+          const hasPublicInfo = Boolean(deadline || resultDate || publicDetails);
+          panel.hidden = !hasPublicInfo;
           const today = new Intl.DateTimeFormat('en-CA',{timeZone:'America/Araguaina',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
           if (deadline && today > deadline) {
             deadlineLabel.textContent = 'Prazo encerrado em ' + datePt(deadline) + '. As inscrições não estão mais abertas.';
@@ -1215,8 +1233,8 @@
             panel.appendChild(notice);
           }
         } catch (error) {
-          deadlineLabel.textContent = 'Prazo e valores: consulte os canais oficiais da seleção.';
-          valuesTarget.textContent = 'As informações de prazo e remuneração estarão disponíveis após a configuração do sistema.';
+          // Não exibe informações incompletas ou mensagens de configuração como se fossem dados oficiais.
+          panel.hidden = true;
         }
       }
       loadPublicSelectionConfig();
@@ -1607,25 +1625,6 @@
         }
       });
 
-      const lookupCpf = document.querySelector('#lookup-cpf');
-      const lookupSubmit = document.querySelector('#lookup-submit');
-      const lookupFeedback = document.querySelector('#lookup-feedback');
-      lookupCpf?.addEventListener('input', event => { event.target.value = maskCpf(event.target.value); });
-      lookupSubmit?.addEventListener('click', async () => {
-        const cpf = onlyDigits(lookupCpf.value);
-        lookupFeedback.textContent = '';
-        if (!isValidCpf(cpf)) { lookupFeedback.textContent = 'Informe um CPF válido para consultar.'; return; }
-        lookupSubmit.disabled = true; lookupSubmit.textContent = 'Consultando…';
-        try {
-          const response = await fetch(SUPABASE_URL + '/functions/v1/consultar-resultado-plantao', { method: 'POST', headers: { apikey: SUPABASE_PUBLISHABLE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ cpf }) });
-          const result = await response.json();
-          if (!response.ok) throw new Error(result?.message || 'Falha na consulta');
-          const labels = { pendente: 'Inscrição recebida e em análise', confirmado: 'Inscrição aceita', escalado: 'Inscrição aceita e escalada', recusado: 'Não selecionado nesta etapa' };
-          const details = result.encontrada ? [result.unidade_escalada && `Hospital: ${result.unidade_escalada}`, result.plantao_escalado && `Plantão: ${result.plantao_escalado}`, result.valor_pagamento != null && `Pagamento previsto: ${new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(result.valor_pagamento))}`].filter(Boolean) : [];
-          lookupFeedback.textContent = result.encontrada ? `${labels[result.status] || 'Status: ' + result.status}. Protocolo: ${result.protocolo || 'não informado'}.${details.length ? ' ' + details.join(' · ') : ''}` : 'Não encontramos uma inscrição para este CPF.';
-        } catch (_) { lookupFeedback.textContent = 'Não foi possível consultar agora. Tente novamente em instantes.'; }
-        finally { lookupSubmit.disabled = false; lookupSubmit.textContent = 'Consultar resultado'; }
-      });
       navToggle.addEventListener('click', () => {
         const isOpen = navLinks.classList.toggle('is-open');
         navToggle.setAttribute('aria-expanded', String(isOpen));
