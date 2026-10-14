@@ -34,7 +34,7 @@ as $function$
     c.data_resultado
   from public.inscricoes as i
   cross join public.plantao_configuracoes as c
-  where i.cpf = regexp_replace(coalesce(p_cpf, ''), '\\D', '', 'g')
+  where i.cpf = regexp_replace(coalesce(p_cpf, ''), '\D', '', 'g')
     and upper(btrim(i.protocolo)) = upper(btrim(coalesce(p_protocolo, '')))
     and length(btrim(coalesce(p_protocolo, ''))) between 6 and 64
   limit 1;
