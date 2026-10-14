@@ -731,11 +731,6 @@
     client.auth.getSession().then(async({data})=>{
       if(data.session) await routeAuthenticatedUser(data.session.user);
     });
-    client.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        queueMicrotask(() => routeAuthenticatedUser(session.user));
-      }
-    });
   </script>
 </body>
 </html>
