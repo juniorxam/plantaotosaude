@@ -642,7 +642,7 @@
       event.preventDefault();
       $('login-error').classList.add('hidden');
       $('login-button').disabled = true;
-      $('login-button').textContent = 'Entrando…';
+      $('login-button').textContent = 'Verificando…';
       const { data, error } = await client.auth.signInWithPassword({
         email: $('email').value.trim(),
         password: $('password').value
@@ -650,16 +650,35 @@
       if (error) {
         $('login-error').textContent = 'E-mail ou senha inválidos, ou acesso não autorizado.';
         $('login-error').classList.remove('hidden');
-      } else if (data.user?.app_metadata?.must_change_password === true) {
-        $('login-form').classList.add('hidden');
-        $('first-access-form').classList.remove('hidden');
-        $('first-access-error').classList.add('hidden');
-        $('new-password').focus();
       } else {
-        await enterAdminPanel(data.user);
+        await authorizeAndRoute(data.user);
       }
       $('login-button').disabled = false;
       $('login-button').textContent = 'Entrar com senha';
+    }
+    async function authorizeAndRoute(user) {
+      const email = String(user?.email || '').trim().toLowerCase();
+      const { data: access, error } = await client.from('admin_users')
+        .select('email,ativo').eq('email', email).maybeSingle();
+      const forcedChange = user?.app_metadata?.must_change_password === true;
+      const revoked = user?.app_metadata?.admin_access_revoked === true;
+      if (error || !access || revoked || (!forcedChange && access.ativo !== true)) {
+        await client.auth.signOut({ scope: 'local' });
+        $('login-form').classList.remove('hidden');
+        $('first-access-form').classList.add('hidden');
+        $('login-error').textContent = 'Esta conta não tem acesso administrativo ativo. Solicite a liberação a um administrador.';
+        $('login-error').classList.remove('hidden');
+        return;
+      }
+      if (forcedChange) {
+        $('login-form').classList.add('hidden');
+        $('first-access-form').classList.remove('hidden');
+        $('first-access-error').classList.add('hidden');
+        $('login-view').classList.remove('hidden');
+        $('new-password').focus();
+      } else {
+        await enterAdminPanel(user);
+      }
     }
     async function enterAdminPanel(user) {
       $('user-email').textContent = user?.email || '';
@@ -861,14 +880,7 @@
     client.auth.getSession().then(async({data})=>{
       if(data.session){
         const {data:userData} = await client.auth.getUser();
-        const user = userData.user || data.session.user;
-        if (user?.app_metadata?.must_change_password === true) {
-          $('login-form').classList.add('hidden');
-          $('first-access-form').classList.remove('hidden');
-          $('login-view').classList.remove('hidden');
-        } else {
-          await enterAdminPanel(user);
-        }
+        await authorizeAndRoute(userData.user || data.session.user);
       }
     });
   </script>
