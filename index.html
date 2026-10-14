@@ -1026,15 +1026,8 @@
               <h3 class="form-step-title">Onde você pode atuar?</h3>
               <p class="form-step-intro">Selecione um ou mais hospitais de interesse. A disponibilidade será analisada pela gestão.</p>
               <fieldset class="field field-full" id="hospital-fieldset">
-                <legend>Hospitais de interesse * <span class="helper">(selecione 1 a 6)</span> <span class="selection-count" id="hospital-count" aria-live="polite">0 selecionados</span></legend>
-                <div class="choice-grid">
-                  <label class="choice"><input class="hospital-checkbox" type="checkbox" name="hospitais" value="Palmas — Hospital Geral de Palmas" /><span class="choice-content"><strong>Palmas</strong><small>Hospital Geral de Palmas</small></span></label>
-                  <label class="choice"><input class="hospital-checkbox" type="checkbox" name="hospitais" value="Araguaína — Hospital Regional de Araguaína" /><span class="choice-content"><strong>Araguaína</strong><small>Hospital Regional de Araguaína</small></span></label>
-                  <label class="choice"><input class="hospital-checkbox" type="checkbox" name="hospitais" value="Gurupi — Hospital Regional de Gurupi" /><span class="choice-content"><strong>Gurupi</strong><small>Hospital Regional de Gurupi</small></span></label>
-                  <label class="choice"><input class="hospital-checkbox" type="checkbox" name="hospitais" value="Paraíso do Tocantins — Hospital Regional de Paraíso" /><span class="choice-content"><strong>Paraíso do Tocantins</strong><small>Hospital Regional de Paraíso</small></span></label>
-                  <label class="choice"><input class="hospital-checkbox" type="checkbox" name="hospitais" value="Porto Nacional — Hospital Regional de Porto Nacional" /><span class="choice-content"><strong>Porto Nacional</strong><small>Hospital Regional de Porto Nacional</small></span></label>
-                  <label class="choice"><input class="hospital-checkbox" type="checkbox" name="hospitais" value="Augustinópolis — Hospital Regional de Augustinópolis" /><span class="choice-content"><strong>Augustinópolis</strong><small>Hospital Regional de Augustinópolis</small></span></label>
-                </div>
+                <legend>Hospitais de interesse * <span class="helper">(selecione de 1 a 6 entre as unidades cadastradas)</span> <span class="selection-count" id="hospital-count" aria-live="polite">0 selecionados</span></legend>
+                <div class="choice-grid" id="hospital-options"><p class="helper">Carregando hospitais disponíveis…</p></div>
                 <p class="error-message" id="hospital-error" aria-live="polite"></p>
               </fieldset>
               <div class="form-step-actions"><button class="step-back" type="button" data-prev="2">← Voltar</button><button class="step-next" type="button" data-next="4">Continuar →</button></div>
@@ -1184,6 +1177,22 @@
           const rows = await response.json();
           const config = rows?.[0];
           if (!config) throw new Error('Configuração vazia');
+          const configuredHospitals = Array.isArray(config.hospitais) ? config.hospitais : [];
+          const hospitalOptions = document.querySelector('#hospital-options');
+          const hospitalFieldset = document.querySelector('#hospital-fieldset');
+          const escapeHtml = value => String(value ?? '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+          if (hospitalOptions && configuredHospitals.length) {
+            hospitalOptions.innerHTML = configuredHospitals.map(h => {
+              const city = String(h.cidade || '').trim(), name = String(h.nome || '').trim();
+              const value = String(h.valor || (city + ' — ' + name)).trim();
+              return '<label class="choice"><input class="hospital-checkbox" type="checkbox" name="hospitais" value="' + escapeHtml(value) + '"><span class="choice-content"><strong>' + escapeHtml(city) + '</strong><small>' + escapeHtml(name) + '</small></span></label>';
+            }).join('');
+            hospitalCheckboxes.splice(0, hospitalCheckboxes.length, ...document.querySelectorAll('.hospital-checkbox'));
+            if (hospitalFieldset) hospitalFieldset.disabled = false;
+          } else if (hospitalOptions) {
+            hospitalOptions.innerHTML = '<p class="error-message">Não foi possível carregar os hospitais. Tente atualizar a página.</p>';
+            if (hospitalFieldset) hospitalFieldset.disabled = true;
+          }
           const deadline = config.prazo_inscricao;
           deadlineLabel.textContent = deadline ? 'Inscrições até ' + datePt(deadline) + ', às 23h59 (horário do Tocantins).' : 'Prazo de inscrição ainda não definido.';
           resultLabel.textContent = config.data_resultado ? 'Previsão de divulgação do resultado: ' + datePt(config.data_resultado) + '.' : 'Data do resultado: a ser divulgada pela gestão.';
@@ -1427,7 +1436,7 @@
         hospitalCount.textContent = selectedHospitals === 1 ? '1 selecionado' : `${selectedHospitals} selecionados`;
         shiftCount.textContent = selectedShifts === 1 ? '1 selecionado' : `${selectedShifts} selecionados`;
       };
-      [...hospitalCheckboxes, ...shiftCheckboxes].forEach((input) => input.addEventListener('change', () => {
+      const handleChoiceChange = (input) => {
         const isHospital = input.classList.contains('hospital-checkbox');
         const selected = (isHospital ? hospitalCheckboxes : shiftCheckboxes).filter((item) => item.checked);
         const max = isHospital ? 6 : 3;
@@ -1435,11 +1444,15 @@
           input.checked = false;
           (isHospital ? hospitalError : shiftError).textContent = `Você pode selecionar no máximo ${max} opção${max > 1 ? 'ões' : ''}.`;
         } else {
-          hospitalError.textContent = '';
-          shiftError.textContent = '';
+          (isHospital ? hospitalError : shiftError).textContent = '';
         }
         updateChoiceState();
-      }));
+      };
+      document.querySelector('#hospital-fieldset').addEventListener('change', event => {
+        const input = event.target.closest('.hospital-checkbox');
+        if (input) handleChoiceChange(input);
+      });
+      shiftCheckboxes.forEach(input => input.addEventListener('change', () => handleChoiceChange(input)));
       declaration.addEventListener('change', () => { declarationError.textContent = ''; });
       updateChoiceState();
 
