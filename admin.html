@@ -145,8 +145,11 @@
         <p class="muted">Informe o valor em reais para a duração de 12h.</p>
         <div id="setting-values-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px"></div>
         <h4 style="margin:22px 0 4px;color:var(--deep)">Valores por cargo · plantão de 24 horas</h4>
-        <p class="muted">Informe o valor específico de 24h. Ele não é calculado automaticamente a partir do valor de 12h.</p>
+        <p class="muted">Valores iniciais conforme o Anexo Único da Lei Estadual nº 4.627/2025. O valor de Médico usa a faixa de demais clínicas e setores (R$ 1.100,00/12h e R$ 2.200,00/24h). Você pode alterar os valores abaixo.</p>
         <div id="setting-values-24h-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px"></div>
+        <h4 style="margin:22px 0 4px;color:var(--deep)">Hospitais disponíveis na inscrição</h4>
+        <p class="muted">Um hospital por linha, no formato <strong>Cidade | Nome do hospital</strong>. As alterações serão refletidas no formulário público e na validação das inscrições.</p>
+        <textarea id="setting-hospitals" rows="7" placeholder="Palmas | Hospital Geral de Palmas" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:10px"></textarea>
         <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:18px">
           <button id="settings-reload" class="btn ghost" type="button">Descartar alterações</button>
           <button id="settings-save" class="btn primary" style="width:auto;margin:0" type="button">Salvar configurações</button>
@@ -274,7 +277,7 @@
       {value:'02/11/2026 · 07h às 19h (12h)',title:'02/11 · 07h · 12h'},
       {value:'02/11/2026 · 07h às 03/11/2026 07h (24h)',title:'02/11 · 07h · 24h'}
     ];
-    const settingsValues = {valores_cargos:{}, valores_cargos_24h:{}};
+    const settingsValues = {valores_cargos:{}, valores_cargos_24h:{}, hospitais:[]};
     const formatMoney = value => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(value));
     const shiftTitle = value => SHIFT_OPTIONS.find(option => option.value === value)?.title || value || 'Ainda não definido';
     const shiftOptionsHtml = SHIFT_OPTIONS.map(option => `<option value="${esc(option.value)}">${esc(option.title)}</option>`).join('');
@@ -414,7 +417,7 @@
       $('detail-modal').classList.remove('hidden');
       $('close-modal').focus();
     }
-    const SETTING_PROFESSIONS = ["Médico","Enfermeiro","Técnico em Enfermagem","Fisioterapeuta","Nutricionista","Psicólogo","Farmacêutico","Assistente Social","Técnico em Laboratório","Outro"];
+    const SETTING_PROFESSIONS = ["Médico","Cirurgião-Dentista","Auxiliar de Serviços de Saúde","Assistente de Serviços de Saúde","Auxiliar de Enfermagem","Técnico em Enfermagem","Instrumentador Cirúrgico","Técnico em Imobilização Ortopédica","Técnico em Laboratório","Assistente Social","Biólogo em Saúde","Biomédico","Enfermeiro","Farmacêutico","Farmacêutico-Bioquímico","Fonoaudiólogo","Nutricionista","Psicólogo","Fisioterapeuta","Terapeuta Ocupacional","Enfermeiro Obstetra","Perfusionista","Outro"];
     function renderSettingInputs(targetId, values = {}) {
       $(targetId).innerHTML = SETTING_PROFESSIONS.map((profession, i) => {
         const value = values[profession] == null ? '' : String(values[profession]);
@@ -424,7 +427,7 @@
     async function loadSettings() {
       const feedback = $('settings-feedback');
       feedback.textContent = 'Carregando configurações…';
-      const {data,error} = await client.from('plantao_configuracoes').select('prazo_inscricao,data_resultado,valores_cargos,valores_cargos_24h,updated_at').eq('id',true).maybeSingle();
+      const {data,error} = await client.from('plantao_configuracoes').select('prazo_inscricao,data_resultado,valores_cargos,valores_cargos_24h,hospitais,updated_at').eq('id',true).maybeSingle();
       if (error || !data) {
         feedback.textContent = 'Não foi possível carregar as configurações. Confirme se a migração de configurações já foi aplicada ao Supabase do Plantão TO Saúde.';
         feedback.style.color = 'var(--danger)';
@@ -434,6 +437,8 @@
       $('setting-result-date').value = data.data_resultado || '';
       settingsValues.valores_cargos = data.valores_cargos || {};
       settingsValues.valores_cargos_24h = data.valores_cargos_24h || {};
+      settingsValues.hospitais = Array.isArray(data.hospitais) ? data.hospitais : [];
+      $('setting-hospitals').value = settingsValues.hospitais.map(h => (h.cidade || '') + ' | ' + (h.nome || '')).join('\\n');
       renderSettingInputs('setting-values-grid', settingsValues.valores_cargos);
       renderSettingInputs('setting-values-24h-grid', settingsValues.valores_cargos_24h);
       feedback.textContent = data.updated_at ? 'Última atualização: ' + fmtDate(data.updated_at) : 'Configurações carregadas.';
@@ -456,10 +461,14 @@
         }
         return values;
       };
-      let values12, values24;
+      let values12, values24, hospitals;
       try {
         values12 = readValues('setting-values-grid', settingsValues.valores_cargos);
         values24 = readValues('setting-values-24h-grid', settingsValues.valores_cargos_24h);
+        hospitals = $('setting-hospitals').value.split(/\\r?\\n/).map(line => line.trim()).filter(Boolean).map(line => { const parts=line.split('|').map(part=>part.trim()); if(parts.length<2 || !parts[0] || !parts.slice(1).join(' | ')) throw new Error('Use Cidade | Nome do hospital em cada linha.'); const cidade=parts[0], nome=parts.slice(1).join(' | '); return {cidade,nome,valor:cidade+' — '+nome}; });
+        if (!hospitals.length) throw new Error('Cadastre pelo menos um hospital.');
+        if (hospitals.length > 50) throw new Error('Cadastre no máximo 50 hospitais.');
+        if (new Set(hospitals.map(h=>h.valor.toLowerCase())).size !== hospitals.length) throw new Error('Há hospitais duplicados na lista.');
       } catch (error) { feedback.textContent = error.message; feedback.style.color='var(--danger)'; return; }
       button.disabled = true; button.textContent = 'Salvando…'; feedback.textContent = 'Salvando configurações…';
       const {data:userData} = await client.auth.getUser();
@@ -468,6 +477,7 @@
         data_resultado: resultDate,
         valores_cargos: values12,
         valores_cargos_24h: values24,
+        hospitais,
         updated_at: new Date().toISOString(),
         updated_by: userData.user?.email || null
       }).eq('id',true);
@@ -476,7 +486,7 @@
         feedback.textContent = 'Não foi possível salvar. Verifique se a migration já foi aplicada e se sua conta está autorizada como administradora.';
         feedback.style.color='var(--danger)'; return;
       }
-      settingsValues.valores_cargos = values12; settingsValues.valores_cargos_24h = values24;
+      settingsValues.valores_cargos = values12; settingsValues.valores_cargos_24h = values24; settingsValues.hospitais = hospitals;
       feedback.textContent = 'Configurações salvas. A página pública poderá exibir os valores após atualizar.';
       feedback.style.color='var(--success)';
       showNotice('Configurações da seleção salvas.');
