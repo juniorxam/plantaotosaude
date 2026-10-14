@@ -1170,7 +1170,7 @@
         const money = (value) => Number(value).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
         const datePt = (value) => value ? new Intl.DateTimeFormat('pt-BR',{timeZone:'UTC',dateStyle:'long'}).format(new Date(value+'T00:00:00Z')) : '';
         try {
-          const response = await fetch(SUPABASE_URL + '/rest/v1/plantao_configuracoes?id=eq.true&select=prazo_inscricao,data_resultado,valores_cargos,valores_cargos_24h', {
+          const response = await fetch(SUPABASE_URL + '/rest/v1/plantao_configuracoes?id=eq.true&select=prazo_inscricao,data_resultado,valores_cargos,valores_cargos_24h,hospitais', {
             headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: 'Bearer ' + SUPABASE_PUBLISHABLE_KEY }
           });
           if (!response.ok) throw new Error('Configuração indisponível');
