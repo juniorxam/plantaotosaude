@@ -1,49 +1,79 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Consulte o resultado da inscrição no Plantão TO Saúde." />
-  <title>Plantão TO Saúde | Acompanhamento</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Acompanhe o status da sua inscrição no Plantão TO Saúde.">
+  <title>Acompanhamento da inscrição | Plantão TO Saúde</title>
   <style>
-    :root{--blue:#005a9c;--deep:#003d66;--teal:#00897b;--yellow:#ffcc00;--ink:#122b3b;--muted:#617684;--line:#dce7eb;--bg:#f4f7fa;--white:#fff;--danger:#a5271b;--success:#18784b}
-    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(155deg,#eef7fa,#f7fafb 55%,#eaf5f2);color:var(--ink);font-family:"Segoe UI",Arial,sans-serif}a{color:inherit}button,input{font:inherit}
-    .top{padding:14px 22px;border-bottom:3px solid var(--yellow);background:var(--deep);color:#fff;font-size:.8rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase}.top-inner{max-width:960px;margin:auto;display:flex;justify-content:space-between;gap:12px}.top small{color:#bff2ea;text-transform:none;letter-spacing:0}
-    .wrap{display:grid;place-items:center;min-height:calc(100vh - 55px);padding:32px 18px}.card{width:min(620px,100%);padding:clamp(24px,5vw,48px);border:1px solid var(--line);border-radius:26px;background:rgba(255,255,255,.96);box-shadow:0 24px 70px rgba(0,61,102,.13)}.brand{display:inline-flex;align-items:center;gap:10px;margin-bottom:34px;color:var(--deep);font-weight:850;text-decoration:none}.mark{display:grid;width:42px;height:42px;place-items:center;border-radius:12px 12px 12px 4px;background:linear-gradient(145deg,var(--blue),var(--teal));color:#fff;font-size:1.4rem}.brand small{display:block;color:var(--teal);font-size:.66rem;letter-spacing:.2em}.eyebrow{margin:0 0 8px;color:var(--teal);font-size:.76rem;font-weight:850;letter-spacing:.15em;text-transform:uppercase}h1{margin:0;color:var(--deep);font-size:clamp(2rem,5vw,3.25rem);letter-spacing:-.05em;line-height:1.05} .lead{margin:14px 0 28px;color:var(--muted);font-size:1.05rem}
-    label{display:block;margin-bottom:8px;color:var(--deep);font-weight:800}input{width:100%;padding:15px 16px;border:1px solid var(--line);border-radius:13px;color:var(--ink);font-size:1.1rem;letter-spacing:.08em}input:focus{outline:3px solid #00897b33;border-color:var(--teal)}.actions{display:flex;gap:10px;margin-top:14px}.btn{border:0;border-radius:999px;padding:13px 20px;font-weight:850;cursor:pointer}.primary{flex:1;background:var(--teal);color:#fff}.secondary{background:#eef4f7;color:var(--deep)}.btn:disabled{opacity:.6;cursor:wait}.feedback{min-height:24px;margin:14px 0 0;color:var(--danger);font-weight:750}.result{margin-top:24px;padding:20px;border:1px solid #cfe2eb;border-radius:18px;background:#f7fbfd}.result.hidden{display:none}.result-head{display:flex;justify-content:space-between;align-items:start;gap:14px;margin-bottom:18px}.result h2{margin:0;color:var(--deep);font-size:1.35rem}.badge{padding:6px 10px;border-radius:999px;font-size:.72rem;font-weight:850;white-space:nowrap}.badge.pendente{background:#fff7d6;color:#735900}.badge.confirmado{background:#e3f6ed;color:#14633f}.badge.escalado{background:#dff4f0;color:#00685e}.badge.recusado{background:#fff0ef;color:#9d2118}.data-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.data{padding:12px;border-radius:11px;background:#fff;border:1px solid #e5eef1}.data.full{grid-column:1/-1}.data small{display:block;margin-bottom:3px;color:var(--muted);font-size:.7rem;font-weight:850;letter-spacing:.07em;text-transform:uppercase}.data strong{color:var(--deep)}.note{margin:16px 0 0;color:var(--muted);font-size:.82rem}.back{display:inline-block;margin-top:24px;color:var(--blue);font-size:.9rem;font-weight:800;text-decoration:none}.back:hover{text-decoration:underline}@media(max-width:560px){.top-inner{display:block}.top small{display:block;margin-top:3px}.data-grid{grid-template-columns:1fr}.data.full{grid-column:auto}.actions{flex-direction:column}.secondary{order:2}}
+    :root{--blue:#005a9c;--deep:#003d66;--teal:#00897b;--yellow:#ffcc00;--ink:#173243;--muted:#627684;--line:#dce7eb;--bg:#f4f8fa;--white:#fff;--danger:#a5271b}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif;display:flex;flex-direction:column}
+    header{background:var(--deep);border-bottom:4px solid var(--yellow);color:#fff;padding:15px 20px;font-weight:800}header div{max-width:760px;margin:auto;display:flex;justify-content:space-between;gap:12px}header small{color:#bff2ea;font-weight:500}
+    main{width:min(560px,100%);margin:auto;padding:30px 16px}.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:clamp(22px,5vw,36px);box-shadow:0 12px 36px #003d6610}
+    .brand{color:var(--deep);font-size:.9rem;font-weight:900;letter-spacing:.04em}.eyebrow{margin:26px 0 7px;color:var(--teal);font-size:.75rem;font-weight:900;letter-spacing:.13em;text-transform:uppercase}
+    h1{margin:0;color:var(--deep);font-size:clamp(1.8rem,5vw,2.5rem);letter-spacing:-.04em}.intro{margin:10px 0 24px;color:var(--muted);line-height:1.5}
+    label{display:block;margin:16px 0 7px;color:var(--deep);font-size:.9rem;font-weight:800}input{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:11px;font:inherit;color:var(--ink)}input:focus{outline:3px solid #00897b30;border-color:var(--teal)}
+    .btn{width:100%;margin-top:18px;padding:14px;border:0;border-radius:999px;background:var(--teal);color:white;font:inherit;font-weight:900;cursor:pointer}.btn:disabled{opacity:.6;cursor:wait}.feedback{min-height:20px;margin:12px 0 0;color:var(--danger);font-size:.9rem;font-weight:700}
+    .result{margin-top:18px;padding:18px;border:1px solid var(--line);border-radius:14px;background:#f8fbfc}.hidden{display:none}.status{display:inline-block;padding:6px 10px;border-radius:999px;background:#e5f3f0;color:#00685e;font-size:.8rem;font-weight:900}.result h2{margin:0 0 10px;color:var(--deep);font-size:1.15rem}.item{padding:11px 0;border-bottom:1px solid var(--line)}.item:last-child{border-bottom:0;padding-bottom:0}.item small{display:block;color:var(--muted);font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em}.item strong{display:block;margin-top:4px;line-height:1.4}
+    .foot{margin-top:22px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:.87rem}.foot a{color:var(--blue);font-weight:800;text-decoration:none}.foot a:hover{text-decoration:underline}.privacy{margin-top:17px;color:var(--muted);font-size:.78rem;line-height:1.45}
+    @media(max-width:480px){header div{display:block}header small{display:block;margin-top:4px}.foot{flex-direction:column}}
   </style>
 </head>
 <body>
-  <div class="top"><div class="top-inner"><span>Plantão TO Saúde · Tocantins</span><small>Consulta com CPF e protocolo</small></div></div>
-  <main class="wrap"><section class="card" aria-labelledby="title">
-    <a class="brand" href="/"><span class="mark">✚</span><span><strong>PLANTÃO TO</strong><small>SAÚDE</small></span></a>
-    <p class="eyebrow">Acompanhamento</p><h1>Consulte sua inscrição.</h1>
-    <p class="lead">Informe seu CPF e o protocolo recebido ao concluir a inscrição para consultar o status, a escala e o valor previsto do pagamento.</p>
-    <form id="lookup-form"><label for="cpf">CPF</label><input id="cpf" type="text" inputmode="numeric" maxlength="14" autocomplete="off" placeholder="000.000.000-00" required><label for="protocol-input" style="margin-top:14px">Protocolo da inscrição</label><input id="protocol-input" type="text" maxlength="64" autocomplete="off" placeholder="Informe o protocolo recebido" required><div class="actions"><button class="btn primary" id="submit" type="submit">Consultar inscrição</button><a class="btn secondary" href="/#inscricao">Nova inscrição</a></div></form>
+  <header><div><span>Plantão TO Saúde</span><small>Acompanhamento da inscrição</small></div></header>
+  <main><section class="card" aria-labelledby="page-title">
+    <div class="brand">✚ PLANTÃO TO SAÚDE</div>
+    <p class="eyebrow">Consulta rápida</p>
+    <h1 id="page-title">Como está sua inscrição?</h1>
+    <p class="intro">Informe o CPF e o protocolo que recebeu ao se inscrever. Você verá o status e, se já definidos, os dados da escala e do pagamento.</p>
+    <form id="lookup-form">
+      <label for="cpf">CPF</label>
+      <input id="cpf" type="text" inputmode="numeric" maxlength="14" autocomplete="off" placeholder="000.000.000-00" required>
+      <label for="protocol">Protocolo da inscrição</label>
+      <input id="protocol" type="text" maxlength="64" autocomplete="off" placeholder="Digite seu protocolo" required>
+      <button class="btn" id="submit" type="submit">Consultar inscrição</button>
+    </form>
     <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
-    <section id="result" class="result hidden" aria-live="polite"><div class="result-head"><h2 id="result-title">Inscrição encontrada</h2><span id="status" class="badge"></span></div><div class="data-grid"><div class="data"><small>Nome</small><strong id="name"></strong></div><div class="data"><small>Protocolo</small><strong id="protocol"></strong></div><div class="data"><small>Profissão</small><strong id="profession"></strong></div><div class="data"><small>Registro</small><strong id="registration"></strong></div><div class="data full"><small>Hospitais de interesse</small><strong id="hospitals"></strong></div><div class="data full"><small>Hospital escalado</small><strong id="unit"></strong></div><div class="data full"><small>Plantão escalado</small><strong id="assigned-shift"></strong></div><div class="data"><small>Pagamento previsto</small><strong id="payment"></strong></div></div><p id="result-date" class="note"></p><p class="note">Por segurança, telefone, e-mail e currículo não são exibidos nesta consulta. Guarde seu protocolo e não o compartilhe.</p></section>
-    <a class="back" href="/">← Voltar para a página de inscrição</a><p class="note"><a href="/privacidade.html">Política de privacidade e tratamento de dados</a></p>
+    <section id="result" class="result hidden" aria-live="polite">
+      <h2>Resultado da consulta</h2>
+      <p><span id="status" class="status"></span></p>
+      <div class="item"><small>Hospital escalado</small><strong id="unit">Ainda não definido</strong></div>
+      <div class="item"><small>Plantão</small><strong id="shift">Ainda não definido</strong></div>
+      <div class="item"><small>Pagamento previsto</small><strong id="payment">Ainda não definido</strong></div>
+      <div class="item"><small>Previsão do resultado</small><strong id="result-date">Ainda não definida</strong></div>
+    </section>
+    <nav class="foot"><a href="/#inscricao">← Fazer inscrição</a><a href="/">Página inicial</a></nav>
+    <p class="privacy"><a href="/privacidade.html">Política de privacidade</a> · Por segurança, mantenha seu protocolo em sigilo.</p>
   </section></main>
   <script>
     const SUPABASE_URL='https://jyrzbfnaitdmilxxcbyv.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY='sb_publishable_WDE_s2HYfWUCI3iuodaG4w_RFGGwm9m';
-    const $=id=>document.getElementById(id), onlyDigits=value=>String(value||'').replace(/\D/g,''), maskCpf=value=>{const d=onlyDigits(value).slice(0,11);return d.replace(/^(\d{3})(\d)/,'$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/,'$1.$2.$3').replace(/^(\d{3})\.(\d{3})\.(\d{3})(\d)/,'$1.$2.$3-$4')};
+    const $=id=>document.getElementById(id);
+    const digits=value=>String(value||'').replace(/\D/g,'');
+    const maskCpf=value=>{const d=digits(value).slice(0,11);return d.replace(/^(\d{3})(\d)/,'$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/,'$1.$2.$3').replace(/^(\d{3})\.(\d{3})\.(\d{3})(\d)/,'$1.$2.$3-$4')};
     function validCpf(v){if(!/^\d{11}$/.test(v)||/^([0-9])\1{10}$/.test(v))return false;let s=0;for(let i=0;i<9;i++)s+=+v[i]*(10-i);let d=s*10%11;if(d===10)d=0;if(d!==+v[9])return false;s=0;for(let i=0;i<10;i++)s+=+v[i]*(11-i);d=s*10%11;if(d===10)d=0;return d===+v[10]}
     $('cpf').addEventListener('input',e=>e.target.value=maskCpf(e.target.value));
-    $('protocol-input').addEventListener('input',e=>e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g,'').slice(0,64));
+    $('protocol').addEventListener('input',e=>e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g,'').slice(0,64));
     $('lookup-form').addEventListener('submit',async e=>{
-      e.preventDefault();const cpf=onlyDigits($('cpf').value);const protocolo=$('protocol-input').value.trim().toUpperCase();$('feedback').textContent='';$('result').classList.add('hidden');
-      if(!validCpf(cpf)){$('feedback').textContent='Informe um CPF válido.';return}
+      e.preventDefault();
+      const cpf=digits($('cpf').value),protocolo=$('protocol').value.trim().toUpperCase();
+      $('feedback').textContent='';$('result').classList.add('hidden');
+      if(!validCpf(cpf)){$('feedback').textContent='Confira o CPF informado.';return}
       if(protocolo.length<6||protocolo.length>64||!/^[A-Z0-9-]+$/.test(protocolo)){$('feedback').textContent='Informe o protocolo recebido após a inscrição.';return}
       const button=$('submit');button.disabled=true;button.textContent='Consultando…';
       try{
         const response=await fetch(SUPABASE_URL+'/functions/v1/consultar-resultado-plantao',{method:'POST',headers:{apikey:SUPABASE_PUBLISHABLE_KEY,'Content-Type':'application/json'},body:JSON.stringify({cpf,protocolo})});
-        const data=await response.json();if(!response.ok)throw new Error(data.message);
-        if(!data.encontrada){$('feedback').textContent='Não encontramos uma inscrição para este CPF.';return}
+        const data=await response.json();
+        if(!response.ok)throw new Error('Não foi possível consultar agora. Tente novamente em instantes.');
+        if(!data.encontrada){$('feedback').textContent='Não encontramos uma inscrição com esses dados. Confira o CPF e o protocolo.';return}
         const labels={pendente:'Em análise',confirmado:'Inscrição aceita',escalado:'Inscrição aceita e escalada',recusado:'Não selecionado'};
-        $('status').textContent=labels[data.status]||data.status;$('status').className='badge '+data.status;$('name').textContent=data.nome||'—';$('protocol').textContent=data.protocolo||'—';$('profession').textContent=data.profissao||'—';$('registration').textContent=data.registro||'—';$('hospitals').textContent=(data.hospitais||[]).join(' · ')||'—';$('unit').textContent=data.unidade_escalada||'Ainda não definida';$('assigned-shift').textContent=data.plantao_escalado||'Ainda não definido';$('payment').textContent=data.valor_pagamento!=null?new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(data.valor_pagamento)):'Ainda não definido';
-        $('result-date').textContent=data.data_resultado?'Data prevista do resultado: '+new Intl.DateTimeFormat('pt-BR',{timeZone:'UTC',dateStyle:'long'}).format(new Date(data.data_resultado+'T00:00:00Z'))+'.':'Data do resultado ainda não definida.';$('result').classList.remove('hidden');
-      }catch(error){$('feedback').textContent=error?.message||'Não foi possível consultar agora. Tente novamente em instantes.'}
+        $('status').textContent=labels[data.status]||'Status atualizado';
+        $('unit').textContent=data.unidade_escalada||'Ainda não definido';
+        $('shift').textContent=data.plantao_escalado||'Ainda não definido';
+        $('payment').textContent=data.valor_pagamento!=null?new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(data.valor_pagamento)):'Ainda não definido';
+        $('result-date').textContent=data.data_resultado?new Intl.DateTimeFormat('pt-BR',{timeZone:'UTC',dateStyle:'long'}).format(new Date(data.data_resultado+'T00:00:00Z')):'Ainda não definida';
+        $('result').classList.remove('hidden');
+      }catch(error){$('feedback').textContent=error?.message||'Não foi possível consultar agora. Tente novamente.'}
       finally{button.disabled=false;button.textContent='Consultar inscrição'}
     });
   </script>
