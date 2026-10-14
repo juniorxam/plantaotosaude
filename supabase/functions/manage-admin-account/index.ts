@@ -58,8 +58,10 @@ Deno.serve(async (req: Request) => {
     }
     const { data: ownAccess, error: accessError } = await admin
       .from("admin_users").select("email,ativo").eq("email", callerEmail).maybeSingle();
-    if (accessError || !ownAccess || ownAccess.ativo !== false) {
-      return reply({ error: "Acesso administrativo não está pendente de ativação." }, 403);
+    // An active row can occur if a previous attempt saved the password and activated
+    // the row but failed to clear must_change_password. Allow retrying that final step.
+    if (accessError || !ownAccess) {
+      return reply({ error: "Acesso administrativo não foi preparado." }, 403);
     }
 
     // Save the new password first while the forced-change flag still blocks the panel.
