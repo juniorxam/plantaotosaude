@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Plantão TO Saúde | Documentos dos selecionados</title>
+<style>
+:root{--blue:#005a9c;--deep:#003d66;--teal:#00897b;--ink:#122b3b;--muted:#607583;--line:#dce7eb;--bg:#f4f7fa;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Segoe UI",Arial,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+header{background:white;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}.head{max-width:1200px;margin:auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}.brand{font-weight:850;color:var(--deep)}main{max-width:1200px;margin:auto;padding:25px 18px 50px}.login{max-width:430px;margin:9vh auto;background:white;border-radius:18px;padding:26px;box-shadow:0 12px 40px #003d6615}.login h1{margin-top:0;color:var(--deep)}label{display:block;font-weight:750;font-size:.88rem;margin:12px 0 6px}input,select,textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;background:white;color:var(--ink)}.btn{border:0;border-radius:10px;padding:10px 14px;font-weight:800;background:#edf4f7;color:var(--deep)}.primary{background:var(--blue);color:white}.danger{background:#fff0ef;color:var(--red)}.login .primary{width:100%;margin-top:18px}.title{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.title h1{margin:0;color:var(--deep)}.muted{color:var(--muted);font-size:.88rem}.notice{padding:12px 14px;border-radius:10px;background:#e8f5ff;color:#07577d;margin:14px 0}.notice.bad{background:#fff0ef;color:var(--red)}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}.stat,.panel,.candidate{background:white;border:1px solid var(--line);border-radius:14px;padding:15px}.stat small{display:block;color:var(--muted);font-weight:700}.stat strong{font-size:1.7rem;color:var(--deep)}.toolbar{display:grid;grid-template-columns:1fr 220px;gap:10px;margin:16px 0}.candidate{margin:12px 0}.candidate-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap}.candidate h2{font-size:1.08rem;margin:0;color:var(--deep)}.candidate p{margin:3px 0;color:var(--muted);font-size:.86rem}.pill{display:inline-block;border-radius:999px;padding:4px 9px;font-size:.75rem;font-weight:800;background:#dff4f0;color:#00685e}.docs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}.doc{border:1px solid var(--line);border-radius:12px;padding:12px;min-width:0}.doc h3{margin:0;color:var(--deep);font-size:.95rem}.doc .file-name{font-size:.78rem;color:var(--muted);overflow-wrap:anywhere;margin:7px 0}.doc-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.doc-actions .btn{font-size:.78rem;padding:7px 9px}.doc select{margin-top:8px;padding:8px;font-size:.82rem}.doc textarea{margin-top:7px;min-height:54px;font-size:.82rem}.doc input[type=file]{padding:7px;font-size:.78rem;margin-top:8px}.save-row{display:flex;justify-content:flex-end;margin-top:8px}.empty{padding:35px;text-align:center;color:var(--muted)}.footer{font-size:.78rem;color:var(--muted);margin-top:18px}@media(max-width:760px){.docs{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.toolbar{grid-template-columns:1fr}.head{padding:12px}.head .muted{display:none}main{padding:18px 12px}}
+</style>
+</head>
+<body>
+<section id="login-view" class="login">
+<div class="brand">✚ Plantão TO Saúde</div><h1>Gestão de selecionados</h1>
+<p class="muted">Área restrita para acompanhar RG, CPF e comprovante bancário dos profissionais selecionados.</p>
+<form id="login-form"><label for="email">E-mail administrativo</label><input id="email" type="email" autocomplete="username" required><label for="password">Senha</label><input id="password" type="password" autocomplete="current-password" required><button class="btn primary" type="submit">Entrar</button></form>
+<div id="login-error" class="notice bad hidden"></div><p class="footer">Somente administradores ativos podem acessar esta área.</p>
+</section>
+<section id="app-view" class="hidden">
+<header><div class="head"><div><div class="brand">✚ Plantão TO Saúde · Documentos dos selecionados</div><div class="muted">Dados pessoais e arquivos confidenciais</div></div><div style="display:flex;gap:8px;align-items:center"><a href="/admin.html" class="btn">Gestão geral</a><button id="logout" class="btn">Sair</button></div></div></header>
+<main>
+<div class="title"><div><h1>Documentação dos selecionados</h1><p class="muted">Acompanhe o recebimento e a validação de cada documento.</p></div><button id="refresh" class="btn primary">Atualizar lista</button></div>
+<div id="notice" class="notice hidden" role="status"></div>
+<div class="stats"><div class="stat"><small>Selecionados</small><strong id="count-candidates">0</strong></div><div class="stat"><small>Documentos recebidos</small><strong id="count-received">0</strong></div><div class="stat"><small>Pendentes</small><strong id="count-pending">0</strong></div><div class="stat"><small>Validados</small><strong id="count-valid">0</strong></div></div>
+<div class="toolbar"><input id="search" placeholder="Buscar por nome, CPF, e-mail ou protocolo"><select id="filter"><option value="">Todos os selecionados</option><option value="missing">Com documentos pendentes</option><option value="complete">Com os 3 documentos recebidos</option><option value="review">Com documentos para validar</option></select></div>
+<div id="list"><div class="empty">Carregando selecionados…</div></div>
+<p class="footer">Privacidade: os arquivos ficam em armazenamento privado, não são publicados na internet e só podem ser acessados por administradores ativos. Arquivos aceitos: PDF, JPG e PNG, até 10 MB por documento. Evite baixar arquivos em dispositivos compartilhados.</p>
+</main></section>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://jyrzbfnaitdmilxxcbyv.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_WDE_s2HYfWUCI3iuodaG4w_RFGGwm9m';
+const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const $=id=>document.getElementById(id);
+const types=[{key:'rg',label:'RG / documento de identidade'},{key:'cpf',label:'CPF'},{key:'comprovante_bancario',label:'Comprovante de conta bancária'}];
+let candidates=[],documents=[],currentUser=null;
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const statusLabels={pendente:'Pendente',recebido:'Recebido',validado:'Validado',rejeitado:'Reenviar / corrigir'};
+function notice(msg,bad=false){$('notice').textContent=msg;$('notice').classList.toggle('hidden',!msg);$('notice').classList.toggle('bad',bad)}
+function docFor(id,type){return documents.find(d=>d.registration_id===id&&d.document_type===type)}
+function getDocs(c){return types.map(t=>docFor(c.id,t.key))}
+async function verifyAdmin(){
+ const {data:{session}}=await client.auth.getSession();
+ if(!session){$('login-view').classList.remove('hidden');return false}
+ const {data:{user},error:userError}=await client.auth.getUser();
+ if(userError||!user){await client.auth.signOut();$('login-view').classList.remove('hidden');return false}
+ if(user.app_metadata?.must_change_password){location.href='/admin.html';return false}
+ const {data:admin,error}=await client.from('admin_users').select('email,ativo').eq('email',user.email).maybeSingle();
+ if(error||!admin||admin.ativo!==true||user.app_metadata?.admin_access_revoked){await client.auth.signOut();$('login-view').classList.remove('hidden');$('login-error').textContent='Acesso não autorizado ou desativado. Entre pela gestão geral ou contate um administrador.';$('login-error').classList.remove('hidden');return false}
+ currentUser=user;$('login-view').classList.add('hidden');$('app-view').classList.remove('hidden');return true;
+}
+$('login-form').addEventListener('submit',async e=>{e.preventDefault();const b=e.submitter;b.disabled=true;$('login-error').classList.add('hidden');const {error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});b.disabled=false;if(error){$('login-error').textContent='Não foi possível entrar. Confira e-mail e senha.';$('login-error').classList.remove('hidden');return}if(await verifyAdmin())await loadData()});
+$('logout').addEventListener('click',async()=>{await client.auth.signOut();location.reload()});
+$('refresh').addEventListener('click',loadData);
+$('search').addEventListener('input',render);
+$('filter').addEventListener('change',render);
+async function loadData(){
+ notice('Carregando dados…');
+ const {data:rows,error}=await client.from('inscricoes').select('id,nome,cpf,email,telefone,profissao,registro,protocolo,status,unidade_escalada,plantao_escalado,created_at').in('status',['confirmado','escalado']).order('nome');
+ if(error){notice('Erro ao carregar selecionados: '+error.message,true);return}
+ candidates=rows||[];
+ const {data:docs,error:docError}=await client.from('candidate_documents').select('*');
+ if(docError){notice('A lista foi carregada, mas não foi possível consultar os documentos: '+docError.message,true);return}
+ documents=docs||[];notice('');render();
+}
+function render(){
+ const q=$('search').value.trim().toLocaleLowerCase('pt-BR'),f=$('filter').value;
+ let rows=candidates.filter(c=>[c.nome,c.cpf,c.email,c.protocolo].some(v=>String(v||'').toLocaleLowerCase('pt-BR').includes(q)));
+ if(f==='missing')rows=rows.filter(c=>getDocs(c).some(d=>!d));
+ if(f==='complete')rows=rows.filter(c=>getDocs(c).every(d=>!!d));
+ if(f==='review')rows=rows.filter(c=>getDocs(c).some(d=>d&&['recebido','rejeitado','pendente'].includes(d.review_status)));
+ $('count-candidates').textContent=candidates.length;
+ $('count-received').textContent=documents.length;
+ $('count-pending').textContent=candidates.reduce((n,c)=>n+getDocs(c).filter(d=>!d||d.review_status==='pendente'||d.review_status==='rejeitado').length,0);
+ $('count-valid').textContent=documents.filter(d=>d.review_status==='validado').length;
+ if(!rows.length){$('list').innerHTML='<div class="empty">Nenhum selecionado encontrado com esse filtro.</div>';return}
+ $('list').innerHTML=rows.map(c=>{
+  const docs=getDocs(c),received=docs.filter(Boolean).length;
+  return '<article class="candidate"><div class="candidate-head"><div><h2>'+esc(c.nome)+'</h2><p>Protocolo: '+esc(c.protocolo)+' · CPF: '+esc(c.cpf)+'</p><p>'+esc(c.email)+' · '+esc(c.telefone)+' · '+esc(c.profissao)+'</p><p>Unidade: '+esc(c.unidade_escalada||'não definida')+' · Plantão: '+esc(c.plantao_escalado||'não definido')+'</p></div><span class="pill">'+received+'/3 documentos</span></div><div class="docs">'+types.map(t=>docCard(c,t,docFor(c.id,t.key))).join('')+'</div></article>';
+ }).join('');
+ document.querySelectorAll('[data-upload]').forEach(el=>el.addEventListener('click',()=>uploadDoc(el.dataset.id,el.dataset.type)));
+ document.querySelectorAll('[data-open]').forEach(el=>el.addEventListener('click',()=>openDoc(el.dataset.id,el.dataset.type)));
+ document.querySelectorAll('[data-save-review]').forEach(el=>el.addEventListener('click',()=>saveReview(el.dataset.id,el.dataset.type)));
+ document.querySelectorAll('[data-delete]').forEach(el=>el.addEventListener('click',()=>deleteDoc(el.dataset.id,el.dataset.type)));
+}
+function docCard(c,t,d){
+ const file=d?'<div class="file-name">'+esc(d.original_name)+'<br>Enviado em '+new Date(d.uploaded_at).toLocaleString('pt-BR')+'</div>':'<div class="file-name">Documento ainda não recebido.</div>';
+ const status=d?d.review_status:'pendente';
+ return '<section class="doc"><h3>'+esc(t.label)+'</h3>'+file+(d?'<span class="pill">'+esc(statusLabels[status]||status)+'</span>':'')+'<input type="file" id="file-'+esc(c.id)+'-'+t.key+'" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" aria-label="Selecionar '+esc(t.label)+' de '+esc(c.nome)+'"><div class="doc-actions"><button class="btn primary" data-upload data-id="'+esc(c.id)+'" data-type="'+t.key+'">'+(d?'Substituir arquivo':'Enviar arquivo')+'</button>'+(d?'<button class="btn" data-open data-id="'+esc(c.id)+'" data-type="'+t.key+'">Visualizar</button><button class="btn danger" data-delete data-id="'+esc(c.id)+'" data-type="'+t.key+'">Excluir</button>':'')+'</div><label for="review-'+esc(c.id)+'-'+t.key+'">Conferência</label><select id="review-'+esc(c.id)+'-'+t.key+'"><option value="pendente" '+(status==='pendente'?'selected':'')+'>Pendente</option><option value="recebido" '+(status==='recebido'?'selected':'')+'>Recebido</option><option value="validado" '+(status==='validado'?'selected':'')+'>Validado</option><option value="rejeitado" '+(status==='rejeitado'?'selected':'')+'>Rejeitado — solicitar correção</option></select><textarea id="notes-'+esc(c.id)+'-'+t.key+'" placeholder="Observação interna">'+esc(d?.review_notes||'')+'</textarea><div class="save-row"><button class="btn" data-save-review data-id="'+esc(c.id)+'" data-type="'+t.key+'">Salvar conferência</button></div></section>';
+}
+async function uploadDoc(id,type){
+ const input=$('file-'+id+'-'+type),file=input?.files?.[0];if(!file){notice('Selecione um arquivo antes de enviar.',true);return}
+ const allowed=['application/pdf','image/jpeg','image/png'];if(!allowed.includes(file.type)){notice('Formato inválido. Envie PDF, JPG ou PNG.',true);return}
+ if(file.size>10*1024*1024){notice('O arquivo excede o limite de 10 MB.',true);return}
+ const old=docFor(id,type),safeName=file.name.normalize('NFKD').replace(/[^a-zA-Z0-9._-]/g,'_').slice(-100),path=id+'/'+type+'/'+crypto.randomUUID()+'_'+safeName;
+ notice('Enviando documento…');
+ const {error:uploadError}=await client.storage.from('candidate-documents').upload(path,file,{contentType:file.type,upsert:false});
+ if(uploadError){notice('Falha no envio: '+uploadError.message,true);return}
+ const {data:row,error:saveError}=await client.from('candidate_documents').upsert({registration_id:id,document_type:type,storage_path:path,original_name:file.name,uploaded_by:currentUser?.email||'',uploaded_at:new Date().toISOString(),review_status:'recebido',review_notes:'',updated_at:new Date().toISOString()},{onConflict:'registration_id,document_type'}).select().single();
+ if(saveError){await client.storage.from('candidate-documents').remove([path]);notice('Arquivo enviado, mas não foi possível registrar no controle: '+saveError.message,true);return}
+ if(old?.storage_path&&old.storage_path!==path)await client.storage.from('candidate-documents').remove([old.storage_path]);
+ documents=documents.filter(d=>!(d.registration_id===id&&d.document_type===type));documents.push(row);notice('Documento enviado com segurança.');render();
+}
+async function openDoc(id,type){const d=docFor(id,type);if(!d)return;const {data,error}=await client.storage.from('candidate-documents').createSignedUrl(d.storage_path,60);if(error){notice('Não foi possível abrir o arquivo: '+error.message,true);return}window.open(data.signedUrl,'_blank','noopener,noreferrer')}
+async function saveReview(id,type){const d=docFor(id,type);if(!d){notice('Envie o documento antes de registrar a conferência.',true);return}const status=$('review-'+id+'-'+type).value,notes=$('notes-'+id+'-'+type).value.trim();const {data,error}=await client.from('candidate_documents').update({review_status:status,review_notes:notes,updated_at:new Date().toISOString()}).eq('registration_id',id).eq('document_type',type).select().single();if(error){notice('Não foi possível salvar a conferência: '+error.message,true);return}documents=documents.map(x=>x.id===data.id?data:x);notice('Conferência salva.');render()}
+async function deleteDoc(id,type){const d=docFor(id,type);if(!d||!confirm('Excluir definitivamente o arquivo de '+(types.find(t=>t.key===type)?.label||type)+'?'))return;const {error:removeError}=await client.storage.from('candidate-documents').remove([d.storage_path]);if(removeError){notice('Não foi possível excluir o arquivo: '+removeError.message,true);return}const {error}=await client.from('candidate_documents').delete().eq('id',d.id);if(error){notice('Arquivo removido, mas houve erro ao atualizar o controle: '+error.message,true);return}documents=documents.filter(x=>x.id!==d.id);notice('Documento excluído.');render()}
+(async()=>{if(await verifyAdmin())await loadData()})();
+</script>
+</body>
+</html>
