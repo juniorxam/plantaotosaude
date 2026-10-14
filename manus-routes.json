@@ -1,1 +1,1 @@
-{"routes":[{"path":"/","title":"Plantão TO Saúde"},{"path":"/acompanhamento.html","title":"Acompanhamento da inscrição"},{"path":"/admin.html","title":"Gestão das inscrições"}]}
+{"routes":[{"path":"/","title":"Plantão TO Saúde"},{"path":"/acompanhamento.html","title":"Acompanhamento da inscrição"},{"path":"/admin.html","title":"Gestão das inscrições"},{"path":"/selecionados.html","title":"Gestão de documentos dos selecionados"},{"path":"/documentos-candidato.html","title":"Portal individual de documentos do candidato"}]}
