@@ -37,7 +37,7 @@
       if(protocolo.length<6||protocolo.length>64||!/^[A-Z0-9-]+$/.test(protocolo)){$('feedback').textContent='Informe o protocolo recebido após a inscrição.';return}
       const button=$('submit');button.disabled=true;button.textContent='Consultando…';
       try{
-        const response=await fetch(SUPABASE_URL+'/functions/v1/consultar-resultado-plantao',{method:'POST',headers:{apikey:SUPABASE_PUBLISHABLE_KEY,'Content-Type':'application/json'},body:JSON.stringify({cpf})});
+        const response=await fetch(SUPABASE_URL+'/functions/v1/consultar-resultado-plantao',{method:'POST',headers:{apikey:SUPABASE_PUBLISHABLE_KEY,'Content-Type':'application/json'},body:JSON.stringify({cpf,protocolo})});
         const data=await response.json();if(!response.ok)throw new Error(data.message);
         if(!data.encontrada){$('feedback').textContent='Não encontramos uma inscrição para este CPF.';return}
         const labels={pendente:'Em análise',confirmado:'Inscrição aceita',escalado:'Inscrição aceita e escalada',recusado:'Não selecionado'};
