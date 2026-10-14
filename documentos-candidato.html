@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>Plantão TO Saúde | Portal de documentos</title>
+<style>
+:root{--blue:#005a9c;--deep:#003d66;--teal:#00897b;--ink:#122b3b;--muted:#607583;--line:#dce7eb;--bg:#f4f7fa;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Segoe UI",Arial,sans-serif}button,input,select{font:inherit}button{cursor:pointer}.hidden{display:none!important}header{background:var(--deep);color:white;padding:16px 20px;border-bottom:4px solid #ffcc00}.head,main{max-width:920px;margin:auto}.head{font-weight:850}main{padding:24px 16px 50px}.card{background:white;border:1px solid var(--line);border-radius:16px;padding:20px;margin:14px 0}.muted{color:var(--muted);font-size:.9rem}.notice{padding:12px;border-radius:10px;background:#e8f5ff;color:#07577d;margin:12px 0}.bad{background:#fff0ef;color:var(--red)}label{display:block;font-size:.88rem;font-weight:750;margin:12px 0 5px}input,select{width:100%;padding:11px;border:1px solid var(--line);border-radius:9px;background:#fff}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.btn{border:0;border-radius:9px;padding:10px 14px;background:#edf4f7;color:var(--deep);font-weight:800}.primary{background:var(--blue);color:white}.docrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,.8fr);gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}.docrow:last-child{border-bottom:0}.pill{display:inline-block;padding:4px 8px;border-radius:99px;background:#dff4f0;color:#00685e;font-size:.75rem;font-weight:800}.docrow input{margin-top:7px}.footer{font-size:.78rem;color:var(--muted)}h1,h2,h3{color:var(--deep)}h1{margin:0;font-size:1.55rem}h2{font-size:1.15rem;margin-top:0}button:disabled{opacity:.6;cursor:wait}@media(max-width:640px){.grid,.docrow{grid-template-columns:1fr}.card{padding:15px}main{padding:15px 10px 35px}}
+</style>
+</head><body>
+<header><div class="head">✚ Plantão TO Saúde · Portal individual de documentos</div></header>
+<main>
+<section id="loading" class="card"><h1>Validando seu acesso…</h1><p class="muted">Aguarde enquanto verificamos seu link.</p></section>
+<section id="error-view" class="card hidden"><h1>Não foi possível acessar o portal</h1><div id="error-message" class="notice bad">Link inválido ou expirado.</div><p>Solicite à Gestão um novo link de acesso. Por segurança, não compartilhe este endereço.</p></section>
+<section id="portal" class="hidden">
+<div class="card"><h1>Olá, <span id="candidate-name"></span></h1><p class="muted">Confira seus dados e envie os documentos solicitados. Os arquivos são privados e ficam disponíveis somente para a Gestão autorizada.</p><div id="candidate-info" class="grid"></div><div id="expiry" class="notice"></div></div>
+<div class="card"><h2>1. Dados bancários para pagamento</h2><p class="muted">Preencha os dados da conta de sua titularidade. Nunca informe senha bancária.</p>
+<form id="bank-form"><div class="grid">
+<div><label for="banco">Banco *</label><input id="banco" maxlength="120" required></div>
+<div><label for="tipo_conta">Tipo de conta *</label><select id="tipo_conta" required><option value="">Selecione</option><option>Corrente</option><option>Poupança</option><option>Conta salário</option><option>Conta de pagamento</option></select></div>
+<div><label for="agencia">Agência *</label><input id="agencia" maxlength="40" required></div>
+<div><label for="conta">Número da conta e dígito *</label><input id="conta" maxlength="60" required></div>
+<div><label for="titular">Nome do titular *</label><input id="titular" maxlength="180" required></div>
+<div><label for="cpf_titular">CPF do titular *</label><input id="cpf_titular" maxlength="20" required inputmode="numeric"></div>
+<div style="grid-column:1/-1"><label for="pix_chave">Chave Pix (opcional, se solicitada pela Gestão)</label><input id="pix_chave" maxlength="180"></div>
+</div><button class="btn primary" type="submit" style="margin-top:16px">Salvar dados bancários</button><span id="bank-status" class="muted"></span></form><div id="bank-review" class="muted"></div></div>
+<div class="card"><h2>2. Envio de documentos</h2><p class="muted">Formatos aceitos: PDF, JPG ou PNG. Limite de 10 MB por arquivo. Se a Gestão solicitar correção, envie o documento novamente.</p><div id="documents"></div></div>
+<div class="card"><h2>3. Acompanhamento</h2><p class="muted">O envio não significa validação automática. A Gestão conferirá os arquivos e poderá solicitar correções.</p><div id="overall-status"></div></div>
+<p class="footer">Proteção de dados: use este link apenas em dispositivo confiável. O acesso expira automaticamente e pode ser revogado pela Gestão a qualquer momento.</p>
+</section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://jyrzbfnaitdmilxxcbyv.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_WDE_s2HYfWUCI3iuodaG4w_RFGGwm9m';
+const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const endpoint=SUPABASE_URL+'/functions/v1/candidate-documents-portal';
+const token=new URLSearchParams(location.search).get('token')||'';
+const $=id=>document.getElementById(id);
+const types=[{key:'rg',label:'RG / documento de identidade'},{key:'cpf',label:'CPF'},{key:'comprovante_bancario',label:'Comprovante bancário da conta'}];
+let candidate=null,documents=[],bank=null,expiresAt='';
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const labels={pendente:'Aguardando conferência',recebido:'Recebido — aguardando validação',validado:'Validado pela Gestão',rejeitado:'Correção solicitada'};
+async function call(action,payload={}){const res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify({action,token,...payload})});let data={};try{data=await res.json()}catch{}if(!res.ok||data.error)throw new Error(data.error||'Não foi possível concluir a operação.');return data}
+function showError(message){$('loading').classList.add('hidden');$('portal').classList.add('hidden');$('error-view').classList.remove('hidden');$('error-message').textContent=message}
+function fillBank(){if(!bank)return;for(const k of ['banco','agencia','conta','tipo_conta','titular','cpf_titular','pix_chave'])$(k).value=bank[k]||'';$('bank-review').textContent=bank.review_status==='validado'?'Dados bancários validados pela Gestão.':bank.review_status==='rejeitado'?'Correção solicitada pela Gestão: '+(bank.review_notes||'revise os dados e salve novamente'):'Dados bancários aguardando conferência.'}
+function renderDocs(){
+ $('documents').innerHTML=types.map(t=>{const d=documents.find(x=>x.document_type===t.key);return '<div class="docrow"><div><strong>'+esc(t.label)+'</strong><div class="muted">'+(d?esc(d.original_name||'Arquivo recebido')+' · '+esc(labels[d.review_status]||d.review_status):'Ainda não enviado')+'</div>'+(d?.review_status==='rejeitado'?'<div class="notice bad">'+esc(d.review_notes||'Envie uma versão corrigida.')+'</div>':'')+'</div><div><input type="file" id="file-'+t.key+'" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" aria-label="'+esc(t.label)+'"><button class="btn primary" data-upload="'+t.key+'" style="margin-top:8px;width:100%">'+(d?'Enviar correção/substituição':'Enviar documento')+'</button></div></div>'}).join('');
+ document.querySelectorAll('[data-upload]').forEach(b=>b.addEventListener('click',()=>upload(b.dataset.upload,b)));
+ const complete=types.filter(t=>documents.some(d=>d.document_type===t.key&&d.review_status==='validado')).length;
+ $('overall-status').textContent=complete===3&&bank?.review_status==='validado'?'Todos os documentos e dados bancários foram validados.':complete+' de 3 documentos validados. Acompanhe as situações acima.';
+}
+async function upload(type,button){const file=$('file-'+type).files[0];if(!file){alert('Selecione um arquivo primeiro.');return}const mime=file.type;if(!['application/pdf','image/jpeg','image/png'].includes(mime)||file.size<1||file.size>10*1024*1024){alert('Envie PDF, JPG ou PNG de até 10 MB.');return}
+ button.disabled=true;button.textContent='Preparando envio…';
+ try{const prep=await call('request_upload',{document_type:type,original_name:file.name,content_type:mime,size:file.size});
+ const {error:uploadError}=await client.storage.from('candidate-documents').uploadToSignedUrl(prep.path,prep.token,file,{contentType:mime,upsert:false});
+ if(uploadError)throw new Error('Falha no envio do arquivo. Tente novamente.');
+ await call('register_upload',{document_type:type,path:prep.path,original_name:file.name,content_type:mime,size:file.size});
+ const refreshed=await call('get_candidate');documents=refreshed.documents||[];renderDocs();button.textContent='Enviado';}
+ catch(e){alert(e.message||'Falha ao enviar o documento.');button.textContent='Tentar novamente';}
+ finally{button.disabled=false}
+}
+$('bank-form').addEventListener('submit',async e=>{e.preventDefault();const b=e.submitter;b.disabled=true;$('bank-status').textContent=' Salvando…';try{await call('submit_bank',{bank:Object.fromEntries(['banco','agencia','conta','tipo_conta','titular','cpf_titular','pix_chave'].map(k=>[k,$(k).value.trim()]))});const data=await call('get_candidate');bank=data.bank;fillBank();$('bank-status').textContent=' Dados salvos.';renderDocs()}catch(err){$('bank-status').textContent=' '+err.message}finally{b.disabled=false}});
+(async()=>{if(!token||token.length<40){showError('Link ausente ou inválido. Solicite à Gestão um novo link.');return}try{const data=await call('get_candidate');candidate=data.candidate;documents=data.documents||[];bank=data.bank;expiresAt=data.expires_at;$('candidate-name').textContent=candidate.nome||'candidato';$('candidate-info').innerHTML=[['Protocolo',candidate.protocolo],['CPF',candidate.cpf],['E-mail',candidate.email],['Telefone',candidate.telefone],['Profissão',candidate.profissao],['Unidade',candidate.unidade_escalada]].map(([k,v])=>'<div><strong>'+esc(k)+'</strong><div>'+esc(v||'Não informado')+'</div></div>').join('');$('expiry').textContent='Link válido até '+new Date(expiresAt).toLocaleString('pt-BR');fillBank();renderDocs();$('loading').classList.add('hidden');$('portal').classList.remove('hidden')}catch(e){showError(e.message||'Link inválido, expirado ou revogado. Solicite outro à Gestão.')}})();
+</script></body></html>
