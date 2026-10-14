@@ -522,9 +522,12 @@
     }
     async function loadAdminAccess() {
       const list = $('admin-access-list');
-      const {data,error} = await client.from('admin_users').select('email,ativo,created_at').order('email').limit(100);
-      if (error) { list.innerHTML = '<span class="muted">Não foi possível carregar os acessos.</span>'; return; }
-      list.innerHTML = (data || []).map(row => `<div class="admin-row"><span><strong>${esc(row.email)}</strong><br><small>${row.ativo ? 'Ativo' : 'Desativado'} · ${fmtDate(row.created_at)}</small></span><button class="btn ghost" type="button" data-admin-email="${esc(row.email)}" data-admin-active="${row.ativo}">${row.ativo ? 'Desativar' : 'Reativar'}</button></div>`).join('') || '<span class="muted">Nenhum acesso cadastrado.</span>';
+      const { data, error } = await client.functions.invoke('manage-admin-account', { body: { action: 'list' } });
+      if (error || data?.error || !data?.ok) {
+        list.innerHTML = '<span class="muted">Não foi possível carregar os acessos administrativos.</span>';
+        return;
+      }
+      list.innerHTML = (data.admins || []).map(row => `<div class="admin-row"><span><strong>${esc(row.email)}</strong><br><small>${row.ativo ? 'Ativo' : 'Aguardando primeiro acesso / desativado'} · ${fmtDate(row.created_at)}</small></span><button class="btn ghost" type="button" data-admin-email="${esc(row.email)}" data-admin-active="${row.ativo}">${row.ativo ? 'Desativar' : 'Reenviar senha temporária'}</button></div>`).join('') || '<span class="muted">Nenhum acesso cadastrado.</span>';
     }
     async function saveAdminAccess(email, active) {
       const feedback = $('admin-access-feedback');
