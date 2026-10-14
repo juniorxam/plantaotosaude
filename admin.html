@@ -107,6 +107,16 @@
         <p class="login-help">A entrada é somente com e-mail e senha. Não há cadastro público nem envio de link de acesso por e-mail. O acesso ao painel depende de liberação prévia por um administrador.</p>
         <div id="login-error" class="error hidden" role="alert"></div>
       </form>
+      <form id="first-access-form" class="hidden">
+        <h2 style="margin-top:8px">Defina sua senha pessoal</h2>
+        <p class="login-help">Este é seu primeiro acesso. A senha temporária é 123456. Crie uma nova senha com pelo menos 10 caracteres para ativar sua conta administrativa.</p>
+        <label for="new-password">Nova senha</label>
+        <input id="new-password" type="password" autocomplete="new-password" minlength="10" required placeholder="Mínimo de 10 caracteres">
+        <label for="confirm-password">Confirme a nova senha</label>
+        <input id="confirm-password" type="password" autocomplete="new-password" minlength="10" required placeholder="Digite a senha novamente">
+        <button id="first-access-button" class="btn primary" type="submit">Salvar nova senha</button>
+        <div id="first-access-error" class="error hidden" role="alert"></div>
+      </form>
     </div>
   </section>
 
@@ -158,7 +168,7 @@
       <section class="admin-tools" aria-label="Acessos administrativos">
         <article class="admin-tool">
           <h3>Acessos administrativos</h3>
-          <p>Libere ou desative o acesso de administradores. A liberação autoriza o painel, mas a pessoa também precisa ter uma conta de autenticação e senha cadastrada.</p>
+          <p>Ao liberar um e-mail, a conta será criada com a senha temporária 123456. No primeiro acesso, a pessoa será obrigada a cadastrar uma senha pessoal antes de entrar no painel.</p>
           <div class="admin-access-form"><input id="admin-access-email" type="email" placeholder="novo.admin@email.com" aria-label="E-mail do novo administrador"><button id="admin-access-save" class="btn save" type="button">Liberar acesso</button></div>
           <p id="admin-access-feedback" class="muted" role="status" aria-live="polite"></p><div id="admin-access-list" class="admin-list"><span class="loading">Carregando acessos…</span></div>
         </article>
@@ -519,44 +529,33 @@
     async function saveAdminAccess(email, active) {
       const feedback = $('admin-access-feedback');
       const normalizedEmail = String(email || '').trim().toLowerCase();
-      if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      if (!normalizedEmail || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(normalizedEmail)) {
         feedback.textContent = 'Informe um endereço de e-mail válido.';
         feedback.style.color = 'var(--danger)';
         return;
       }
       const button = $('admin-access-save');
-      if (button) { button.disabled = true; button.textContent = 'Salvando…'; }
-      feedback.textContent = 'Verificando permissão e salvando acesso…';
+      if (button) { button.disabled = true; button.textContent = active ? 'Preparando convite…' : 'Desativando…'; }
+      feedback.textContent = active ? 'Criando conta e senha temporária…' : 'Desativando acesso administrativo…';
       feedback.style.color = 'var(--muted)';
       try {
-        const { data, error } = await client.rpc('manage_admin_access', { p_email: normalizedEmail, p_ativo: active });
-        if (error) {
-          console.error('manage_admin_access:', error);
-          const message = String(error.message || '');
-          if (message.toLowerCase().includes('remover o próprio')) {
-            feedback.textContent = 'Você não pode desativar seu próprio acesso.';
-          } else if (error.code === '42501' || message.toLowerCase().includes('apenas administradores')) {
-            feedback.textContent = 'Sua conta não está autorizada como administradora ativa. Entre com o e-mail administrador cadastrado.';
-          } else if (error.code === 'PGRST202' || error.code === '42883' || message.toLowerCase().includes('could not find the function')) {
-            feedback.textContent = 'A função de autorização não está disponível corretamente no banco. Atualize o esquema do Supabase e tente novamente.';
-          } else {
-            feedback.textContent = 'Não foi possível ' + (active ? 'liberar' : 'atualizar') + ' o acesso. Detalhe: ' + (message || 'erro não identificado') + (error.code ? ' (' + error.code + ')' : '');
-          }
+        const { data, error } = await client.functions.invoke('manage-admin-account', {
+          body: { action: active ? 'grant' : 'revoke', email: normalizedEmail }
+        });
+        if (error || data?.error || !data?.ok) {
+          feedback.textContent = data?.error || error?.message || 'Erro não identificado.';
           feedback.style.color = 'var(--danger)';
           return;
         }
-        if (!data) {
-          feedback.textContent = 'O banco não confirmou a alteração. Atualize a lista e tente novamente.';
-          feedback.style.color = 'var(--danger)';
-          return;
-        }
-        feedback.textContent = active ? 'Acesso liberado para ' + normalizedEmail + '. A pessoa poderá entrar com senha se já tiver uma conta de autenticação cadastrada.' : 'Acesso de ' + normalizedEmail + ' desativado.';
+        feedback.textContent = active
+          ? 'Convite preparado para ' + normalizedEmail + '. Senha temporária: 123456. No primeiro acesso, será obrigatório criar uma nova senha. Informe os dados por um canal seguro.'
+          : 'Acesso de ' + normalizedEmail + ' desativado.';
         feedback.style.color = 'var(--success)';
         if (active) $('admin-access-email').value = '';
         await Promise.all([loadAdminAccess(), loadAuditLog()]);
       } catch (error) {
         console.error('Erro ao gerenciar acesso administrativo:', error);
-        feedback.textContent = 'Falha de comunicação com o banco. Confira a conexão e tente novamente.';
+        feedback.textContent = 'Falha de comunicação com o servidor. Confira a conexão e tente novamente.';
         feedback.style.color = 'var(--danger)';
       } finally {
         if (button) { button.disabled = false; button.textContent = 'Liberar acesso'; }
@@ -640,16 +639,70 @@
       if (event.key === 'Escape') $('detail-modal').classList.add('hidden');
     });
     async function login(event) {
-      event.preventDefault(); $('login-error').classList.add('hidden'); $('login-button').disabled=true; $('login-button').textContent='Entrando…';
-      const {data,error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});
-      if(error){$('login-error').textContent='E-mail ou senha inválidos, ou acesso não autorizado.';$('login-error').classList.remove('hidden');}
-      else {
-        $('user-email').textContent=data.user?.email||'';
-        $('login-view').classList.add('hidden');
-        $('app-view').classList.remove('hidden');
-        await Promise.all([load(), loadSettings(), loadAdminAccess(), loadAuditLog()]);
+      event.preventDefault();
+      $('login-error').classList.add('hidden');
+      $('login-button').disabled = true;
+      $('login-button').textContent = 'Entrando…';
+      const { data, error } = await client.auth.signInWithPassword({
+        email: $('email').value.trim(),
+        password: $('password').value
+      });
+      if (error) {
+        $('login-error').textContent = 'E-mail ou senha inválidos, ou acesso não autorizado.';
+        $('login-error').classList.remove('hidden');
+      } else if (data.user?.app_metadata?.must_change_password === true) {
+        $('login-form').classList.add('hidden');
+        $('first-access-form').classList.remove('hidden');
+        $('first-access-error').classList.add('hidden');
+        $('new-password').focus();
+      } else {
+        await enterAdminPanel(data.user);
       }
-      $('login-button').disabled=false; $('login-button').textContent='Entrar com e-mail';
+      $('login-button').disabled = false;
+      $('login-button').textContent = 'Entrar com senha';
+    }
+    async function enterAdminPanel(user) {
+      $('user-email').textContent = user?.email || '';
+      $('login-view').classList.add('hidden');
+      $('app-view').classList.remove('hidden');
+      await Promise.all([load(), loadSettings(), loadAdminAccess(), loadAuditLog()]);
+    }
+    async function completeFirstAccess(event) {
+      event.preventDefault();
+      const errorEl = $('first-access-error');
+      const button = $('first-access-button');
+      const password = $('new-password').value;
+      const confirmation = $('confirm-password').value;
+      errorEl.classList.add('hidden');
+      if (password.length < 10 || password === '123456') {
+        errorEl.textContent = 'Crie uma senha diferente da temporária, com pelo menos 10 caracteres.';
+        errorEl.classList.remove('hidden'); return;
+      }
+      if (password !== confirmation) {
+        errorEl.textContent = 'As senhas não são iguais.';
+        errorEl.classList.remove('hidden'); return;
+      }
+      button.disabled = true; button.textContent = 'Salvando…';
+      const { data, error } = await client.functions.invoke('manage-admin-account', {
+        body: { action: 'complete-first-access', password }
+      });
+      if (error || data?.error || !data?.ok) {
+        errorEl.textContent = data?.error || error?.message || 'Não foi possível concluir a troca de senha. Tente novamente.';
+        errorEl.classList.remove('hidden');
+        button.disabled = false; button.textContent = 'Salvar nova senha'; return;
+      }
+      const { data: userData } = await client.auth.getUser();
+      const email = userData.user?.email || $('email').value.trim();
+      await client.auth.signOut({ scope: 'local' });
+      $('first-access-form').classList.add('hidden');
+      $('login-form').classList.remove('hidden');
+      $('email').value = email;
+      $('password').value = '';
+      $('login-error').textContent = 'Senha cadastrada. Entre agora com sua nova senha.';
+      $('login-error').classList.remove('hidden');
+      $('login-button').disabled = false; $('login-button').textContent = 'Entrar com senha';
+      button.disabled = false; button.textContent = 'Salvar nova senha';
+      $('password').focus();
     }
     function updateAssignmentControls() {
       const status = $('assign-status')?.value;
@@ -786,6 +839,7 @@
     $('page-prev').addEventListener('click', () => { if (currentPage > 1) { currentPage -= 1; render(); window.scrollTo({top:0,behavior:'smooth'}); } });
     $('page-next').addEventListener('click', () => { const totalPages = Math.max(1, Math.ceil(filtered().length / PAGE_SIZE)); if (currentPage < totalPages) { currentPage += 1; render(); window.scrollTo({top:0,behavior:'smooth'}); } });
     $('login-form').addEventListener('submit',login);
+    $('first-access-form').addEventListener('submit',completeFirstAccess);
     $('settings-save').addEventListener('click',saveSettings);
     $('settings-reload').addEventListener('click',loadSettings);
     $('admin-access-save').addEventListener('click',()=>{const email=$('admin-access-email').value.trim();if(!email){$('admin-access-feedback').textContent='Informe um e-mail.';return}saveAdminAccess(email,true);});
@@ -805,7 +859,17 @@
     $('report-accepted-xlsx').addEventListener('click',()=>exportReportExcel(true));
     $('report-accepted-pdf').addEventListener('click',()=>exportReportPdf(true));
     client.auth.getSession().then(async({data})=>{
-      if(data.session){$('user-email').textContent=data.session.user?.email||'';$('login-view').classList.add('hidden');$('app-view').classList.remove('hidden');await Promise.all([load(), loadSettings(), loadAdminAccess(), loadAuditLog()]);}
+      if(data.session){
+        const {data:userData} = await client.auth.getUser();
+        const user = userData.user || data.session.user;
+        if (user?.app_metadata?.must_change_password === true) {
+          $('login-form').classList.add('hidden');
+          $('first-access-form').classList.remove('hidden');
+          $('login-view').classList.remove('hidden');
+        } else {
+          await enterAdminPanel(user);
+        }
+      }
     });
   </script>
 </body>
