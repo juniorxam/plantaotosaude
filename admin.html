@@ -69,6 +69,21 @@
     .admin-tools{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}.admin-tool{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px}.admin-tool h3{margin:0;color:var(--deep)}.admin-tool p{margin:5px 0 14px;color:var(--muted);font-size:.82rem}.admin-access-form{display:flex;gap:8px}.admin-access-form input{flex:1}.admin-access-form button{white-space:nowrap}.admin-list,.audit-list{display:grid;gap:7px;margin-top:12px}.admin-row,.audit-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 10px;border:1px solid #edf2f4;border-radius:10px;background:#fbfdfe;font-size:.82rem}.admin-row small,.audit-row small{color:var(--muted)}.admin-row button{padding:6px 9px;font-size:.76rem}.audit-row{display:block}.audit-row strong{color:var(--deep)}.audit-row pre{margin:4px 0 0;white-space:pre-wrap;word-break:break-word;color:var(--muted);font:inherit;font-size:.76rem}.unit-select{width:145px;padding:7px 8px;font-size:.82rem}
     @media(max-width:850px){.admin-tools{grid-template-columns:1fr}}
 
+
+    .fold-section{background:#fff;border:1px solid var(--line);border-radius:14px;margin:0 0 12px;overflow:hidden}
+    .fold-section>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;cursor:pointer;font-weight:850;color:var(--deep)}
+    .fold-section>summary::-webkit-details-marker{display:none}
+    .fold-section>summary:after{content:"＋";font-size:1.2rem;color:var(--teal);margin-left:auto}
+    .fold-section[open]>summary:after{content:"−"}
+    .fold-section>summary small{font-size:.78rem;font-weight:600;color:var(--muted);text-align:right}
+    .fold-content{padding:0 14px 14px}
+    .fold-content>.monitor-card,.fold-content>.admin-tools{margin-top:0}
+    .workflow-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:20px 0 10px}
+    .workflow-heading h3{margin:0;color:var(--deep);font-size:1.15rem}
+    .workflow-heading p{margin:2px 0 0;color:var(--muted);font-size:.84rem}
+    .toolbar{position:static}
+    .table-wrap{margin-top:8px}
+    @media(max-width:600px){.fold-section>summary{align-items:flex-start;flex-wrap:wrap;padding:14px}.fold-section>summary small{width:100%;text-align:left}.fold-content{padding:0 9px 10px}}
     .pagination button:disabled{opacity:.45;cursor:not-allowed}
     @media(max-width:600px){.detail-grid{grid-template-columns:1fr}.detail.full{grid-column:auto}.assignment-fields{grid-template-columns:1fr}.assignment-editor{margin:0 12px 12px}#setting-values-grid,#setting-values-24h-grid{grid-template-columns:1fr!important}}
     .mobile-help{font-size:.78rem;color:var(--muted);margin-bottom:8px}
@@ -118,6 +133,7 @@
         <div class="stat"><small>Escalados</small><strong id="stat-escalado">0</strong></div>
         <div class="stat"><small>Recusados</small><strong id="stat-recusado">0</strong></div>
       </div>
+      <details class="fold-section" id="settings-panel"><summary><span>⚙️ Configurações da seleção</span><small>Prazo, resultado e valores dos plantões</small></summary><div class="fold-content">
       <section class="monitor-card" id="selection-settings" style="margin-bottom:22px">
         <h3>Configurações da seleção</h3>
         <p>Altere aqui o prazo, a data do resultado e a remuneração prevista por cargo. As alterações ficam salvas no banco de dados e podem ser exibidas na página pública.</p>
@@ -137,6 +153,8 @@
         </div>
         <p id="settings-feedback" class="muted" aria-live="polite" style="margin:12px 0 0"></p>
       </section>
+      </div></details>
+      <details class="fold-section" id="admin-panel"><summary><span>🔐 Acessos e auditoria</span><small>Administradores e histórico de alterações</small></summary><div class="fold-content">
       <section class="admin-tools" aria-label="Acessos e auditoria administrativa">
         <article class="admin-tool">
           <h3>Acessos administrativos</h3>
@@ -150,6 +168,8 @@
           <button id="audit-refresh" class="btn ghost" type="button">Atualizar histórico</button><div id="audit-list" class="audit-list"><span class="loading">Carregando histórico…</span></div>
         </article>
       </section>
+      </div></details>
+      <details class="fold-section" id="analytics-panel"><summary><span>📊 Indicadores e monitoramento</span><small>Distribuição por hospital, plantões e alertas</small></summary><div class="fold-content">
       <div class="insights">
         <div class="insight-card"><div class="insight-head"><strong>Hospitais mais escolhidos</strong><span>geral</span></div><div id="hospital-summary" class="summary-list"></div></div>
         <div class="insight-card"><div class="insight-head"><strong>Plantões selecionados</strong><span>geral</span></div><div id="shift-summary" class="summary-list"></div></div>
@@ -160,6 +180,8 @@
         <article class="monitor-card"><h3>Atenção da gestão</h3><p>Itens que pedem acompanhamento.</p><div id="management-alerts" class="alert-list"></div></article>
       </section>
       <div class="monitor-footer"><span id="last-updated">Ainda não atualizado</span><div class="refresh-options"><input id="auto-refresh" type="checkbox"><label for="auto-refresh">Atualizar automaticamente a cada 1 minuto</label></div></div>
+      </div></details>
+      <div class="workflow-heading"><div><h3>Inscrições</h3><p>Pesquise, filtre e abra um cadastro para atualizar o resultado ou a escala.</p></div></div>
       <div class="quick-status" id="status-quick"><button type="button" data-quick-status="">Todos</button><button type="button" data-quick-status="pendente">Pendentes</button><button type="button" data-quick-status="confirmado">Confirmados</button><button type="button" data-quick-status="escalado">Escalados</button><button type="button" data-quick-status="recusado">Recusados</button></div>
       <div class="filter-summary" id="filter-summary" aria-live="polite">Sem filtros ativos</div>
       <div class="toolbar">
@@ -172,6 +194,7 @@
         </select>
         <button id="export" class="btn ghost" type="button">Exportar CSV</button>
       </div>
+      <details class="fold-section" id="reports-panel" style="margin:14px 0 20px"><summary><span>📄 Relatórios e listas</span><small>Exportação Excel e PDF para publicação</small></summary><div class="fold-content">
       <section class="monitor-card" aria-labelledby="reports-title" style="margin:14px 0 20px">
         <h3 id="reports-title">Relatórios e listas para publicação</h3>
         <p>Gere listas em ordem alfabética, com filtros independentes dos filtros da tabela. As listas para publicação não incluem CPF, telefone, e-mail, protocolo ou observações pessoais.</p>
@@ -187,6 +210,7 @@
         </div>
         <p class="muted" style="margin-top:10px">A lista de aceitos considera os status “Confirmado” e “Escalado”. Hospital e plantão mostram a designação final quando definida.</p>
       </section>
+      </div></details>
       <div class="table-wrap">
         <div id="loading" class="loading">Carregando inscrições…</div>
         <table id="table" class="table hidden">
