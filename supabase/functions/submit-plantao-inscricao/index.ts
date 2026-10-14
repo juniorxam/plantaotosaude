@@ -14,7 +14,7 @@ const shifts = new Set([
   "01/11/2026 · 07h às 19h (12h)",
   "01/11/2026 · 19h às 02/11/2026 07h (12h)"
 ]);
-const professions = new Set(["Médico","Enfermeiro","Técnico em Enfermagem","Fisioterapeuta","Nutricionista","Psicólogo","Farmacêutico","Assistente Social","Técnico em Laboratório","Outro"]);
+const professions = new Set(["Médico","Enfermeiro","Técnico em Enfermagem","Fisioterapeuta","Nutricionista","Psicólogo","Farmacêutico","Assistente Social","Técnico em Laboratório","Cirurgião-Dentista","Auxiliar de Enfermagem","Assistente de Serviços de Saúde","Outro"]);
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 const digits = (value: FormDataEntryValue | null) => String(value ?? "").replace(/\D/g, "");
 const MAX_BIRTH_DATE = "2008-10-31";
