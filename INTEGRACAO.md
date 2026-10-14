@@ -56,3 +56,16 @@ Antes da divulgação pública, a organização precisa definir e publicar o res
 - Página pública de inscrição: `index.html`.
 - Consulta pública: `acompanhamento.html`.
 - Painel: `admin.html`.
+
+
+## Portal individual de documentos dos selecionados
+
+- Gestão de documentos: `/selecionados.html`.
+- Portal individual: `/documentos-candidato.html?token=...` (o token é aleatório, armazenado somente como hash, expira em até 14 dias e pode ser revogado pela Gestão).
+- A Edge Function `candidate-documents-portal` valida o token em cada operação; o upload binário é feito pelo servidor depois de revalidar expiração/revogação. Não criar políticas públicas para `candidate_documents`, `candidate_portal_access`, `candidate_bank_details` ou `candidate_portal_audit`.
+- O bucket `candidate-documents` deve continuar privado, limitado a PDF/JPEG/PNG e 10 MB por arquivo.
+- A Gestão consegue gerar link, enviar e-mail, abrir WhatsApp com mensagem pronta, revogar o link, revisar documentos/dados bancários e consultar o histórico.
+- Para habilitar envio automático pelo Resend, configurar nos secrets da Edge Function `candidate-documents-portal` as variáveis `RESEND_API_KEY` e `RESEND_FROM`. `RESEND_FROM` deve ser um remetente de domínio verificado e apropriado ao Plantão TO Saúde. Não usar credenciais no HTML, no GitHub ou no navegador.
+- A variável opcional `CANDIDATE_PORTAL_BASE_URL` define a origem do portal; por padrão usa `https://plantaotosaude.vercel.app`.
+- O WhatsApp é iniciado por link `wa.me` com texto pré-preenchido; o envio é confirmado manualmente pelo servidor responsável, não é disparo automático pela API.
+- O histórico registra criação/revogação de links, acessos, envio/substituição de documentos, conferência de documentos e dados bancários e falhas de envio de e-mail.
