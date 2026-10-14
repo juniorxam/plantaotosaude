@@ -123,7 +123,7 @@
     <main>
       <div class="page-title">
         <div><h2>Acompanhamento das inscrições</h2><p>Monitore a mobilização, analise os cadastros e organize os plantões.</p></div>
-        <div class="header-actions"><button id="refresh" class="btn ghost">Atualizar</button><button id="export-top" class="btn ghost">Exportar CSV</button></div>
+        <div class="header-actions"><button id="refresh" class="btn ghost">Atualizar inscrições</button></div>
       </div>
       <div id="notice" class="notice hidden"></div>
       <div class="stats">
@@ -157,7 +157,7 @@
         <p id="settings-feedback" class="muted" aria-live="polite" style="margin:12px 0 0"></p>
       </section>
       </div></details>
-      <details class="fold-section" id="admin-panel"><summary><span>🔐 Acessos e auditoria</span><small>Administradores e histórico de alterações</small></summary><div class="fold-content">
+      <details class="fold-section" id="admin-panel"><summary><span>🔐 Acessos administrativos</span><small>Gerenciar quem pode entrar no painel</small></summary><div class="fold-content">
       <section class="admin-tools" aria-label="Acessos administrativos">
         <article class="admin-tool">
           <h3>Acessos administrativos</h3>
@@ -206,23 +206,36 @@
         </select>
         <button id="export" class="btn ghost" type="button">Exportar CSV</button>
       </div>
-      <details class="fold-section" id="reports-panel" style="margin:14px 0 20px"><summary><span>📄 Relatórios e listas</span><small>Exportação Excel e PDF para publicação</small></summary><div class="fold-content">
-      <section class="monitor-card" aria-labelledby="reports-title" style="margin:14px 0 20px">
-        <h3 id="reports-title">Relatórios e listas para publicação</h3>
-        <p>Gere listas em ordem alfabética, com filtros independentes dos filtros da tabela. As listas para publicação não incluem CPF, telefone, e-mail, protocolo ou observações pessoais.</p>
-        <div style="display:flex;flex-wrap:wrap;gap:12px;margin:12px 0">
-          <div><label for="report-hospital">Hospital do relatório</label><select id="report-hospital"><option value="">Todos os hospitais</option><option value="Palmas — Hospital Geral de Palmas">Palmas — HGP</option><option value="Araguaína — Hospital Regional de Araguaína">Araguaína</option><option value="Gurupi — Hospital Regional de Gurupi">Gurupi</option><option value="Paraíso do Tocantins — Hospital Regional de Paraíso">Paraíso do Tocantins</option><option value="Porto Nacional — Hospital Regional de Porto Nacional">Porto Nacional</option><option value="Augustinópolis — Hospital Regional de Augustinópolis">Augustinópolis</option></select></div>
-          <div><label for="report-shift">Plantão do relatório</label><select id="report-shift"><option value="">Todos os plantões</option></select></div>
+      <details class="fold-section" id="reports-panel" style="margin:14px 0 20px" open>
+        <summary><span>📤 Exportar e gerar relatórios</span><small>Escolha o arquivo e a finalidade</small></summary>
+        <div class="fold-content">
+          <div class="admin-tools" style="margin-top:14px">
+            <article class="admin-tool">
+              <h3>1. Exportação completa (CSV)</h3>
+              <p>Exporta os registros que correspondem aos filtros aplicados na tabela. Inclui dados pessoais e administrativos; proteja o arquivo e compartilhe somente com pessoas autorizadas.</p>
+              <button id="export" class="btn primary" type="button">Baixar dados completos em CSV</button>
+            </article>
+            <article class="admin-tool">
+              <h3>2. Listas para publicação (Excel ou PDF)</h3>
+              <p>Listas em ordem alfabética, sem CPF, telefone, e-mail, protocolo ou observações pessoais. Escolha os filtros abaixo.</p>
+              <div style="display:flex;flex-wrap:wrap;gap:12px;margin:12px 0">
+                <div style="flex:1;min-width:210px"><label for="report-hospital">Hospital</label><select id="report-hospital"><option value="">Todos os hospitais</option><option value="Palmas — Hospital Geral de Palmas">Palmas — HGP</option><option value="Araguaína — Hospital Regional de Araguaína">Araguaína</option><option value="Gurupi — Hospital Regional de Gurupi">Gurupi</option><option value="Paraíso do Tocantins — Hospital Regional de Paraíso">Paraíso do Tocantins</option><option value="Porto Nacional — Hospital Regional de Porto Nacional">Porto Nacional</option><option value="Augustinópolis — Hospital Regional de Augustinópolis">Augustinópolis</option></select></div>
+                <div style="flex:1;min-width:210px"><label for="report-shift">Plantão</label><select id="report-shift"><option value="">Todos os plantões</option></select></div>
+              </div>
+              <div class="table-wrap" style="padding:14px;margin-top:12px">
+                <table class="table" style="min-width:0">
+                  <thead><tr><th>Lista</th><th>Excel (.xlsx)</th><th>PDF para impressão</th></tr></thead>
+                  <tbody>
+                    <tr><td><strong>Todos os inscritos</strong><div class="muted">Inclui todos os status</div></td><td><button id="report-all-xlsx" class="btn primary" type="button">Baixar Excel</button></td><td><button id="report-all-pdf" class="btn ghost" type="button">Gerar PDF</button></td></tr>
+                    <tr><td><strong>Aceitos e escalados</strong><div class="muted">Somente Confirmados e Escalados</div></td><td><button id="report-accepted-xlsx" class="btn primary" type="button">Baixar Excel</button></td><td><button id="report-accepted-pdf" class="btn ghost" type="button">Gerar PDF</button></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="muted" style="margin-top:10px">As listas públicas mostram hospital e plantão designados quando definidos. Os filtros desta área são independentes dos filtros da tabela de inscrições.</p>
+            </article>
+          </div>
         </div>
-        <div class="header-actions" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px">
-          <button id="report-all-xlsx" class="btn primary" type="button">Excel · Inscritos</button>
-          <button id="report-all-pdf" class="btn ghost" type="button">PDF · Inscritos</button>
-          <button id="report-accepted-xlsx" class="btn primary" type="button">Excel · Aceitos e escalados</button>
-          <button id="report-accepted-pdf" class="btn ghost" type="button">PDF · Aceitos e escalados</button>
-        </div>
-        <p class="muted" style="margin-top:10px">A lista de aceitos considera os status “Confirmado” e “Escalado”. Hospital e plantão mostram a designação final quando definida.</p>
-      </section>
-      </div></details>
+      </details>
       <div class="table-wrap">
         <div id="loading" class="loading">Carregando inscrições…</div>
         <table id="table" class="table hidden">
