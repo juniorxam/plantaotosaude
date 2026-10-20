@@ -104,12 +104,12 @@
         <label for="password">Senha</label>
         <input id="password" type="password" autocomplete="current-password" required placeholder="••••••••">
         <button id="login-button" class="btn primary" type="submit">Entrar com senha</button>
-        <p class="login-help">A entrada é somente com e-mail e senha. Não há cadastro público nem envio de link de acesso por e-mail. O acesso ao painel depende de liberação prévia por um administrador.</p>
+        <p class="login-help">A entrada é somente com e-mail e senha. O acesso depende de liberação prévia por um administrador; convites e redefinições de senha são enviados por e-mail.</p>
         <div id="login-error" class="error hidden" role="alert"></div>
       </form>
       <form id="first-access-form" class="hidden">
         <h2 style="margin-top:8px">Defina sua senha pessoal</h2>
-        <p class="login-help">Este é seu primeiro acesso. A senha temporária é 123456. Crie uma nova senha com pelo menos 10 caracteres para ativar sua conta administrativa.</p>
+        <p class="login-help">Você acessou pelo convite de administração. Crie uma senha pessoal com pelo menos 10 caracteres para ativar sua conta.</p>
         <label for="new-password">Nova senha</label>
         <input id="new-password" type="password" autocomplete="new-password" minlength="10" required placeholder="Mínimo de 10 caracteres">
         <label for="confirm-password">Confirme a nova senha</label>
@@ -566,7 +566,7 @@
         list.innerHTML = '<span class="muted">Não foi possível carregar os acessos administrativos.</span>';
         return;
       }
-      list.innerHTML = (data.admins || []).map(row => `<div class="admin-row"><span><strong>${esc(row.email)}</strong><br><small>${row.ativo ? 'Ativo' : 'Aguardando primeiro acesso / desativado'} · ${fmtDate(row.created_at)}</small></span><button class="btn ghost" type="button" data-admin-email="${esc(row.email)}" data-admin-active="${row.ativo}">${row.ativo ? 'Desativar' : 'Reenviar senha temporária'}</button></div>`).join('') || '<span class="muted">Nenhum acesso cadastrado.</span>';
+      list.innerHTML = (data.admins || []).map(row => `<div class="admin-row"><span><strong>${esc(row.email)}</strong><br><small>${row.ativo ? 'Ativo' : 'Aguardando primeiro acesso / desativado'} · ${fmtDate(row.created_at)}</small></span><button class="btn ghost" type="button" data-admin-email="${esc(row.email)}" data-admin-active="${row.ativo}">${row.ativo ? 'Desativar' : 'Reenviar convite'}</button></div>`).join('') || '<span class="muted">Nenhum acesso cadastrado.</span>';
     }
     async function saveAdminAccess(email, active) {
       const feedback = $('admin-access-feedback');
@@ -578,7 +578,7 @@
       }
       const button = $('admin-access-save');
       if (button) { button.disabled = true; button.textContent = active ? 'Preparando convite…' : 'Desativando…'; }
-      feedback.textContent = active ? 'Criando conta e senha temporária…' : 'Desativando acesso administrativo…';
+      feedback.textContent = active ? 'Enviando convite seguro por e-mail…' : 'Desativando acesso administrativo…';
       feedback.style.color = 'var(--muted)';
       try {
         const { data, error } = await client.functions.invoke('manage-admin-account', {
@@ -590,7 +590,7 @@
           return;
         }
         feedback.textContent = active
-          ? 'Convite preparado para ' + normalizedEmail + '. Senha temporária: 123456. No primeiro acesso, será obrigatório criar uma nova senha. Informe os dados por um canal seguro.'
+          ? 'Convite ou link para definir uma nova senha enviado para ' + normalizedEmail + '. A pessoa deverá criar sua própria senha pelo e-mail.'
           : 'Acesso de ' + normalizedEmail + ' desativado.';
         feedback.style.color = 'var(--success)';
         if (active) $('admin-access-email').value = '';
@@ -607,7 +607,7 @@
       const list = $('audit-list');
       const {data,error} = await client.from('admin_audit_log').select('created_at,actor_email,action,entity,entity_id,details').order('created_at',{ascending:false}).limit(100);
       if (error) { list.innerHTML = '<tr><td colspan="6" class="muted">Não foi possível carregar o histórico.</td></tr>'; return; }
-      const actionLabels = {UPDATE:'Alteração',GRANT:'Acesso liberado',REVOKE:'Acesso desativado'};
+      const actionLabels = {UPDATE:'Alteração',GRANT:'Acesso liberado',GRANT_PENDING:'Convite administrativo enviado',FIRST_PASSWORD_SET:'Senha inicial definida',REVOKE:'Acesso desativado'};
       const entityLabels = {inscricoes:'Inscrições',plantao_configuracoes:'Configurações da seleção',admin_access:'Acessos administrativos',admin_users:'Administradores'};
       const prettyDetails = details => {
         if (!details || typeof details !== 'object') return String(details ?? '—');
