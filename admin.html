@@ -168,7 +168,7 @@
       <section class="admin-tools" aria-label="Acessos administrativos">
         <article class="admin-tool">
           <h3>Acessos administrativos</h3>
-          <p>Ao liberar um e-mail, a conta será criada com a senha temporária 123456. No primeiro acesso, a pessoa será obrigada a cadastrar uma senha pessoal antes de entrar no painel.</p>
+          <p>Ao liberar um e-mail, a pessoa receberá um convite para definir sua própria senha. O acesso só será ativado após concluir o primeiro acesso.</p>
           <div class="admin-access-form"><input id="admin-access-email" type="email" placeholder="novo.admin@email.com" aria-label="E-mail do novo administrador"><button id="admin-access-save" class="btn save" type="button">Liberar acesso</button></div>
           <p id="admin-access-feedback" class="muted" role="status" aria-live="polite"></p><div id="admin-access-list" class="admin-list"><span class="loading">Carregando acessos…</span></div>
         </article>
@@ -738,8 +738,8 @@
       const password = $('new-password').value;
       const confirmation = $('confirm-password').value;
       errorEl.classList.add('hidden');
-      if (password.length < 10 || password === '123456') {
-        errorEl.textContent = 'Crie uma senha diferente da temporária, com pelo menos 10 caracteres.';
+      if (password.length < 10) {
+        errorEl.textContent = 'Crie uma senha pessoal com pelo menos 10 caracteres.';
         errorEl.classList.remove('hidden'); return;
       }
       if (password !== confirmation) {
