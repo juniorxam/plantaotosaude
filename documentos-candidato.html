@@ -31,8 +31,8 @@
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL='https://jyrzbfnaitdmilxxcbyv.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY='sb_publishable_WDE_s2HYfWUCI3iuodaG4w_RFGGwm9m';
+const SUPABASE_URL='https://xklcvzctqgfybrocgygm.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_aHYV7P0VzNJYNHoJ0P8BGw_N2nbFJMe';
 const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 const endpoint=SUPABASE_URL+'/functions/v1/candidate-documents-portal';
 const incomingToken=new URLSearchParams(location.search).get('token')||'';if(incomingToken){sessionStorage.setItem('candidatePortalToken',incomingToken);history.replaceState(null,'',location.pathname)}const token=incomingToken||sessionStorage.getItem('candidatePortalToken')||'';
