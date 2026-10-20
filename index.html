@@ -759,7 +759,7 @@
       <aside class="hero-panel hero-panel-status" aria-label="Status da mobilização">
         <div class="hero-panel-label">Concurso da Saúde</div>
         <strong class="hero-date">01 nov.<br />2026</strong>
-        <div class="hero-panel-highlight"><strong>6 opções de escala</strong><span>turnos de 12h ou 24h</span></div>
+        <div class="hero-panel-highlight"><strong>10 opções de escala</strong><span>turnos de 12h ou 24h</span></div>
         <div class="hero-rule"></div>
         <p class="hero-note"><span aria-hidden="true">📍</span><span><b>8 hospitais</b> participantes em 7 municípios: Palmas, Araguaína, Gurupi, Guaraí, Paraíso do Tocantins, Porto Nacional e Augustinópolis.</span></p>
       </aside>
@@ -1140,9 +1140,16 @@
     const MAX_BIRTH_DATE = '2008-10-31';
     // Opções públicas alinhadas aos três plantões de 12 horas divulgados na página.
     const SHIFT_OPTIONS = [
-      {value:'31/10/2026 · 19h às 01/11/2026 07h (12h)',title:'A · Véspera — noturno',detail:'31/10/2026, das 19h às 7h de 01/11/2026'},
-      {value:'01/11/2026 · 07h às 19h (12h)',title:'B · Dia do concurso — diurno',detail:'01/11/2026, das 7h às 19h'},
-      {value:'01/11/2026 · 19h às 02/11/2026 07h (12h)',title:'C · Dia do concurso — noturno',detail:'01/11/2026, das 19h às 7h de 02/11/2026'}
+      {value:'31/10/2026 · 07h às 19h (12h)',title:'31/10 · 07h · 12 horas',detail:'31/10/2026, das 7h às 19h'},
+      {value:'31/10/2026 · 07h às 01/11/2026 07h (24h)',title:'31/10 · 07h · 24 horas',detail:'31/10/2026, das 7h até 7h de 01/11/2026'},
+      {value:'31/10/2026 · 19h às 01/11/2026 07h (12h)',title:'31/10 · 19h · 12 horas',detail:'31/10/2026, das 19h até 7h de 01/11/2026'},
+      {value:'31/10/2026 · 19h às 01/11/2026 19h (24h)',title:'31/10 · 19h · 24 horas',detail:'31/10/2026, das 19h até 19h de 01/11/2026'},
+      {value:'01/11/2026 · 07h às 19h (12h)',title:'01/11 · 07h · 12 horas',detail:'01/11/2026, das 7h às 19h'},
+      {value:'01/11/2026 · 07h às 02/11/2026 07h (24h)',title:'01/11 · 07h · 24 horas',detail:'01/11/2026, das 7h até 7h de 02/11/2026'},
+      {value:'01/11/2026 · 19h às 02/11/2026 07h (12h)',title:'01/11 · 19h · 12 horas',detail:'01/11/2026, das 19h até 7h de 02/11/2026'},
+      {value:'01/11/2026 · 19h às 02/11/2026 19h (24h)',title:'01/11 · 19h · 24 horas',detail:'01/11/2026, das 19h até 19h de 02/11/2026'},
+      {value:'02/11/2026 · 07h às 19h (12h)',title:'02/11 · 07h · 12 horas',detail:'02/11/2026, das 7h às 19h'},
+      {value:'02/11/2026 · 07h às 03/11/2026 07h (24h)',title:'02/11 · 07h · 24 horas',detail:'02/11/2026, das 7h até 7h de 03/11/2026'}
     ];
     document.querySelector('#shift-options').innerHTML = SHIFT_OPTIONS.map(option => `<label class="choice"><input class="shift-checkbox" type="checkbox" name="plantoes" value="${option.value}"><span class="choice-content"><strong>${option.title}</strong><small>${option.detail}</small></span></label>`).join('');
 
