@@ -25,8 +25,8 @@
     <a class="back" href="/">← Voltar para a página de inscrição</a>
   </section></main>
   <script>
-    const SUPABASE_URL='https://jyrzbfnaitdmilxxcbyv.supabase.co';
-    const SUPABASE_PUBLISHABLE_KEY='sb_publishable_WDE_s2HYfWUCI3iuodaG4w_RFGGwm9m';
+    const SUPABASE_URL='https://xklcvzctqgfybrocgygm.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY='sb_publishable_aHYV7P0VzNJYNHoJ0P8BGw_N2nbFJMe';
     const $=id=>document.getElementById(id), onlyDigits=value=>String(value||'').replace(/\D/g,''), maskCpf=value=>{const d=onlyDigits(value).slice(0,11);return d.replace(/^(\d{3})(\d)/,'$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/,'$1.$2.$3').replace(/^(\d{3})\.(\d{3})\.(\d{3})(\d)/,'$1.$2.$3-$4')};
     function validCpf(v){if(!/^\d{11}$/.test(v)||/^([0-9])\1{10}$/.test(v))return false;let s=0;for(let i=0;i<9;i++)s+=+v[i]*(10-i);let d=s*10%11;if(d===10)d=0;if(d!==+v[9])return false;s=0;for(let i=0;i<10;i++)s+=+v[i]*(11-i);d=s*10%11;if(d===10)d=0;return d===+v[10]}
     $('cpf').addEventListener('input',e=>e.target.value=maskCpf(e.target.value));
