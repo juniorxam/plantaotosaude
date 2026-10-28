@@ -7,11 +7,18 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-// Aceita somente os três plantões de 12 horas divulgados no formulário público.
+// Mantém a validação da API alinhada às opções públicas e à RPC register_plantao_inscricao.
 const shifts = new Set([
+  "31/10/2026 · 07h às 19h (12h)",
+  "31/10/2026 · 07h às 01/11/2026 07h (24h)",
   "31/10/2026 · 19h às 01/11/2026 07h (12h)",
+  "31/10/2026 · 19h às 01/11/2026 19h (24h)",
   "01/11/2026 · 07h às 19h (12h)",
-  "01/11/2026 · 19h às 02/11/2026 07h (12h)"
+  "01/11/2026 · 07h às 02/11/2026 07h (24h)",
+  "01/11/2026 · 19h às 02/11/2026 07h (12h)",
+  "01/11/2026 · 19h às 02/11/2026 19h (24h)",
+  "02/11/2026 · 07h às 19h (12h)",
+  "02/11/2026 · 07h às 03/11/2026 07h (24h)"
 ]);
 const professions = new Set(["Médico","Enfermeiro","Técnico em Enfermagem","Fisioterapeuta","Nutricionista","Psicólogo","Farmacêutico","Assistente Social","Técnico em Laboratório","Cirurgião-Dentista","Auxiliar de Enfermagem","Auxiliar de Serviços de Saúde","Assistente de Serviços de Saúde","Instrumentador Cirúrgico","Técnico em Imobilização Ortopédica","Biólogo em Saúde","Biomédico","Farmacêutico-Bioquímico","Fonoaudiólogo","Terapeuta Ocupacional","Enfermeiro Obstetra","Perfusionista","Outro"]);
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
