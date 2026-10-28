@@ -871,6 +871,12 @@
     .footer-contact span{padding-left:16px;border-left:1px solid #83a5c4}
     .footer-disclaimer{display:none}
     .footer-contact:after{content:"☼  TOCANTINS  GOVERNO DO ESTADO";padding-left:18px;border-left:1px solid #83a5c4;color:#12437b;font-size:1rem;font-weight:850}
+    .footer-inner{flex-direction:column;gap:10px;padding:10px 0}
+    .footer-contact{display:grid;justify-items:center;gap:9px;color:#274f77;text-align:center;font-size:.95rem}
+    .footer-contact:before,.footer-contact:after{display:none;content:none}
+    .agency-signature{display:block;width:min(100%,576px);height:auto}
+    .footer-contact span{padding:0;border:0}
+    .footer-disclaimer{display:block;max-width:640px;color:#526f87;font-size:.78rem;font-weight:400}
     @media(max-width:720px){
       .hero{min-height:0;background-size:auto 57%;background-position:right top}
       .hero::before{background:linear-gradient(180deg,rgba(255,255,255,.15) 0%,#fff 50%,#fff 100%)}
@@ -1317,7 +1323,11 @@
         <div class="footer-brand"><img src="logo.svg" class="footer-logo" alt="" aria-hidden="true" /><span><strong>PLANTÃO TO</strong><small>SAÚDE</small></span></div>
         <p>Reforço profissional para os hospitais estaduais do Tocantins durante o concurso da SES-TO de 01/11/2026.</p>
       </div>
-      <div class="footer-contact">Mobilização temporária<br /><span>Plantão TO Saúde · Tocantins</span><small class="footer-disclaimer">Página de mobilização. Não substitui os canais oficiais da Secretaria da Saúde do Estado do Tocantins.</small></div>
+      <div class="footer-contact">
+        <img class="agency-signature" src="identidade-ses-to.png" alt="SES-TO — Secretaria de Estado da Saúde. Tocantins — Governo do Estado." />
+        <span>Plantão TO Saúde · Mobilização temporária no Tocantins</span>
+        <small class="footer-disclaimer">Página de mobilização. Não substitui os canais oficiais da Secretaria da Saúde do Estado do Tocantins.</small>
+      </div>
     </div>
   </footer>
 

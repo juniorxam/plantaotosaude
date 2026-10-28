@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "mkdir -p dist && cp index.html admin.html acompanhamento.html selecionados.html documentos-candidato.html manus-routes.json INTEGRACAO.md logo.svg hero-doctor.jpg dist/"
+    "build": "mkdir -p dist && cp index.html admin.html acompanhamento.html selecionados.html documentos-candidato.html manus-routes.json INTEGRACAO.md logo.svg hero-doctor.jpg identidade-ses-to.png dist/"
   }
 }
