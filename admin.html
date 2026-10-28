@@ -446,7 +446,7 @@
       $('detail-modal').classList.remove('hidden');
       $('close-modal').focus();
     }
-    const SETTING_PROFESSIONS = ["Médico","Cirurgião-Dentista","Auxiliar de Serviços de Saúde","Assistente de Serviços de Saúde","Auxiliar de Enfermagem","Técnico em Enfermagem","Instrumentador Cirúrgico","Técnico em Imobilização Ortopédica","Técnico em Laboratório","Assistente Social","Biólogo em Saúde","Biomédico","Enfermeiro","Farmacêutico","Farmacêutico-Bioquímico","Fonoaudiólogo","Nutricionista","Psicólogo","Fisioterapeuta","Terapeuta Ocupacional","Enfermeiro Obstetra","Perfusionista","Outro"];
+    const SETTING_PROFESSIONS = ["Médico","Cirurgião-Dentista","Auxiliar de Serviços de Saúde","Assistente de Serviços de Saúde","Auxiliar de Enfermagem","Técnico em Enfermagem","Instrumentador Cirúrgico","Técnico em Imobilização Ortopédica","Técnico em Laboratório","Assistente Social","Biólogo em Saúde","Biomédico","Enfermeiro","Farmacêutico","Farmacêutico-Bioquímico","Fonoaudiólogo","Nutricionista","Psicólogo","Fisioterapeuta","Terapeuta Ocupacional","Enfermeiro Obstetra","Perfusionista"];
     function renderSettingInputs(targetId, values = {}) {
       $(targetId).innerHTML = SETTING_PROFESSIONS.map((profession, i) => {
         const value = values[profession] == null ? '' : String(values[profession]);

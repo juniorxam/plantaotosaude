@@ -20,7 +20,7 @@ const shifts = new Set([
   "02/11/2026 · 07h às 19h (12h)",
   "02/11/2026 · 07h às 03/11/2026 07h (24h)"
 ]);
-const professions = new Set(["Médico","Enfermeiro","Técnico em Enfermagem","Fisioterapeuta","Nutricionista","Psicólogo","Farmacêutico","Assistente Social","Técnico em Laboratório","Cirurgião-Dentista","Auxiliar de Enfermagem","Auxiliar de Serviços de Saúde","Assistente de Serviços de Saúde","Instrumentador Cirúrgico","Técnico em Imobilização Ortopédica","Biólogo em Saúde","Biomédico","Farmacêutico-Bioquímico","Fonoaudiólogo","Terapeuta Ocupacional","Enfermeiro Obstetra","Perfusionista","Outro"]);
+const professions = new Set(["Médico","Enfermeiro","Técnico em Enfermagem","Fisioterapeuta","Nutricionista","Psicólogo","Farmacêutico","Assistente Social","Técnico em Laboratório","Cirurgião-Dentista","Auxiliar de Enfermagem","Auxiliar de Serviços de Saúde","Assistente de Serviços de Saúde","Instrumentador Cirúrgico","Técnico em Imobilização Ortopédica","Biólogo em Saúde","Biomédico","Farmacêutico-Bioquímico","Fonoaudiólogo","Terapeuta Ocupacional","Enfermeiro Obstetra","Perfusionista"]);
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 const digits = (value: FormDataEntryValue | null) => String(value ?? "").replace(/\D/g, "");
 const MAX_BIRTH_DATE = "2008-10-31";
