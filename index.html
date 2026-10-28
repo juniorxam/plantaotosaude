@@ -8,18 +8,18 @@
   <title>Plantão TO Saúde | Reforço profissional SES-TO</title>
   <style>
     :root {
-      --blue: #005a9c;
-      --blue-dark: #003d66;
-      --blue-deep: #022f4e;
-      --teal: #00897b;
-      --teal-light: #dff4f0;
+      --blue: #087fc1;
+      --blue-dark: #073f70;
+      --blue-deep: #06345b;
+      --teal: #087fc1;
+      --teal-light: #e3f4fc;
       --yellow: #ffcc00;
       --yellow-soft: #fff7d6;
-      --ink: #122b3b;
-      --muted: #5e7482;
-      --line: #d9e5ea;
+      --ink: #123b60;
+      --muted: #526f87;
+      --line: #d6e8f2;
       --surface: #ffffff;
-      --canvas: #f4f7fa;
+      --canvas: #f8fcff;
       --success: #18784b;
       --danger: #b42318;
       --radius-lg: 24px;
@@ -730,6 +730,71 @@
       .timeline-heading h2 { font-size: 1.7rem; }
       .form-card { padding: 1rem; }
     }
+
+    /* Identidade visual Plantão TO Saúde — azul institucional, amarelo e azul-claro */
+    :root {
+      --shadow-sm: 0 7px 22px rgba(7, 63, 112, .07);
+      --shadow-md: 0 16px 42px rgba(7, 63, 112, .12);
+    }
+    body { background: #fff; color: #123b60; }
+    .topbar { background: #073f70; border-bottom: 4px solid #ffcc00; }
+    .topbar-inner span:last-child { color: #d9effc; }
+    .quick-access { background: #fff; border-bottom-color: #d6e8f2; }
+    .quick-title span, .section-kicker { color: #087fc1; }
+    .quick-inner > a:hover { background: #edf8fe; color: #073f70; }
+    .quick-icon, .quick-inner > a:nth-child(3) .quick-icon,
+    .quick-inner > a:nth-child(5) .quick-icon { background: #087fc1; }
+    .quick-inner > a:nth-child(4) .quick-icon { color: #073f70; background: #ffcc00; }
+    .quick-inner > a b, .timeline-cta { color: #087fc1; }
+    .hero {
+      color: #073f70;
+      background:
+        radial-gradient(circle at 83% 18%, rgba(8,127,193,.10), transparent 25rem),
+        linear-gradient(110deg, #ffffff 0%, #f7fcff 56%, #e7f6fd 100%);
+    }
+    .hero::after {
+      border-color: rgba(8,127,193,.12);
+      box-shadow: 0 0 0 2.2rem rgba(8,127,193,.035), 0 0 0 4.4rem rgba(8,127,193,.025);
+    }
+    .hero-inner { min-height: 460px; padding-top: 4.25rem; padding-bottom: 4.25rem; gap: 3rem; }
+    .eyebrow { color: #087fc1; }
+    .eyebrow::before { height: 4px; }
+    h1, h2, h3 { color: #073f70; }
+    .hero-subtitle { color: #087fc1; }
+    .hero-copy { color: #315b7d; }
+    .hero-status { color: #073f70; background: #e3f4fc; border-color: #c9e8f7; }
+    .hero-status-dot { background: #ffcc00; }
+    .hero-eligibility { color: #315b7d; }
+    .hero-eligibility > span { color: #073f70; background: #ffcc00; }
+    .hero-panel, .hero-panel-status {
+      color: #073f70;
+      border: 1px solid #cbe7f5;
+      background: linear-gradient(145deg, #eaf8ff, #d9f0fc);
+      box-shadow: 0 16px 42px rgba(7,63,112,.10);
+      backdrop-filter: none;
+    }
+    .hero-panel-label, .hero-panel-highlight span { color: #087fc1; }
+    .hero-date, .hero-panel-highlight strong { color: #073f70; }
+    .hero-panel p { color: #315b7d; }
+    .hero-rule { background: #c3dfef; }
+    .hero-note b { color: #073f70; }
+    .btn { border-radius: 12px; }
+    .btn-primary { color: #073f70; background: #ffcc00; box-shadow: 0 7px 0 rgba(223,174,0,.18); }
+    .btn-primary:hover { background: #ffd633; }
+    .btn-secondary { color: #073f70; border-color: #b8dcec; background: #e5f5fd; }
+    .nav-wrap { border-bottom-color: #d6e8f2; }
+    .brand-logo { border-radius: 12px; }
+    .nav-links a:hover, .nav-links a:focus-visible { color: #073f70; background: #eaf7fd; }
+    .section-alt { background: #f0f8fc; }
+    .timeline-card { border-color: #d5e8f2; background: #f8fcff; }
+    .timeline-card-featured { border-color: #f0ca21; background: #fffdf1; }
+    .btn:focus-visible, a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline-color: rgba(8,127,193,.45); }
+    @media (max-width: 760px) {
+      .hero-inner { gap: 1.5rem; padding-top: 3rem; padding-bottom: 3rem; }
+      .hero-panel { border-radius: 18px; }
+      .hero-actions .btn { width: 100%; }
+    }
+
   </style>
 </head>
 <body>
